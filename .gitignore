@@ -1,6 +1,6 @@
-# ===== 预览派生文件 =====
-# index.html 由 prototype-成长小树苗.html 复制生成，仅用于沙箱预览，非真源
-index.html
+# ===== GitHub Pages 站点入口 =====
+# index.html 由 prototype-成长小树苗.html 复制生成，作为线上 Demo 入口
+# 改完原型后请同步：cp prototype-成长小树苗.html index.html
 
 # ===== AI 工作目录 =====
 .codebuddy/

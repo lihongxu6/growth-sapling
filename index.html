@@ -1,0 +1,1615 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>成长小树苗 - 原型</title>
+<style>
+/* ===== Reset & Base ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #f0f0f0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+/* 手机壳 */
+.phone-frame {
+  width: 375px;
+  height: 812px;
+  background: #FFF8F0;
+  border-radius: 40px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.15), 0 0 0 2px #333;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 移动端：手机壳填满视口，让底部导航贴着屏幕底部自适应高度 */
+@media (max-width: 480px) {
+  body {
+    align-items: stretch;
+    padding: 0;
+  }
+  .phone-frame {
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    border-radius: 0;
+    box-shadow: none;
+  }
+}
+
+/* ===== Design Tokens ===== */
+:root {
+  --green: #5CB85C;
+  --green-light: #E8F5E9;
+  --yellow: #F0AD4E;
+  --blue: #5BC0DE;
+  --bg: #FFF8F0;
+  --card-bg: #FFFFFF;
+  --text: #333333;
+  --text-secondary: #888888;
+  --border: #E8E0D8;
+  --orange-tag: #FFF3E0;
+  --danger: #E57373;
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+}
+
+/* ===== Status Bar ===== */
+.status-bar {
+  height: 44px;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 600;
+  color: #333;
+  flex-shrink: 0;
+}
+
+/* ===== Page Content ===== */
+.page-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+.page-content::-webkit-scrollbar { display: none; }
+
+/* ===== Pages ===== */
+.page {
+  display: none;
+  padding: 0 16px 20px;
+  animation: fadeIn 0.25s ease;
+}
+.page.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ===== Home Page (打卡) ===== */
+.star-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0 16px;
+  gap: 8px;
+}
+.star-count-header {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+.star-count {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.star-count .star-icon { font-size: 16px; }
+.star-count.pop { animation: starPop 0.3s ease; }
+@keyframes starPop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.3); color: #FF9800; }
+  100% { transform: scale(1); }
+}
+
+/* Streak fire */
+.streak-fire {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 22px;
+  font-weight: 800;
+}
+.streak-fire .fire-icon {
+  font-size: 26px;
+  filter: grayscale(1);
+  opacity: 0.35;
+  transition: all 0.5s ease;
+}
+.streak-fire .fire-icon.lit {
+  filter: grayscale(0);
+  opacity: 1;
+  animation: fireGlow 1.5s ease-in-out infinite alternate;
+}
+@keyframes fireGlow {
+  from { transform: scale(1); text-shadow: 0 0 4px rgba(240,173,78,0.3); }
+  to { transform: scale(1.1); text-shadow: 0 0 12px rgba(240,173,78,0.7); }
+}
+.streak-fire .streak-num {
+  color: var(--text);
+  min-width: 24px;
+  text-align: center;
+}
+
+.date-display {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 20px;
+  background: rgba(92,184,92,0.08);
+  transition: background 0.2s;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+.date-display:active { background: rgba(92,184,92,0.18); }
+.date-display .cal-icon { font-size: 18px; }
+
+/* Backfill banner */
+.backfill-banner {
+  display: none;
+  background: var(--orange-tag);
+  border-radius: var(--radius-sm);
+  padding: 8px 14px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  color: #E65100;
+  text-align: center;
+  font-weight: 600;
+}
+.backfill-banner.show { display: block; }
+
+/* Task cards */
+.task-list { display: flex; flex-direction: column; gap: 10px; }
+.task-card {
+  background: var(--card-bg);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1.5px solid var(--border);
+  cursor: pointer;
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+.task-card:active { transform: scale(0.98); }
+.task-card.completed {
+  background: var(--green-light);
+  border-color: transparent;
+}
+.task-card .task-icon { font-size: 28px; flex-shrink: 0; }
+.task-card .task-name {
+  flex: 1;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+}
+.task-card .task-status {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 18px;
+  transition: all 0.3s ease;
+}
+.task-card .task-status.unchecked {
+  border: 2.5px solid #ccc;
+  color: transparent;
+}
+.task-card .task-status.checked {
+  background: var(--green);
+  border: none;
+  color: white;
+}
+
+/* Backfill tag */
+.backfill-tag {
+  position: absolute;
+  top: 6px; right: 50px;
+  background: var(--orange-tag);
+  color: #E65100;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 8px;
+  display: none;
+}
+.backfill-tag.show { display: block; }
+
+/* Progress bar */
+.progress-bar-wrap {
+  margin-top: 16px;
+  background: #f0e8dc;
+  border-radius: 10px;
+  height: 12px;
+  overflow: hidden;
+}
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--green), #81C784);
+  border-radius: 10px;
+  transition: width 0.4s ease;
+}
+.progress-text {
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-align: center;
+  font-weight: 600;
+}
+
+/* Empty state */
+.empty-state {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+}
+.empty-state.show { display: flex; }
+.empty-state .squirrel {
+  font-size: 80px;
+  margin-bottom: 16px;
+  animation: bounce 2s infinite;
+}
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+.empty-state .empty-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+.empty-state .empty-subtitle {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 20px;
+}
+.empty-state .btn-primary {
+  background: var(--green);
+  color: white;
+  border: none;
+  padding: 12px 28px;
+  border-radius: var(--radius-lg);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.empty-state .btn-primary:active { opacity: 0.8; }
+
+/* Rest day */
+.rest-day {
+  display: none;
+  text-align: center;
+  padding: 80px 20px;
+  font-size: 16px;
+  color: var(--text-secondary);
+}
+.rest-day.show { display: block; }
+.rest-day .rest-icon { font-size: 60px; display: block; margin-bottom: 12px; }
+
+/* ===== Calendar Overlay ===== */
+.calendar-overlay {
+  display: none;
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.3);
+  z-index: 100;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 80px;
+}
+.calendar-overlay.show { display: flex; }
+.calendar-panel {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  width: 340px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+}
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.calendar-header .month-label { font-size: 17px; font-weight: 700; }
+.calendar-header button {
+  background: none; border: none;
+  font-size: 20px; cursor: pointer;
+  padding: 4px 10px; border-radius: 8px;
+  color: var(--text);
+}
+.calendar-header button:active { background: #f0f0f0; }
+.calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+.calendar-cell {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.15s;
+}
+.calendar-cell:active { background: #f5f5f5; }
+.calendar-cell.today { border: 2.5px solid var(--green); }
+.calendar-cell.future { color: #ccc; pointer-events: none; cursor: default; }
+.calendar-cell.green { background: var(--green-light); color: #2E7D32; }
+.calendar-cell.yellow { background: #FFF8E1; color: #F57F17; }
+.calendar-cell.gray { background: #f5f5f5; color: #bbb; }
+.calendar-cell.white { background: transparent; color: #ddd; }
+.calendar-cell .dot {
+  position: absolute;
+  bottom: 2px;
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--green);
+}
+.calendar-cell .dot.hollow {
+  background: transparent;
+  border: 1.5px solid var(--green);
+}
+.calendar-close {
+  display: block;
+  margin: 14px auto 0;
+  background: var(--green);
+  color: white;
+  border: none;
+  padding: 10px 30px;
+  border-radius: var(--radius-lg);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* ===== Stats Page ===== */
+.stats-header {
+  text-align: center;
+  padding: 12px 0 8px;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+}
+.streak-section {
+  text-align: center;
+  padding: 20px 0;
+}
+.streak-number {
+  font-size: 56px;
+  font-weight: 800;
+  color: var(--yellow);
+  line-height: 1;
+}
+.streak-label {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+.streak-max {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+.rate-section {
+  display: flex;
+  justify-content: center;
+  padding: 12px 0;
+}
+.rate-circle {
+  width: 100px; height: 100px;
+  border-radius: 50%;
+  border: 8px solid #f0e8dc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--green);
+  position: relative;
+}
+.rate-circle::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  border: 8px solid var(--green);
+  border-right-color: transparent;
+  border-bottom-color: transparent;
+  transform: rotate(-45deg);
+}
+.rate-label {
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-top: 6px;
+}
+
+/* Mini calendar in stats */
+.mini-calendar {
+  background: white;
+  border-radius: var(--radius-md);
+  padding: 14px;
+  margin-top: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+.mini-calendar .cal-title {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+/* Badge wall */
+.badge-section {
+  margin-top: 16px;
+}
+.badge-section .badge-title {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+.badge-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+.badge-item {
+  background: white;
+  border-radius: var(--radius-md);
+  padding: 12px 6px;
+  text-align: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  transition: all 0.3s ease;
+}
+.badge-item.earned {
+  box-shadow: 0 0 12px rgba(92,184,92,0.3);
+  border: 2px solid var(--green);
+}
+.badge-item.locked {
+  filter: grayscale(1);
+  opacity: 0.5;
+}
+.badge-item .badge-icon { font-size: 32px; display: block; }
+.badge-item .badge-name { font-size: 11px; margin-top: 4px; color: var(--text-secondary); font-weight: 600; }
+.badge-item .badge-progress { font-size: 10px; color: var(--text-secondary); margin-top: 2px; }
+
+/* ===== Tasks Page ===== */
+.tasks-header {
+  text-align: center;
+  padding: 12px 0 8px;
+  font-size: 20px;
+  font-weight: 700;
+}
+.task-mgmt-list { display: flex; flex-direction: column; gap: 10px; }
+.task-mgmt-card {
+  background: white;
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.task-mgmt-card:active { transform: scale(0.98); }
+.task-mgmt-card .tm-icon { font-size: 28px; }
+.task-mgmt-card .tm-info { flex: 1; }
+.task-mgmt-card .tm-name { font-size: 15px; font-weight: 600; }
+.task-mgmt-card .tm-repeat { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+.task-mgmt-card .tm-purpose { font-size: 12px; color: var(--blue); margin-top: 2px; font-style: italic; }
+.task-mgmt-card .tm-actions { display: flex; gap: 8px; }
+.tm-btn {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.tm-btn.edit { background: #E8F5E9; color: var(--green); }
+.tm-btn.delete { background: #FFEBEE; color: var(--danger); }
+.tm-btn:active { opacity: 0.7; }
+
+.add-task-btn {
+  display: block;
+  width: 100%;
+  margin-top: 20px;
+  padding: 14px;
+  background: var(--green);
+  color: white;
+  border: none;
+  border-radius: var(--radius-lg);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: center;
+}
+.add-task-btn:active { opacity: 0.8; }
+.add-task-btn:disabled { background: #ccc; cursor: not-allowed; }
+
+/* ===== Modal Overlay ===== */
+.modal-overlay {
+  display: none;
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 200;
+  justify-content: center;
+  align-items: center;
+}
+.modal-overlay.show { display: flex; }
+.modal-panel {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  width: 320px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+  animation: modalIn 0.25s ease;
+}
+@keyframes modalIn {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+.modal-panel h3 { font-size: 18px; margin-bottom: 16px; text-align: center; }
+.modal-panel .form-group { margin-bottom: 14px; }
+.modal-panel label { font-size: 13px; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 6px; }
+.modal-panel input[type="text"] {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+  outline: none;
+}
+.modal-panel input[type="text"]:focus { border-color: var(--green); }
+.icon-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+}
+.icon-option {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.15s;
+}
+.icon-option:hover { background: #f5f5f5; }
+.icon-option.selected { border-color: var(--green); background: var(--green-light); }
+.repeat-options { display: flex; flex-wrap: wrap; gap: 8px; }
+.repeat-option {
+  padding: 8px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  cursor: pointer;
+  border: 1.5px solid var(--border);
+  background: white;
+  font-weight: 600;
+  transition: all 0.15s;
+}
+.repeat-option.selected { background: var(--green-light); border-color: var(--green); color: var(--green); }
+.weekday-grid { display: none; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-top: 8px; }
+.weekday-grid.show { display: grid; }
+.weekday-cell {
+  text-align: center;
+  padding: 6px 0;
+  border-radius: 20px;
+  font-size: 12px;
+  cursor: pointer;
+  border: 1.5px solid var(--border);
+  font-weight: 600;
+}
+.weekday-cell.selected { background: var(--green); color: white; border-color: var(--green); }
+.modal-actions { display: flex; gap: 10px; margin-top: 18px; }
+.modal-actions button {
+  flex: 1;
+  padding: 12px;
+  border-radius: var(--radius-lg);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+}
+.modal-actions .btn-cancel { background: #f5f5f5; color: var(--text-secondary); }
+.modal-actions .btn-confirm { background: var(--green); color: white; }
+.modal-actions .btn-danger { background: var(--danger); color: white; }
+.modal-actions button:active { opacity: 0.8; }
+
+/* ===== Toast ===== */
+.toast {
+  position: absolute;
+  top: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #333;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  z-index: 300;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.toast.show { opacity: 1; }
+
+/* ===== Celebration ===== */
+.celebration {
+  display: none;
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(255,248,240,0.95);
+  z-index: 250;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  animation: fadeIn 0.3s ease;
+}
+.celebration.show { display: flex; }
+.celebration .celeb-text {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--green);
+  animation: celebBounce 0.6s ease infinite alternate;
+}
+@keyframes celebBounce {
+  from { transform: scale(1); }
+  to { transform: scale(1.1); }
+}
+.celebration .celeb-sub {
+  font-size: 16px;
+  color: var(--text-secondary);
+  margin-top: 8px;
+}
+.celebration .squirrel { font-size: 60px; margin-top: 16px; }
+
+/* ===== Bottom Tab Bar ===== */
+.tab-bar {
+  display: flex;
+  border-top: 1px solid #eee;
+  background: white;
+  flex-shrink: 0;
+  padding-bottom: env(safe-area-inset-bottom, 8px);
+}
+.tab-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 0 4px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+  color: #999;
+  transition: color 0.2s;
+  gap: 3px;
+}
+.tab-item .tab-icon { font-size: 22px; }
+.tab-item.active { color: var(--green); }
+
+/* ===== Star burst animation ===== */
+.star-burst {
+  position: absolute;
+  pointer-events: none;
+  z-index: 50;
+}
+.star-particle {
+  position: absolute;
+  font-size: 18px;
+  animation: starFly 0.6s ease-out forwards;
+}
+@keyframes starFly {
+  0% { transform: translate(0,0) scale(1); opacity: 1; }
+  100% { transform: translate(var(--dx), var(--dy)) scale(0); opacity: 0; }
+}
+</style>
+</head>
+<body>
+
+<div class="phone-frame" id="app">
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <span>9:41</span>
+    <span>成长小树苗 🌱</span>
+    <span>🔋</span>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <!-- Calendar Overlay -->
+  <div class="calendar-overlay" id="calendarOverlay">
+    <div class="calendar-panel" id="calendarPanel"></div>
+  </div>
+
+  <!-- Modal Overlay -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal-panel" id="modalPanel"></div>
+  </div>
+
+  <!-- Celebration -->
+  <div class="celebration" id="celebration" onclick="closeCelebration()">
+    <div class="celeb-text">🌟 太棒了！🌟</div>
+    <div class="celeb-sub">今天的任务全部完成！</div>
+    <div class="squirrel">🐿️</div>
+  </div>
+
+  <!-- Page Content -->
+  <div class="page-content" id="pageContent">
+    <!-- Home Page -->
+    <div class="page active" id="pageHome"></div>
+    <!-- Stats Page -->
+    <div class="page" id="pageStats"></div>
+    <!-- Tasks Page -->
+    <div class="page" id="pageTasks"></div>
+  </div>
+
+  <!-- Tab Bar -->
+  <div class="tab-bar">
+    <div class="tab-item active" data-tab="home" onclick="switchTab('home')">
+      <span class="tab-icon">🏠</span> 打卡
+    </div>
+    <div class="tab-item" data-tab="stats" onclick="switchTab('stats')">
+      <span class="tab-icon">📊</span> 统计
+    </div>
+    <div class="tab-item" data-tab="tasks" onclick="switchTab('tasks')">
+      <span class="tab-icon">⚙️</span> 任务
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== STATE =====
+const ICONS = ['📖','✏️','🏃','🎒','🪥','😴','🎹','🧮','🌿','🐶','🧹','🥛'];
+const ICON_KEYS = ['read','write','run','bag','brush','sleep','piano','math','plant','dog','clean','water'];
+
+const BADGES = [
+  { type: 'sprout', icon: '🌱', name: '新芽初绽', category: 'stars', threshold: 7, desc: '累计获得7颗星星' },
+  { type: 'growing', icon: '🌿', name: '小有所成', category: 'stars', threshold: 30, desc: '累计获得30颗星星' },
+  { type: 'thriving', icon: '🪴', name: '枝繁叶茂', category: 'stars', threshold: 100, desc: '累计获得100颗星星' },
+  { type: 'harvest', icon: '🍎', name: '硕果累累', category: 'stars', threshold: 365, desc: '累计获得365颗星星' },
+  { type: 'week_streak', icon: '🔥', name: '一周全勤', category: 'streak', threshold: 7, desc: '连续7天打卡' },
+  { type: 'month_streak', icon: '🌕', name: '满月之星', category: 'streak', threshold: 30, desc: '连续30天打卡' },
+  { type: 'daily_champion', icon: '🏅', name: '今日冠军', category: 'special', threshold: 1, desc: '某一天完成全部任务' },
+];
+
+// Initial demo data
+let tasks = [
+  { id: '1', name: '每日阅读30分钟', purpose: '认识更多字，看更有趣的故事书', icon: '📖', iconKey: 'read', repeatType: 'daily', repeatDays: [], sortOrder: 1, isDeleted: false },
+  { id: '2', name: '练字15分钟', purpose: '', icon: '✏️', iconKey: 'write', repeatType: 'weekday', repeatDays: [], sortOrder: 2, isDeleted: false },
+  { id: '3', name: '跳绳100个', purpose: '长高、身体更健康', icon: '🏃', iconKey: 'run', repeatType: 'custom', repeatDays: [1,3,5], sortOrder: 3, isDeleted: false },
+  { id: '4', name: '自己整理书包', purpose: '做一个有条理的小朋友', icon: '🎒', iconKey: 'bag', repeatType: 'daily', repeatDays: [], sortOrder: 4, isDeleted: false },
+];
+
+// Checkins: { 'YYYY-MM-DD': { taskId: { is_backfill: bool }, ... } }
+let checkins = {};
+let currentViewDate = getTodayStr();
+let totalStars = 12; // demo data
+let maxStreak = 12;
+let editingTaskId = null;
+let badges = { sprout: true, growing: false, thriving: false, harvest: false, week_streak: true, month_streak: false, daily_champion: true };
+
+// ===== HELPERS =====
+function getTodayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function getToday() { return new Date(); }
+function getWeekday(dateStr) { return new Date(dateStr + 'T00:00:00').getDay() || 7; } // 1=Mon..7=Sun
+
+function isTaskActiveToday(task, dateStr) {
+  const wd = getWeekday(dateStr);
+  switch(task.repeatType) {
+    case 'daily': return true;
+    case 'weekday': return wd <= 5;
+    case 'weekend': return wd >= 6;
+    case 'custom': return task.repeatDays.includes(wd);
+    default: return true;
+  }
+}
+
+function getActiveTasks(dateStr) {
+  return tasks.filter(t => !t.isDeleted && isTaskActiveToday(t, dateStr));
+}
+
+function isChecked(taskId, dateStr) {
+  return !!(checkins[dateStr] && checkins[dateStr][taskId]);
+}
+
+function isBackfill(taskId, dateStr) {
+  return !!(checkins[dateStr] && checkins[dateStr][taskId] && checkins[dateStr][taskId].is_backfill);
+}
+
+function getDayCheckCount(dateStr) {
+  if (!checkins[dateStr]) return 0;
+  return Object.keys(checkins[dateStr]).length;
+}
+
+function getConsecutiveStreak() {
+  let streak = 0;
+  const today = new Date();
+  for (let i = 0; i < 365; i++) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const ds = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    const dayChecks = getDayCheckCount(ds);
+    if (dayChecks > 0) { streak++; }
+    else { break; }
+  }
+  return streak;
+}
+
+function getWeeklyRate() {
+  const today = new Date();
+  let completed = 0, total = 0;
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const ds = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    const active = getActiveTasks(ds);
+    total += active.length;
+    const dayChecks = getDayCheckCount(ds);
+    completed += active.filter(t => isChecked(t.id, ds)).length;
+  }
+  return total === 0 ? 0 : Math.round((completed / total) * 100);
+}
+
+function recalcBadges() {
+  const streak = getConsecutiveStreak();
+  const allTimeStars = totalStars;
+  badges = {};
+  BADGES.forEach(b => {
+    if (b.category === 'stars') badges[b.type] = allTimeStars >= b.threshold;
+    else if (b.category === 'streak') badges[b.type] = streak >= b.threshold;
+    else if (b.type === 'daily_champion') {
+      badges[b.type] = Object.entries(checkins).some(([date, dayData]) => {
+        const dayChecks = Object.keys(dayData);
+        return dayChecks.length > 0 && dayChecks.length >= getActiveTasks(date).length;
+      });
+    }
+  });
+}
+
+// ===== RENDER =====
+function renderAll() {
+  renderHome();
+  renderStats();
+  renderTasks();
+  recalcBadges();
+  renderStats(); // re-render stats after badge recalc
+}
+
+function renderHome() {
+  const container = document.getElementById('pageHome');
+  const activeTasks = getActiveTasks(currentViewDate);
+  const isToday = currentViewDate === getTodayStr();
+  const isPast = currentViewDate < getTodayStr();
+
+  let html = '';
+
+  // Header: streak fire (most important) > stars > date
+  const streak = getConsecutiveStreak();
+  const todayCompleted = activeTasks.filter(t => isChecked(t.id, currentViewDate)).length;
+  const fireLit = todayCompleted > 0;
+  html += `<div class="star-header">
+    <div class="streak-fire" id="streakFire">
+      <span class="fire-icon ${fireLit ? 'lit' : ''}">${fireLit ? '🔥' : '🪵'}</span>
+      <span class="streak-num">${streak}</span>
+    </div>
+    <div class="star-count-header" id="starCountHeader">⭐ ${totalStars}</div>
+    <div class="date-display" onclick="openCalendar()">
+      <span>${formatDateShort(currentViewDate)}</span>
+      <span class="cal-icon">📅</span>
+    </div>
+  </div>`;
+
+  // Backfill banner
+  html += `<div class="backfill-banner ${isPast ? 'show' : ''}">📅 补卡模式 · ${formatDateShort(currentViewDate)}</div>`;
+
+  // Task list or empty
+  if (tasks.filter(t => !t.isDeleted).length === 0) {
+    html += `<div class="empty-state show">
+      <div class="squirrel">🐿️</div>
+      <div class="empty-title">来添加你的第一个任务吧！</div>
+      <div class="empty-subtitle">果果陪你一起打卡哦～</div>
+      <button class="btn-primary" onclick="switchTab('tasks')">去添加任务</button>
+    </div>`;
+  } else if (activeTasks.length === 0 && isToday) {
+    html += `<div class="rest-day show">
+      <span class="rest-icon">😴</span>
+      今天没有安排任务，好好休息吧～
+    </div>`;
+  } else if (activeTasks.length === 0 && isPast) {
+    html += `<div class="rest-day show">
+      <span class="rest-icon">📭</span>
+      这天没有安排任务哦～
+    </div>`;
+  } else {
+    html += `<div class="task-list" id="taskList">`;
+    const completedCount = activeTasks.filter(t => isChecked(t.id, currentViewDate)).length;
+    activeTasks.forEach(task => {
+      const checked = isChecked(task.id, currentViewDate);
+      const backfill = isBackfill(task.id, currentViewDate);
+      html += `<div class="task-card ${checked ? 'completed' : ''}" data-task-id="${task.id}" onclick="toggleCheckin('${task.id}')">
+        ${backfill ? '<div class="backfill-tag show">补</div>' : ''}
+        <span class="task-icon">${task.icon}</span>
+        <span class="task-name">${task.name}</span>
+        <span class="task-status ${checked ? 'checked' : 'unchecked'}">${checked ? '✓' : ''}</span>
+      </div>`;
+    });
+    html += `</div>`;
+    // Progress bar
+    const pct = activeTasks.length > 0 ? Math.round((completedCount / activeTasks.length) * 100) : 0;
+    html += `<div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:${pct}%"></div></div>`;
+    html += `<div class="progress-text">已完成 ${completedCount}/${activeTasks.length}</div>`;
+  }
+
+  container.innerHTML = html;
+}
+
+function renderStats() {
+  const container = document.getElementById('pageStats');
+  const streak = getConsecutiveStreak();
+  const rate = getWeeklyRate();
+
+  let html = '<div class="stats-header">📊 我的成长</div>';
+
+  // Streak
+  html += `<div class="streak-section">
+    <div class="streak-number">🔥 ${streak}</div>
+    <div class="streak-label">连续打卡天数</div>
+    <div class="streak-max">（最长 ${maxStreak} 天）</div>
+  </div>`;
+
+  // Weekly rate
+  html += `<div class="rate-section">
+    <div>
+      <div class="rate-circle">${rate}%</div>
+      <div class="rate-label">本周完成率</div>
+    </div>
+  </div>`;
+
+  // Mini calendar
+  html += renderMiniCalendar();
+
+  // Badge wall
+  html += `<div class="badge-section">
+    <div class="badge-title">🏅 徽章墙</div>
+    <div class="badge-grid">`;
+  BADGES.forEach(b => {
+    const earned = badges[b.type];
+    html += `<div class="badge-item ${earned ? 'earned' : 'locked'}">
+      <span class="badge-icon">${b.icon}</span>
+      <span class="badge-name">${b.name}</span>
+      <span class="badge-progress">${earned ? '已获得 ✨' : getBadgeProgress(b)}</span>
+    </div>`;
+  });
+  html += `<div class="badge-item locked">
+    <span class="badge-icon">🔒</span>
+    <span class="badge-name">敬请期待</span>
+    <span class="badge-progress">新徽章制作中</span>
+  </div>`;
+  html += `</div></div>`;
+
+  container.innerHTML = html;
+}
+
+function getBadgeProgress(badge) {
+  if (badge.category === 'stars') {
+    const remain = badge.threshold - totalStars;
+    return remain > 0 ? `还差 ${remain} 颗星` : '已获得 ✨';
+  } else if (badge.category === 'streak') {
+    const remain = badge.threshold - getConsecutiveStreak();
+    return remain > 0 ? `还需连续 ${remain} 天` : '已获得 ✨';
+  }
+  return '';
+}
+
+function renderMiniCalendar() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const firstDay = new Date(year, month, 1).getDay() || 7;
+  const today = now.getDate();
+
+  let html = `<div class="mini-calendar">
+    <div class="cal-title">📅 ${year}年${month+1}月</div>
+    <div class="calendar-weekdays"><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div>
+    <div class="calendar-grid">`;
+
+  // Empty cells before first day
+  for (let i = 1; i < firstDay; i++) {
+    html += '<div class="calendar-cell"></div>';
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const ds = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const active = getActiveTasks(ds);
+    const dayChecks = getDayCheckCount(ds);
+    let cls = 'calendar-cell';
+    if (d === today) cls += ' today';
+    if (d > today) { cls += ' future'; }
+    else if (active.length === 0) { cls += ' white'; }
+    else if (dayChecks === 0) { cls += ' gray'; }
+    else if (dayChecks >= active.length) { cls += ' green'; }
+    else { cls += ' yellow'; }
+
+    // Check if any are backfill
+    const hasBackfill = dayChecks > 0 && ds < getTodayStr() && Object.values(checkins[ds] || {}).some(v => v.is_backfill);
+    const dotHtml = hasBackfill ? '<span class="dot hollow"></span>' : (dayChecks > 0 ? '<span class="dot"></span>' : '');
+
+    html += `<div class="${cls}" onclick="goToDate('${ds}')">${d}${dotHtml}</div>`;
+  }
+  html += '</div></div>';
+  return html;
+}
+
+function renderTasks() {
+  const container = document.getElementById('pageTasks');
+  const activeTasks = tasks.filter(t => !t.isDeleted);
+
+  let html = '<div class="tasks-header">⚙️ 我的任务</div>';
+
+  if (activeTasks.length === 0) {
+    html += `<div class="empty-state show">
+      <div class="squirrel">🐿️</div>
+      <div class="empty-title">还没有任务哦～</div>
+      <div class="empty-subtitle">点击下方按钮，添加你的第一个任务吧！</div>
+    </div>`;
+  } else {
+    html += '<div class="task-mgmt-list">';
+    activeTasks.forEach(task => {
+      const repeatLabel = getRepeatLabel(task);
+      html += `<div class="task-mgmt-card" onclick="openEditTask('${task.id}')">
+        <span class="tm-icon">${task.icon}</span>
+        <div class="tm-info">
+          <div class="tm-name">${task.name}</div>
+          ${task.purpose ? `<div class="tm-purpose">💭 ${escapeHtml(task.purpose)}</div>` : ''}
+          <div class="tm-repeat">${repeatLabel}</div>
+        </div>
+        <div class="tm-actions">
+          <button class="tm-btn edit" onclick="event.stopPropagation(); openEditTask('${task.id}')">✏️</button>
+          <button class="tm-btn delete" onclick="event.stopPropagation(); confirmDeleteTask('${task.id}')">🗑</button>
+        </div>
+      </div>`;
+    });
+    html += '</div>';
+  }
+
+  html += `<button class="add-task-btn" ${activeTasks.length >= 6 ? 'disabled' : ''} onclick="openAddTask()">
+    ${activeTasks.length >= 6 ? '你的任务已经够啦，先坚持完成它们吧！' : '+ 添加任务'}
+  </button>`;
+
+  container.innerHTML = html;
+}
+
+function getRepeatLabel(task) {
+  switch(task.repeatType) {
+    case 'daily': return '每天';
+    case 'weekday': return '工作日（周一至周五）';
+    case 'weekend': return '周末（周六日）';
+    case 'custom': {
+      const dayNames = ['一','二','三','四','五','六','日'];
+      return '周' + task.repeatDays.map(d => dayNames[d-1]).join('、');
+    }
+    default: return '每天';
+  }
+}
+
+function formatDate(dateStr) {
+  const d = new Date(dateStr + 'T00:00:00');
+  const weekdays = ['周日','周一','周二','周三','周四','周五','周六'];
+  return `${d.getMonth()+1}月${d.getDate()}日 ${weekdays[d.getDay()]}`;
+}
+
+function formatDateShort(dateStr) {
+  const d = new Date(dateStr + 'T00:00:00');
+  return `${d.getMonth()+1}月${d.getDate()}日`;
+}
+
+// ===== ACTIONS =====
+function switchTab(tabName) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+
+  if (tabName === 'home') {
+    document.getElementById('pageHome').classList.add('active');
+    document.querySelector('.tab-item[data-tab="home"]').classList.add('active');
+  } else if (tabName === 'stats') {
+    document.getElementById('pageStats').classList.add('active');
+    document.querySelector('.tab-item[data-tab="stats"]').classList.add('active');
+    renderStats();
+  } else if (tabName === 'tasks') {
+    document.getElementById('pageTasks').classList.add('active');
+    document.querySelector('.tab-item[data-tab="tasks"]').classList.add('active');
+    renderTasks();
+  }
+  document.getElementById('pageContent').scrollTop = 0;
+}
+
+// 从统计页日历跳转到打卡页的对应日期（用于回溯某天未完成的任务）
+function goToDate(dateStr) {
+  currentViewDate = dateStr;
+  renderHome();
+  switchTab('home');
+  if (dateStr < getTodayStr()) {
+    showToast(`已跳转到 ${formatDateShort(dateStr)}，可补卡`);
+  } else if (dateStr > getTodayStr()) {
+    showToast(`已跳转到 ${formatDateShort(dateStr)}`);
+  } else {
+    showToast('已回到今天的打卡页');
+  }
+}
+
+function toggleCheckin(taskId) {
+  const checked = isChecked(taskId, currentViewDate);
+  if (checked) {
+    // Undo
+    showConfirm(`确定撤销「${getTaskName(taskId)}」的打卡吗？`, () => {
+      if (checkins[currentViewDate]) {
+        delete checkins[currentViewDate][taskId];
+        if (Object.keys(checkins[currentViewDate]).length === 0) delete checkins[currentViewDate];
+      }
+      totalStars = Math.max(0, totalStars - 1);
+      if (currentViewDate === getTodayStr() && maxStreak < getConsecutiveStreak()) maxStreak = getConsecutiveStreak();
+      renderAll();
+      showToast('已撤销打卡');
+    });
+  } else {
+    // Checkin
+    const card = document.querySelector(`.task-card[data-task-id="${taskId}"]`);
+    if (card) spawnStars(card);
+    if (!checkins[currentViewDate]) checkins[currentViewDate] = {};
+    checkins[currentViewDate][taskId] = {
+      is_backfill: currentViewDate < getTodayStr()
+    };
+    totalStars++;
+    if (currentViewDate === getTodayStr()) {
+      const streak = getConsecutiveStreak();
+      if (streak > maxStreak) maxStreak = streak;
+    }
+    renderAll();
+
+    // Animate star count in header
+    setTimeout(() => {
+      const starHeader = document.getElementById('starCountHeader');
+      if (starHeader) { starHeader.classList.remove('pop'); void starHeader.offsetWidth; starHeader.classList.add('pop'); }
+    }, 100);
+
+    // Check all complete
+    const activeTasks = getActiveTasks(currentViewDate);
+    const allDone = activeTasks.length > 0 && activeTasks.every(t => isChecked(t.id, currentViewDate));
+    if (allDone && currentViewDate === getTodayStr()) {
+      setTimeout(() => document.getElementById('celebration').classList.add('show'), 500);
+    }
+
+    // Check new badges
+    const oldBadges = {...badges};
+    recalcBadges();
+    BADGES.forEach(b => {
+      if (badges[b.type] && !oldBadges[b.type]) {
+        setTimeout(() => showToast(`🏅 获得新徽章：${b.name}！`), 800);
+      }
+    });
+    renderStats();
+  }
+}
+
+function getTaskName(taskId) {
+  const t = tasks.find(t => t.id === taskId);
+  return t ? t.name : '任务';
+}
+
+function spawnStars(card) {
+  const rect = card.getBoundingClientRect();
+  const phoneRect = document.getElementById('app').getBoundingClientRect();
+  const cx = rect.left - phoneRect.left + rect.width / 2;
+  const cy = rect.top - phoneRect.top + rect.height / 2;
+
+  const container = document.createElement('div');
+  container.className = 'star-burst';
+  container.style.left = cx + 'px';
+  container.style.top = cy + 'px';
+  document.getElementById('app').appendChild(container);
+
+  for (let i = 0; i < 5; i++) {
+    const particle = document.createElement('span');
+    particle.className = 'star-particle';
+    particle.textContent = '⭐';
+    particle.style.setProperty('--dx', (Math.random() - 0.5) * 120 + 'px');
+    particle.style.setProperty('--dy', (Math.random() - 0.5) * 120 + 'px');
+    container.appendChild(particle);
+  }
+
+  setTimeout(() => container.remove(), 700);
+}
+
+function closeCelebration() {
+  document.getElementById('celebration').classList.remove('show');
+}
+
+// ===== CALENDAR =====
+function openCalendar() {
+  const overlay = document.getElementById('calendarOverlay');
+  const panel = document.getElementById('calendarPanel');
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const firstDay = new Date(year, month, 1).getDay() || 7;
+  const today = now.getDate();
+
+  let html = `<div class="calendar-header">
+    <button onclick="changeCalendarMonth(-1)">◀</button>
+    <span class="month-label" id="calMonthLabel">${year}年${month+1}月</span>
+    <button onclick="changeCalendarMonth(1)">▶</button>
+  </div>
+  <div class="calendar-weekdays"><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div>
+  <div class="calendar-grid" id="calGrid">`;
+
+  for (let i = 1; i < firstDay; i++) {
+    html += '<div class="calendar-cell"></div>';
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const ds = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const active = getActiveTasks(ds);
+    const dayChecks = getDayCheckCount(ds);
+    let cls = 'calendar-cell';
+    if (d === today && month === now.getMonth()) cls += ' today';
+    if (ds > getTodayStr()) { cls += ' future'; }
+    else if (active.length === 0) { cls += ' white'; }
+    else if (dayChecks === 0) { cls += ' gray'; }
+    else if (dayChecks >= active.length) { cls += ' green'; }
+    else { cls += ' yellow'; }
+
+    const hasBackfill2 = dayChecks > 0 && ds < getTodayStr() && Object.values(checkins[ds] || {}).some(v => v.is_backfill);
+    const dotHtml2 = hasBackfill2 ? '<span class="dot hollow"></span>' : (dayChecks > 0 ? '<span class="dot"></span>' : '');
+
+    const clickable = ds <= getTodayStr();
+    html += `<div class="${cls}" ${clickable ? `onclick="selectCalendarDate('${ds}')"` : ''}>${d}${dotHtml2}</div>`;
+  }
+  html += '</div>';
+  html += '<button class="calendar-close" onclick="closeCalendar()">关闭</button>';
+
+  panel.innerHTML = html;
+  overlay.classList.add('show');
+  overlay._calYear = year;
+  overlay._calMonth = month;
+}
+
+function changeCalendarMonth(delta) {
+  const overlay = document.getElementById('calendarOverlay');
+  let year = (overlay._calYear || new Date().getFullYear());
+  let month = (overlay._calMonth ?? new Date().getMonth()) + delta;
+  if (month < 0) { month = 11; year--; }
+  if (month > 11) { month = 0; year++; }
+  overlay._calYear = year;
+  overlay._calMonth = month;
+  refreshCalendarPanel(year, month);
+}
+
+function refreshCalendarPanel(year, month) {
+  const panel = document.getElementById('calendarPanel');
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const firstDay = new Date(year, month, 1).getDay() || 7;
+  const now = new Date();
+  const today = now.getDate();
+
+  document.getElementById('calMonthLabel').textContent = `${year}年${month+1}月`;
+  const grid = document.getElementById('calGrid');
+
+  let html = '';
+  for (let i = 1; i < firstDay; i++) {
+    html += '<div class="calendar-cell"></div>';
+  }
+  for (let d = 1; d <= daysInMonth; d++) {
+    const ds = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const active = getActiveTasks(ds);
+    const dayChecks = getDayCheckCount(ds);
+    let cls = 'calendar-cell';
+    if (d === today && month === now.getMonth() && year === now.getFullYear()) cls += ' today';
+    if (ds > getTodayStr()) { cls += ' future'; }
+    else if (active.length === 0) { cls += ' white'; }
+    else if (dayChecks === 0) { cls += ' gray'; }
+    else if (dayChecks >= active.length) { cls += ' green'; }
+    else { cls += ' yellow'; }
+
+    const hasBackfill3 = dayChecks > 0 && ds < getTodayStr() && Object.values(checkins[ds] || {}).some(v => v.is_backfill);
+    const dotHtml3 = hasBackfill3 ? '<span class="dot hollow"></span>' : (dayChecks > 0 ? '<span class="dot"></span>' : '');
+
+    const clickable = ds <= getTodayStr();
+    html += `<div class="${cls}" ${clickable ? `onclick="selectCalendarDate('${ds}')"` : ''}>${d}${dotHtml3}</div>`;
+  }
+  grid.innerHTML = html;
+}
+
+function selectCalendarDate(dateStr) {
+  currentViewDate = dateStr;
+  closeCalendar();
+  renderHome();
+}
+
+function closeCalendar() {
+  document.getElementById('calendarOverlay').classList.remove('show');
+}
+
+// ===== MODALS =====
+function showConfirm(message, onConfirm) {
+  const overlay = document.getElementById('modalOverlay');
+  const panel = document.getElementById('modalPanel');
+  panel.innerHTML = `
+    <h3>${message}</h3>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">取消</button>
+      <button class="btn-confirm" id="confirmBtn">确定</button>
+    </div>`;
+  overlay.classList.add('show');
+  document.getElementById('confirmBtn').onclick = () => { closeModal(); onConfirm(); };
+}
+
+function openAddTask() {
+  editingTaskId = null;
+  openTaskForm('添加任务', '', '', '📖', 'daily', []);
+}
+
+function openEditTask(taskId) {
+  const task = tasks.find(t => t.id === taskId);
+  if (!task) return;
+  editingTaskId = taskId;
+  openTaskForm('编辑任务', task.name, task.purpose || '', task.icon, task.repeatType, task.repeatDays);
+}
+
+function openTaskForm(title, name, purpose, icon, repeatType, repeatDays) {
+  const overlay = document.getElementById('modalOverlay');
+  const panel = document.getElementById('modalPanel');
+
+  let iconsHtml = ICONS.map((ic, i) =>
+    `<div class="icon-option ${ic === icon ? 'selected' : ''}" data-icon="${ic}" data-key="${ICON_KEYS[i]}" onclick="selectIcon(this, '${ic}')">${ic}</div>`
+  ).join('');
+
+  const repeatOptions = [
+    { value: 'daily', label: '每天' },
+    { value: 'weekday', label: '工作日' },
+    { value: 'weekend', label: '周末' },
+    { value: 'custom', label: '自定义' },
+  ];
+
+  let repeatHtml = repeatOptions.map(r =>
+    `<div class="repeat-option ${repeatType === r.value ? 'selected' : ''}" data-value="${r.value}" onclick="selectRepeat(this)">${r.label}</div>`
+  ).join('');
+
+  const dayNames = ['一','二','三','四','五','六','日'];
+  let weekdayHtml = dayNames.map((dn, i) =>
+    `<div class="weekday-cell ${repeatDays.includes(i+1) ? 'selected' : ''}" data-day="${i+1}" onclick="toggleWeekday(this)">${dn}</div>`
+  ).join('');
+
+  panel.innerHTML = `
+    <h3>${title}</h3>
+    <div class="form-group">
+      <label>任务名称</label>
+      <input type="text" id="taskNameInput" value="${escapeHtml(name)}" placeholder="输入你的任务..." maxlength="20">
+    </div>
+    <div class="form-group">
+      <label>为什么要做这个任务？（选填）</label>
+      <input type="text" id="taskPurposeInput" value="${escapeHtml(purpose || '')}" placeholder="比如：认识更多字、身体更健康..." maxlength="50">
+    </div>
+    <div class="form-group">
+      <label>选择图标</label>
+      <div class="icon-grid" id="iconGrid">${iconsHtml}</div>
+    </div>
+    <div class="form-group">
+      <label>重复周期</label>
+      <div class="repeat-options" id="repeatOptions">${repeatHtml}</div>
+      <div class="weekday-grid ${repeatType === 'custom' ? 'show' : ''}" id="weekdayGrid">${weekdayHtml}</div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">取消</button>
+      <button class="btn-confirm" onclick="saveTask()">保存</button>
+    </div>`;
+
+  overlay.classList.add('show');
+  panel._selectedIcon = icon;
+  panel._selectedIconKey = ICON_KEYS[ICONS.indexOf(icon)] || 'read';
+  panel._repeatType = repeatType;
+  panel._repeatDays = [...repeatDays];
+}
+
+function selectIcon(el, icon) {
+  document.querySelectorAll('#iconGrid .icon-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  const panel = document.getElementById('modalPanel');
+  const idx = ICONS.indexOf(icon);
+  panel._selectedIcon = icon;
+  panel._selectedIconKey = ICON_KEYS[idx] || 'read';
+}
+
+function selectRepeat(el) {
+  document.querySelectorAll('#repeatOptions .repeat-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  const panel = document.getElementById('modalPanel');
+  panel._repeatType = el.dataset.value;
+  const wg = document.getElementById('weekdayGrid');
+  if (panel._repeatType === 'custom') {
+    wg.classList.add('show');
+  } else {
+    wg.classList.remove('show');
+  }
+}
+
+function toggleWeekday(el) {
+  el.classList.toggle('selected');
+  const panel = document.getElementById('modalPanel');
+  const day = parseInt(el.dataset.day);
+  if (el.classList.contains('selected')) {
+    if (!panel._repeatDays.includes(day)) panel._repeatDays.push(day);
+  } else {
+    panel._repeatDays = panel._repeatDays.filter(d => d !== day);
+  }
+}
+
+function saveTask() {
+  const panel = document.getElementById('modalPanel');
+  const name = document.getElementById('taskNameInput').value.trim();
+  if (!name) { showToast('给你的任务起个名字吧～'); return; }
+
+  const purpose = document.getElementById('taskPurposeInput').value.trim();
+  const icon = panel._selectedIcon;
+  const iconKey = panel._selectedIconKey;
+  const repeatType = panel._repeatType;
+  const repeatDays = panel._repeatDays.sort((a,b) => a-b);
+
+  if (editingTaskId) {
+    const task = tasks.find(t => t.id === editingTaskId);
+    if (task) {
+      task.name = name;
+      task.purpose = purpose;
+      task.icon = icon;
+      task.iconKey = iconKey;
+      task.repeatType = repeatType;
+      task.repeatDays = repeatDays;
+    }
+  } else {
+    if (tasks.filter(t => !t.isDeleted).length >= 6) {
+      showToast('你的任务已经够啦，先坚持完成它们吧！');
+      return;
+    }
+    tasks.push({
+      id: Date.now().toString(),
+      name, purpose, icon, iconKey, repeatType, repeatDays,
+      sortOrder: tasks.length + 1,
+      isDeleted: false
+    });
+  }
+
+  editingTaskId = null;
+  closeModal();
+  renderAll();
+  showToast('保存成功！');
+}
+
+function confirmDeleteTask(taskId) {
+  const task = tasks.find(t => t.id === taskId);
+  if (!task) return;
+  showConfirm(`确定删除「${task.name}」吗？之前的打卡记录会留着哦～`, () => {
+    task.isDeleted = true;
+    renderAll();
+    showToast('任务已删除');
+  });
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('show');
+  editingTaskId = null;
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ===== TOAST =====
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  clearTimeout(toast._timeout);
+  toast._timeout = setTimeout(() => toast.classList.remove('show'), 1800);
+}
+
+// ===== INIT =====
+// Add some demo checkins (timely = same-day, not backfill)
+const todayDemo = new Date();
+for (let i = 0; i < 7; i++) {
+  const d = new Date(todayDemo);
+  d.setDate(d.getDate() - i);
+  const ds = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  const activeTasks = tasks.filter(t => !t.isDeleted && isTaskActiveToday(t, ds));
+  if (i !== 2) {
+    checkins[ds] = {};
+    activeTasks.forEach(t => { checkins[ds][t.id] = { is_backfill: false }; });
+  } else {
+    // partial day
+    checkins[ds] = {};
+    if (activeTasks[0]) checkins[ds][activeTasks[0].id] = { is_backfill: false };
+  }
+}
+// Add a real backfill demo: 10 days ago, only 2 tasks were filled in late
+const bfDate = `${todayDemo.getFullYear()}-${String(todayDemo.getMonth()+1).padStart(2,'0')}-${String(Math.max(1, todayDemo.getDate()-10)).padStart(2,'0')}`;
+if (!checkins[bfDate]) checkins[bfDate] = {};
+const bfTasks = tasks.filter(t => !t.isDeleted && isTaskActiveToday(t, bfDate));
+if (bfTasks[0]) checkins[bfDate][bfTasks[0].id] = { is_backfill: true };
+if (bfTasks[3]) checkins[bfDate][bfTasks[3].id] = { is_backfill: true };
+
+totalStars = 0;
+Object.values(checkins).forEach(day => { totalStars += Object.keys(day).length; });
+maxStreak = 12;
+
+recalcBadges();
+renderAll();
+
+// Close overlays on backdrop click
+document.getElementById('calendarOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeCalendar();
+});
+document.getElementById('modalOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+</script>
+</body>
+</html>
