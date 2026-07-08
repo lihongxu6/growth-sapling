@@ -75,6 +75,7 @@ body {
   color: #333;
   flex-shrink: 0;
 }
+.status-brand { flex: 1; text-align: center; }
 
 /* ===== Page Content ===== */
 .page-content {
@@ -97,10 +98,15 @@ body {
 
 /* ===== Home Page (打卡) ===== */
 .star-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--bg);
+  margin: 0 -16px;
+  padding: 8px 16px 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 0 16px;
   gap: 8px;
 }
 .star-count-header {
@@ -411,8 +417,13 @@ body {
 
 /* ===== Stats Page ===== */
 .stats-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--bg);
+  margin: 0 -16px;
+  padding: 12px 16px 8px;
   text-align: center;
-  padding: 12px 0 8px;
   font-size: 20px;
   font-weight: 700;
   color: var(--text);
@@ -521,8 +532,13 @@ body {
 
 /* ===== Tasks Page ===== */
 .tasks-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--bg);
+  margin: 0 -16px;
+  padding: 12px 16px 8px;
   text-align: center;
-  padding: 12px 0 8px;
   font-size: 20px;
   font-weight: 700;
 }
@@ -763,8 +779,7 @@ body {
 <div class="phone-frame" id="app">
   <!-- Status Bar -->
   <div class="status-bar">
-    <span>9:41</span>
-    <span>成长小树苗 🌱</span>
+    <span class="status-brand">成长小树苗 🌱</span>
     <span>🔋</span>
   </div>
 
