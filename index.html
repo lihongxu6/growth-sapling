@@ -32,13 +32,21 @@ body{
   body{align-items:stretch; padding:0;}
   .phone-frame{width:100%; height:100vh; height:100dvh; border-radius:0; box-shadow:none;}
 }
-/* ===== Status Bar (无假时间、无多余图标) ===== */
+/* ===== Status Bar (顶部安全区，无品牌名/无假数据) ===== */
 .status-bar{
-  height:44px; flex-shrink:0; display:flex; align-items:center; justify-content:center;
-  padding:0 22px; font-size:var(--fs-aux); font-weight:600; color:var(--text);
+  height:44px; flex-shrink:0; background:var(--bg);
 }
-.status-brand{flex:1; text-align:center;}
-.status-signal{letter-spacing:1px;}
+/* ===== Splash 开屏页 ===== */
+.splash{
+  position:absolute; inset:0; z-index:70; background:var(--bg);
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:var(--sp-3);
+  transition:opacity .6s ease;
+}
+.splash.hide{opacity:0; pointer-events:none;}
+.splash-logo{font-size:72px; animation:splashPop .6s ease;}
+@keyframes splashPop{from{transform:scale(.6);opacity:0;}to{transform:scale(1);opacity:1;}}
+.splash-name{font-size:28px; font-weight:800; color:var(--green);}
+.splash-slogan{font-size:var(--fs-caption); color:var(--text-secondary);}
 /* ===== Content ===== */
 .page-content{flex:1; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; scroll-behavior:smooth;}
 .page-content::-webkit-scrollbar{display:none;}
@@ -212,9 +220,14 @@ body{
 </head>
 <body>
 <div class="phone-frame" id="app">
-  <!-- Status Bar (无假时间、无多余图标) -->
-  <div class="status-bar">
-    <span class="status-brand">成长小树苗 🌱</span>
+  <!-- Status Bar (安全区，无品牌名/无假数据) -->
+  <div class="status-bar"></div>
+
+  <!-- Splash 开屏页 -->
+  <div class="splash" id="splash" onclick="hideSplash()">
+    <div class="splash-logo">🌱</div>
+    <div class="splash-name">成长小树苗</div>
+    <div class="splash-slogan">陪你慢慢长大</div>
   </div>
 
   <div class="toast" id="toast"></div>
@@ -466,6 +479,10 @@ function closeOverlay(id){document.getElementById(id).classList.remove('show');}
 function demoEmpty(){homeEmpty=true;backfillOn=false;renderHome();showToast('演示：空状态');}
 function demoBackfill(){backfillOn=!backfillOn;homeEmpty=false;renderHome();showToast(backfillOn?'补卡模式演示':'已退出补卡');}
 function resetHome(){homeEmpty=false;backfillOn=false;renderHome();}
+
+/* ===== Splash ===== */
+function hideSplash(){document.getElementById('splash').classList.add('hide');}
+setTimeout(hideSplash,1500);
 
 /* ===== Init ===== */
 renderHome();
