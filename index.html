@@ -32,9 +32,9 @@ body{
   body{align-items:stretch; padding:0;}
   .phone-frame{width:100%; height:100vh; height:100dvh; border-radius:0; box-shadow:none;}
 }
-/* ===== Status Bar (无假时间) ===== */
+/* ===== Status Bar (无假时间、无多余图标) ===== */
 .status-bar{
-  height:44px; flex-shrink:0; display:flex; align-items:center; justify-content:space-between;
+  height:44px; flex-shrink:0; display:flex; align-items:center; justify-content:center;
   padding:0 22px; font-size:var(--fs-aux); font-weight:600; color:var(--text);
 }
 .status-brand{flex:1; text-align:center;}
@@ -49,14 +49,15 @@ body{
 /* ===== Home Header (sticky) ===== */
 .home-header{
   position:sticky; top:0; z-index:10; background:var(--bg); margin:0 calc(-1*var(--sp-4));
-  padding:var(--sp-2) var(--sp-4) var(--sp-3); display:flex; align-items:center; gap:var(--sp-3);
+  padding:var(--sp-2) var(--sp-4) var(--sp-3); display:flex; align-items:center; gap:var(--sp-3); justify-content:space-between;
 }
+.home-header>*{flex:1;}
 .streak-fire{display:flex; align-items:center; gap:2px; font-weight:800; font-size:18px; color:var(--yellow);}
 .fire-icon{font-size:22px;}
 .fire-icon.lit{filter:drop-shadow(0 0 6px rgba(240,173,78,.7)); animation:flame 1.4s ease-in-out infinite alternate;}
 @keyframes flame{from{transform:scale(1);}to{transform:scale(1.12) rotate(-3deg);}}
-.star-count{margin-left:auto; font-weight:700; font-size:var(--fs-card-title); color:var(--gold);}
-.date-display{display:flex; align-items:center; gap:4px; font-size:var(--fs-aux); font-weight:600; color:var(--text-secondary); background:var(--card-bg); border:1px solid var(--border); padding:6px 10px; border-radius:var(--radius-pill); min-height:44px;}
+.star-count{text-align:center; font-weight:700; font-size:var(--fs-card-title); color:var(--gold);}
+.date-display{display:flex; align-items:center; justify-content:flex-end; gap:4px; font-size:var(--fs-aux); font-weight:600; color:var(--text-secondary); background:var(--card-bg); border:1px solid var(--border); padding:6px 10px; border-radius:var(--radius-pill); min-height:44px;}
 /* ===== Backfill banner ===== */
 .backfill-banner{
   display:none; align-items:center; gap:6px; background:var(--orange-tag); color:var(--yellow);
@@ -91,7 +92,6 @@ body{
 .progress-track{height:12px; background:#EFE7DC; border-radius:var(--radius-pill); overflow:hidden;}
 .progress-fill{height:100%; background:linear-gradient(90deg,var(--green),#7CC47F); border-radius:var(--radius-pill); transition:width .4s ease;}
 .progress-text{text-align:center; font-size:var(--fs-card-title); font-weight:700; margin-top:var(--sp-2);}
-.star-below{text-align:center; font-size:var(--fs-aux); font-weight:700; color:var(--gold); margin-top:4px;}
 
 /* ===== Empty State ===== */
 .empty-state{display:flex; flex-direction:column; align-items:center; text-align:center; padding:var(--sp-8) var(--sp-4); gap:var(--sp-3);}
@@ -212,11 +212,9 @@ body{
 </head>
 <body>
 <div class="phone-frame" id="app">
-  <!-- Status Bar (无假时间) -->
+  <!-- Status Bar (无假时间、无多余图标) -->
   <div class="status-bar">
-    <span class="status-signal">●●●</span>
     <span class="status-brand">成长小树苗 🌱</span>
-    <span>🔋</span>
   </div>
 
   <div class="toast" id="toast"></div>
@@ -352,8 +350,7 @@ function renderHome(){
     h+=`</div>`;
     const pct=Math.round(doneCount/homeTasks.length*100);
     h+=`<div class="progress-wrap"><div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
-      <div class="progress-text">已完成 ${doneCount}/${homeTasks.length}</div>
-      <div class="star-below">⭐ ${STARS}</div></div>`;
+      <div class="progress-text">已完成 ${doneCount}/${homeTasks.length}</div></div>`;
   }
   c.innerHTML=h;
 }
