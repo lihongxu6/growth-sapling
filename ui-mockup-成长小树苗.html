@@ -133,7 +133,7 @@ body{
 .cal-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:6px;}
 .cal-cell{aspect-ratio:1; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:11px; color:var(--text-secondary);}
 .cal-head{font-size:10px; color:var(--text-secondary); font-weight:700; aspect-ratio:1; display:flex; align-items:center; justify-content:center;}
-.c-done{background:#7CC47F;} .c-part{background:var(--yellow);} .c-none{background:#E0E0E0;} .c-empty{background:transparent;}
+.c-done{background:#7CC47F; cursor:pointer;} .c-part{background:var(--yellow); cursor:pointer;} .c-none{background:#E0E0E0; cursor:pointer;} .c-empty{background:transparent;}
 .c-today{outline:2px solid var(--green); outline-offset:-2px;}
 /* badges */
 .badge-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:var(--sp-3);}
@@ -306,10 +306,10 @@ body{
 /* ===== Mock Data ===== */
 const ICONS=['📖','✏️','🏃','🎒','🪥','😴','🎹','🧮','🌿','🐶','🧹','🥛'];
 let homeTasks=[
-  {id:1,icon:'📖',name:'每日阅读30分钟',done:true,backfill:false},
-  {id:2,icon:'✏️',name:'练字15分钟',done:false,backfill:false},
-  {id:3,icon:'🏃',name:'跳绳100个',done:false,backfill:false},
-  {id:4,icon:'🎒',name:'整理书包',done:true,backfill:true},
+  {id:1,icon:'📖',name:'每日阅读30分钟',done:true},
+  {id:2,icon:'✏️',name:'练字15分钟',done:false},
+  {id:3,icon:'🏃',name:'跳绳100个',done:false},
+  {id:4,icon:'🎒',name:'整理书包',done:true},
 ];
 let mgmtTasks=[
   {id:1,icon:'📖',name:'每日阅读30分钟',why:'认识更多字',repeat:'每天'},
@@ -327,33 +327,41 @@ const BADGES=[
   {icon:'🔒',name:'敬请期待',earned:false,prog:'',reserved:true},
 ];
 const STREAK=7, STARS=23, WEEK_RATE=85;
-let backfillOn=false, homeEmpty=false;
-let calMonth=2, calYear=2025; // March (0-indexed 2)
+let homeEmpty=false;
+const TODAY=new Date(); TODAY.setHours(0,0,0,0);
+let calMonth=TODAY.getMonth(), calYear=TODAY.getFullYear();
+let viewDate=isoOf(TODAY);
 
 /* ===== Utils ===== */
-function todayStr(){const d=new Date();const w=['周日','周一','周二','周三','周四','周五','周六'][d.getDay()];return `${d.getMonth()+1}月${d.getDate()}日 ${w}`;}
+function isoOf(d){return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;}
+function dateOfIso(s){const [y,m,dd]=s.split('-').map(Number);return new Date(y,m-1,dd);}
+function fmtDate(d){const w=['周日','周一','周二','周三','周四','周五','周六'][d.getDay()];return `${d.getMonth()+1}月${d.getDate()}日 ${w}`;}
 function showToast(t){const el=document.getElementById('toast');el.textContent=t;el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),1800);}
 
 /* ===== Render Home ===== */
 function renderHome(){
   const c=document.getElementById('pageHome');
+  const vd=dateOfIso(viewDate);
+  const isPast=vd<TODAY, isFuture=vd>TODAY;
   const doneCount=homeTasks.filter(t=>t.done).length;
-  const fireLit=homeTasks.some(t=>t.done);
+  const fireLit=isPast || homeTasks.some(t=>t.done);
   let h='';
   h+=`<div class="home-header">
     <div class="streak-fire"><span class="fire-icon ${fireLit?'lit':''}">${fireLit?'🔥':'🪵'}</span><span>${STREAK}</span></div>
     <div class="star-count">⭐ ${STARS}</div>
-    <div class="date-display" onclick="openCal()"><span>${backfillOn?'3月14日 周五':todayStr()}</span><span>📅</span></div>
+    <div class="date-display" onclick="openCal()"><span>${fmtDate(vd)}</span><span>📅</span></div>
   </div>`;
-  h+=`<div class="backfill-banner ${backfillOn?'show':''}">📅 补卡模式 · 3月14日</div>`;
+  h+=`<div class="backfill-banner ${isPast?'show':''}">📅 补卡模式 · ${fmtDate(vd)}</div>`;
   if(homeEmpty){
     h+=`<div class="empty-state"><div class="squirrel">🐿️</div><div class="empty-title">来添加你的第一个任务吧！</div><div class="empty-sub">果果陪你一起打卡哦～</div><button class="btn-primary" onclick="switchTab('tasks')">去添加任务</button></div>`;
+  }else if(isFuture){
+    h+=`<div class="empty-state"><div class="squirrel">🐿️</div><div class="empty-title">这一天还没到哦</div><div class="empty-sub">${fmtDate(vd)} 是未来，先安排好任务吧～</div></div>`;
   }else if(homeTasks.length===0){
     h+=`<div class="empty-state"><div class="squirrel">🐿️</div><div class="empty-title">今天没有安排任务</div><div class="empty-sub">好好休息吧～</div></div>`;
   }else{
     h+=`<div class="task-list">`;
     homeTasks.forEach(t=>{
-      h+=`<div class="task-card ${t.done?'completed':''} ${t.backfill?'backfill':''}" onclick="toggleTask(${t.id})">
+      h+=`<div class="task-card ${t.done?'completed':''} ${t.backfill?'backfill':''}" onclick="onTaskClick(${t.id})">
         ${t.backfill?'<div class="backfill-tag">补</div>':''}
         <span class="task-icon">${t.icon}</span>
         <span class="task-name">${t.name}</span>
@@ -361,17 +369,27 @@ function renderHome(){
       </div>`;
     });
     h+=`</div>`;
-    const pct=Math.round(doneCount/homeTasks.length*100);
+    const cnt=homeTasks.filter(t=>t.done).length;
+    const pct=Math.round(cnt/homeTasks.length*100);
     h+=`<div class="progress-wrap"><div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
-      <div class="progress-text">已完成 ${doneCount}/${homeTasks.length}</div></div>`;
+      <div class="progress-text">已完成 ${cnt}/${homeTasks.length}</div></div>`;
   }
   c.innerHTML=h;
 }
-function toggleTask(id){
-  const t=homeTasks.find(x=>x.id===id); if(!t)return;
-  t.done=!t.done; if(t.done&&t.backfill)t.backfill=false;
-  renderHome();
-  if(homeTasks.length>0 && homeTasks.every(x=>x.done)){setTimeout(showCelebration,300);}
+function onTaskClick(id){
+  const vd=dateOfIso(viewDate);
+  if(vd>TODAY) return;                          // 未来日期：不可点
+  const t=homeTasks.find(x=>x.id===id); if(!t) return;
+  if(t.done){
+    const isBackfill=vd<TODAY;
+    const verb=isBackfill?'补卡':'打卡';
+    document.getElementById('confirmText').textContent=`确定撤销「${t.name}」的${verb}吗？`;
+    document.getElementById('confirmOk').onclick=()=>{ closeOverlay('confirmOverlay'); t.done=false; renderHome(); };
+    openOverlay('confirmOverlay');
+  }else{
+    t.done=true; renderHome();
+    if(homeTasks.length>0 && homeTasks.every(x=>x.done) && vd.getTime()===TODAY.getTime()) setTimeout(showCelebration,300);
+  }
 }
 function showCelebration(){document.getElementById('celebration').classList.add('show');}
 function closeCelebration(){document.getElementById('celebration').classList.remove('show');}
@@ -379,9 +397,17 @@ function closeCelebration(){document.getElementById('celebration').classList.rem
 /* ===== Render Stats ===== */
 function renderStats(){
   const c=document.getElementById('pageStats');
+  const y=TODAY.getFullYear(), m=TODAY.getMonth();
   let grid='';for(let i=0;i<7;i++)grid+=`<div class="cal-head">${['日','一','二','三','四','五','六'][i]}</div>`;
-  const cells=[null,null,null,1,1,1,2, 1,1,2,1,1,0,0, 1,2,1,1,0,0,0];
-  cells.forEach(v=>{ if(v===null)grid+=`<div class="cal-cell c-empty"></div>`; else grid+=`<div class="cal-cell ${v===1?'c-done':v===2?'c-part':'c-none'}"></div>`;});
+  const first=new Date(y,m,1).getDay();
+  const days=new Date(y,m+1,0).getDate();
+  for(let i=0;i<first;i++)grid+=`<div class="cal-cell c-empty"></div>`;
+  for(let d=1;d<=days;d++){
+    const day=new Date(y,m,d);
+    if(day>TODAY){ grid+=`<div class="cal-cell c-empty"></div>`; }
+    else { const v=(d%3===0)?2:(d%4===0?2:1);
+      grid+=`<div class="cal-cell ${v===1?'c-done':v===2?'c-part':'c-none'}" onclick="pickDate(${d})"></div>`; }
+  }
   let badges='';BADGES.forEach(b=>{badges+=`<div class="badge ${b.earned?'earned':b.reserved?'reserved locked':'locked'}">
     <div class="badge-icon">${b.icon}</div><div class="badge-name">${b.name}</div>${b.prog?`<div class="badge-prog">${b.prog}</div>`:''}</div>`;});
   c.innerHTML=`<div class="stats-header">📊 我的成长</div>
@@ -389,7 +415,7 @@ function renderStats(){
     <div class="card"><div class="card-title">本周完成率</div><div class="ring-wrap">
       <div class="ring"><div class="ring-inner">${WEEK_RATE}%</div></div>
       <div class="ring-desc">这一周你完成得<br>很棒，继续保持！</div></div></div>
-    <div class="card"><div class="card-title">打卡日历</div><div class="cal-month">2025年3月</div><div class="cal-grid">${grid}</div></div>
+    <div class="card"><div class="card-title">打卡日历</div><div class="cal-month">${y}年${m+1}月</div><div class="cal-grid">${grid}</div></div>
     <div class="card"><div class="card-title">🏅 徽章墙</div><div class="badge-grid">${badges}</div></div>`;
 }
 
@@ -463,7 +489,7 @@ function renderCal(){
   document.getElementById('calBig').innerHTML=g;
 }
 function shiftMonth(n){calMonth+=n;if(calMonth<0){calMonth=11;calYear--;}if(calMonth>11){calMonth=0;calYear++;}renderCal();}
-function pickDate(d){closeOverlay('calOverlay');showToast(`跳转到 ${calMonth+1}月${d}日`);switchTab('home');}
+function pickDate(d){ viewDate=isoOf(new Date(calYear,calMonth,d)); closeOverlay('calOverlay'); switchTab('home'); showToast(viewDate===isoOf(TODAY)?'已回到今天的打卡页':`已跳转到 ${fmtDate(dateOfIso(viewDate))}`); }
 
 /* ===== Tab / Overlay ===== */
 function switchTab(tab){
@@ -476,9 +502,9 @@ function openOverlay(id){document.getElementById(id).classList.add('show');}
 function closeOverlay(id){document.getElementById(id).classList.remove('show');}
 
 /* ===== Demo controls ===== */
-function demoEmpty(){homeEmpty=true;backfillOn=false;renderHome();showToast('演示：空状态');}
-function demoBackfill(){backfillOn=!backfillOn;homeEmpty=false;renderHome();showToast(backfillOn?'补卡模式演示':'已退出补卡');}
-function resetHome(){homeEmpty=false;backfillOn=false;renderHome();}
+function demoEmpty(){homeEmpty=true;renderHome();showToast('演示：空状态');}
+function demoBackfill(){const p=new Date(TODAY);p.setDate(p.getDate()-2);viewDate=isoOf(p);homeEmpty=false;homeTasks.forEach((t,i)=>{t.done=(i<2);t.backfill=(i===0);});renderHome();showToast('演示：补卡模式（前 2 项已补卡 + 补卡标签）');}
+function resetHome(){homeEmpty=false;viewDate=isoOf(TODAY);homeTasks.forEach(t=>{t.done=(t.id===1||t.id===4);t.backfill=false;});renderHome();}
 
 /* ===== Splash ===== */
 function hideSplash(){document.getElementById('splash').classList.add('hide');}
