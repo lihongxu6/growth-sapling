@@ -86,6 +86,7 @@ PRD ✅ → 设计评审 ✅ → 原型(已冻结) ✅ → UI设计稿(Route A) 
 | 9 | 2026-07 | 统计页日历点击不跳转 | 格子无 onclick | 过去日期格 onclick="pickDate(d)" | L6 |
 | 10 | 2026-07 | 日历语义错误（橙色=部分完成） | 语义定义不清晰 | 🟢 绿=全完成无补卡；🟠 橙=全完成含补卡+「补」标记；⚪ 灰=部分/未完成 | L8.4 |
 | 11 | 2026-07 | 无记忆机制，每次会话从头来 | AI 无跨会话记忆 | 建立 MEMORY.md + 写入项目提示词 | 本文件 |
+| 12 | 2026-07-11 | pickDate 跳转历史日时打卡页 done 数不对（日历绿但打卡页只有 2/4） | ① pickDate 重建任务快照时硬编码 defDone=[1,4]，未读取 checkinsByDate.done；② 初始化未存今日快照，切回今日时 loadSnapshot fallback 到污染数据 | pickDate 重建时按 ci.done 动态取前 N 个任务标记完成；初始化时 saveSnapshot(isoOf(TODAY)) | L1.7 |
 
 ---
 
@@ -107,6 +108,7 @@ PRD ✅ → 设计评审 ✅ → 原型(已冻结) ✅ → UI设计稿(Route A) 
 - **L8.3**：补卡模式 banner
 - **L8.4**：统计页日历数据源 = checkinsByDate（绿/橙/灰语义）
 - **L8.5**：今日补卡状态联动日历（绿↔橙 +「补」标记）
+- **L1.7**：pickDate 重建历史日快照时，done 数必须匹配 checkinsByDate.done，不可硬编码 defDone
 - **L12**：状态栏极简（无品牌名/假时间/信号/电量）
 
 ---

@@ -133,9 +133,9 @@ body{
 .cal-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:6px;}
 .cal-cell{position:relative; aspect-ratio:1; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:11px; color:var(--text-secondary);}
 .cal-head{font-size:10px; color:var(--text-secondary); font-weight:700; aspect-ratio:1; display:flex; align-items:center; justify-content:center;}
-.c-done{background:#7CC47F; cursor:pointer; color:#fff; font-weight:700;} /* 全完成（无补卡） */
-.c-part{background:var(--yellow); cursor:pointer; color:#fff; font-weight:700;}    /* 全完成且含补卡 */
-.c-none{background:#E0E0E0; cursor:pointer; color:var(--text-secondary); font-weight:600;}  /* 部分/未完成 */
+.c-done{background:#7CC47F; cursor:pointer; color:#fff; font-weight:700;} /* 全完成（绿） */
+.c-part{background:var(--yellow); cursor:pointer; color:#fff; font-weight:700;}    /* 部分完成（橙警示） */
+.c-none{background:#E0E0E0; cursor:pointer; color:var(--text-secondary); font-weight:600;}  /* 无任务/未打卡 */
 .c-empty{background:transparent; color:var(--text-secondary);}
 .bf-mark{position:absolute; top:2px; right:2px; font-size:8px; background:rgba(255,255,255,.9); color:var(--yellow); font-weight:800; padding:1px 3px; border-radius:4px; line-height:1;}
 .c-today{outline:2px solid var(--green); outline-offset:-2px;}
@@ -336,16 +336,19 @@ const TODAY=new Date(); TODAY.setHours(0,0,0,0);
 let calMonth=TODAY.getMonth(), calYear=TODAY.getFullYear();
 let viewDate=isoOf(TODAY);
 
-/* ===== Mock 历史打卡数据（仅历史日，1-10；今日 11 由 homeTasks 实时提供）=====
- * SSOT：历史日 → checkinsByDate；今日 → homeTasks（确保两页一致 + 星星数随操作联动）
- */
+/* ===== 每日任务快照（历史日 viewDate 切换时用，确保统计页/打卡页数据统一）===== */
+const homeTasksByDate={};
+function taskSnapshot(){ return homeTasks.map(t=>({...t})); }
+function loadSnapshot(iso){ homeTasks = (homeTasksByDate[iso] || homeTasks).map(t=>({...t})); }
+function saveSnapshot(iso){ homeTasksByDate[iso]=taskSnapshot(); }
+
+/* ===== Mock 历史打卡数据 ===== */
 const checkinsByDate={};
 const _mkDate=(y,m,d)=>{const dt=new Date(y,m,d);dt.setHours(0,0,0,0);return isoOf(dt);};
 (function seed(){
   const y=TODAY.getFullYear(), m=TODAY.getMonth();
-  // hasBackfill: 该日是否含补卡记录（仅 7-9 含，演示用）
   checkinsByDate[_mkDate(y,m,1)]={done:4,total:4,hasBackfill:false};
-  checkinsByDate[_mkDate(y,m,2)]={done:3,total:4,hasBackfill:false};
+  checkinsByDate[_mkDate(y,m,2)]={done:4,total:4,hasBackfill:false};
   checkinsByDate[_mkDate(y,m,3)]={done:4,total:4,hasBackfill:false};
   checkinsByDate[_mkDate(y,m,4)]={done:4,total:4,hasBackfill:false};
   checkinsByDate[_mkDate(y,m,5)]={done:2,total:4,hasBackfill:false};
@@ -356,19 +359,23 @@ const _mkDate=(y,m,d)=>{const dt=new Date(y,m,d);dt.setHours(0,0,0,0);return iso
   checkinsByDate[_mkDate(y,m,10)]={done:3,total:4,hasBackfill:false};
 })();
 function getCheckin(iso){
-  // 今日以 homeTasks 为真源
+  // 今日 SSOT=homeTasks；历史日 SSOT=homeTasksByDate（如有）否则 checkinsByDate
   if(iso===isoOf(TODAY)){
     return {done:homeTasks.filter(t=>t.done).length, total:homeTasks.length,
             hasBackfill:homeTasks.some(t=>t.backfill)};
   }
+  if(homeTasksByDate[iso]){
+    const arr=homeTasksByDate[iso];
+    return {done:arr.filter(t=>t.done).length, total:arr.length,
+            hasBackfill:arr.some(t=>t.backfill)};
+  }
   return checkinsByDate[iso] || {done:0,total:homeTasks.length,hasBackfill:false};
 }
 function cellClassFor(iso){
-  // 新语义：🟢 全完成；🟠 全完成且含补卡；⚪ 部分/未完成
   const c=getCheckin(iso);
-  if(c.done===0) return 'c-none';
-  if(c.done>=c.total) return c.hasBackfill ? 'c-part' : 'c-done';
-  return 'c-none';
+  if(c.done===0) return 'c-none';          // 无任务/未打卡
+  if(c.done<c.total) return 'c-part';     // 有任务未全完成（橙色警示）
+  return 'c-done';                         // 全完成（绿色，含补卡通过 hasBackfill 加「补」角标）
 }
 /* 累计星星 = 7 基础 + 全部历史日已打卡数（含今日） */
 function calcStars(){
@@ -426,17 +433,17 @@ function renderHome(){
 }
 function onTaskClick(id){
   const vd=dateOfIso(viewDate);
-  if(vd>TODAY) return;                          // 未来日期：不可点
+  if(vd>TODAY) return;
   const t=homeTasks.find(x=>x.id===id); if(!t) return;
   if(t.done){
     const isBackfill=vd<TODAY;
     const verb=isBackfill?'补卡':'打卡';
     document.getElementById('confirmText').textContent=`确定撤销「${t.name}」的${verb}吗？`;
-    document.getElementById('confirmOk').onclick=()=>{ closeOverlay('confirmOverlay'); t.done=false; t.backfill=false; renderHome(); };
+    document.getElementById('confirmOk').onclick=()=>{ closeOverlay('confirmOverlay'); t.done=false; t.backfill=false; if(vd!==isoOf(TODAY)) saveSnapshot(vd); renderHome(); };
     openOverlay('confirmOverlay');
   }else{
     t.done=true;
-    if(vd<TODAY) t.backfill=true;                // 补卡模式：标记为补卡
+    if(vd<TODAY){ t.backfill=true; saveSnapshot(vd); }  // 补卡：立即持久化快照
     renderHome();
     if(homeTasks.length>0 && homeTasks.every(x=>x.done) && vd.getTime()===TODAY.getTime()) setTimeout(showCelebration,300);
   }
@@ -460,7 +467,8 @@ function renderStats(){
       const c=getCheckin(iso);
       const cls=cellClassFor(iso);
       const tip=`${d}日 · ${c.done}/${c.total}${c.hasBackfill?'（含补卡）':''}`;
-      const mark=c.hasBackfill?'<span class="bf-mark">补</span>':'';
+      // 「补」角标仅在全完成 + 含补卡时显示
+      const mark=(c.done>=c.total && c.hasBackfill)?'<span class="bf-mark">补</span>':'';
       grid+=`<div class="cal-cell ${cls}" title="${tip}" onclick="pickDate(${d})">${d}${mark}</div>`;
     }
   }
@@ -545,7 +553,30 @@ function renderCal(){
   document.getElementById('calBig').innerHTML=g;
 }
 function shiftMonth(n){calMonth+=n;if(calMonth<0){calMonth=11;calYear--;}if(calMonth>11){calMonth=0;calYear++;}renderCal();}
-function pickDate(d){ viewDate=isoOf(new Date(calYear,calMonth,d)); closeOverlay('calOverlay'); switchTab('home'); showToast(viewDate===isoOf(TODAY)?'已回到今天的打卡页':`已跳转到 ${fmtDate(dateOfIso(viewDate))}`); }
+function pickDate(d){
+  // 切换日期前先保存当前 viewDate 的任务快照
+  if(viewDate!==isoOf(TODAY)) saveSnapshot(viewDate);
+  viewDate=isoOf(new Date(calYear,calMonth,d));
+  // 如果是历史日且有快照，加载快照；否则从 checkinsByDate 重建
+  if(viewDate!==isoOf(TODAY) && homeTasksByDate[viewDate]){
+    loadSnapshot(viewDate);
+  }else if(viewDate!==isoOf(TODAY)){
+    // 从 checkinsByDate 重建任务快照：按 done 数量取前 N 个任务标记完成
+    const ci=getCheckin(viewDate);
+    const targetDone=ci.done;
+    const hasBf=ci.hasBackfill;
+    homeTasks = homeTasks.map((t,i)=>{
+      const done=i<targetDone;
+      const backfill=hasBf && done && i===targetDone-1;  // 最后一个完成项标为补卡
+      return {...t, done, backfill};
+    });
+    saveSnapshot(viewDate);
+  }else{
+    loadSnapshot(viewDate);
+  }
+  closeOverlay('calOverlay'); switchTab('home');
+  showToast(viewDate===isoOf(TODAY)?'已回到今天的打卡页':`已跳转到 ${fmtDate(dateOfIso(viewDate))}`);
+}
 
 /* ===== Tab / Overlay ===== */
 function switchTab(tab){
@@ -567,6 +598,7 @@ function hideSplash(){document.getElementById('splash').classList.add('hide');}
 setTimeout(hideSplash,1500);
 
 /* ===== Init ===== */
+saveSnapshot(isoOf(TODAY));  // 保存今日初始快照，确保切回今日时数据不丢失
 renderHome();
 </script>
 </body>
