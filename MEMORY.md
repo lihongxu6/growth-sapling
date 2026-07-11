@@ -94,6 +94,9 @@ PRD ✅ → 设计评审 ✅ → 原型(已冻结) ✅ → UI设计稿(Route A) 
 | 10 | 2026-07 | 日历语义错误（橙色=部分完成） | 语义定义不清晰 | 🟢 绿=全完成无补卡；🟠 橙=全完成含补卡+「补」标记；⚪ 灰=部分/未完成 | L8.4 |
 | 11 | 2026-07 | 无记忆机制，每次会话从头来 | AI 无跨会话记忆 | 建立 MEMORY.md + 写入项目提示词 | 本文件 |
 | 12 | 2026-07-11 | pickDate 跳转历史日时打卡页 done 数不对（日历绿但打卡页只有 2/4） | ① pickDate 重建任务快照时硬编码 defDone=[1,4]，未读取 checkinsByDate.done；② 初始化未存今日快照，切回今日时 loadSnapshot fallback 到污染数据 | pickDate 重建时按 ci.done 动态取前 N 个任务标记完成；初始化时 saveSnapshot(isoOf(TODAY)) | L1.7 |
+| 13 | 2026-07-11 | 线上 Demo 加载的是 index.html（GitHub Pages 入口），与 ui-mockup 同步错位 | 早期手动同步过 index.html 但后来更新 ui-mockup 时忘了同步 | 建立 pre-commit hook：ui-mockup 修改时自动 cp 到 index.html | — |
+| 14 | 2026-07-11 | calcStars 打卡 +2 星 / 撤销 -2 星 | 把今日 done 在 checkinsByDate 和 homeTasks 各算一遍 | 今日从 homeTasks 实时计算（去重），历史日累加 checkinsByDate | — |
+| 15 | 2026-07-11 | 火焰图标：历史日 0 完成仍显示 🔥 | fireLit=isPast\|\|...，历史日强制点亮 | fireLit=homeTasks.some(t=>t.done)，纯按当日完成状态 | — |
 
 ---
 
