@@ -239,6 +239,7 @@
 | # | 逻辑 | 规则 | 触发条件 |
 |---|------|------|----------|
 | L1 | 今天不显示「补」标签 | 仅当 `viewDate < today`（补卡模式）才显示补卡标签 | 渲染首页任务卡片 |
+| L1.1 | 补卡模式打勾产生 backfill | `viewDate < today` 下点未完成 → 标 done + backfill=true；该卡显示「补」标签 + 淡橙底 | `onTaskClick` 写盘逻辑 |
 | L2 | 补卡模式 banner | `viewDate < today` 时显示「📅 补卡模式 · 日期」 | 渲染首页 |
 | L3 | 撤销打卡二次确认 | 已完成状态点任务 → 弹确认弹窗，文案区分「打卡 / 补卡」 | `onTaskClick(id)` 且 `task.done === true` |
 | L4 | 未完成任务直接打卡 | 未完成点任务 → 立即标完成 + 触发完成庆祝 | `onTaskClick(id)` 且 `task.done === false` |
@@ -246,6 +247,7 @@
 | L6 | 日历点击切换日期 | 首页日历、统计页日历的过去日期格可点 → 设置 `viewDate` + 跳回首页 | `pickDate(d)` |
 | L7 | 日历未来日期不可点 | 未来日期在日历中置灰、无 `onclick` | `renderCal` / `renderStats` |
 | L8 | 统计页日历默认当前月 | 渲染统计页时按 `new Date()` 计算月 | `renderStats` |
+| L8.1 | 统计页日历显示日期数字 | 每格中央显示日号（1-31），保留热力色块；未来日期透明背景 + 浅灰字 | `renderStats` |
 | L9 | 删除任务二次确认 | 任务页点删除 → 弹确认弹窗 | `delTask(id)` |
 | L10 | 全部完成庆祝仅今日 | 今日打卡全完成才触发庆祝；补卡模式不触发 | `onTaskClick` 触发条件 |
 | L11 | 开屏页 1.5s 淡出 | 首次打开展示品牌页 1.5s 后淡出；点击可提前跳过 | `hideSplash()` |

@@ -133,7 +133,7 @@ body{
 .cal-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:6px;}
 .cal-cell{aspect-ratio:1; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:11px; color:var(--text-secondary);}
 .cal-head{font-size:10px; color:var(--text-secondary); font-weight:700; aspect-ratio:1; display:flex; align-items:center; justify-content:center;}
-.c-done{background:#7CC47F; cursor:pointer;} .c-part{background:var(--yellow); cursor:pointer;} .c-none{background:#E0E0E0; cursor:pointer;} .c-empty{background:transparent;}
+.c-done{background:#7CC47F; cursor:pointer; color:#fff; font-weight:700;} .c-part{background:var(--yellow); cursor:pointer; color:#fff; font-weight:700;} .c-none{background:#E0E0E0; cursor:pointer; color:var(--text-secondary); font-weight:600;} .c-empty{background:transparent; color:var(--text-secondary);}
 .c-today{outline:2px solid var(--green); outline-offset:-2px;}
 /* badges */
 .badge-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:var(--sp-3);}
@@ -384,10 +384,12 @@ function onTaskClick(id){
     const isBackfill=vd<TODAY;
     const verb=isBackfill?'补卡':'打卡';
     document.getElementById('confirmText').textContent=`确定撤销「${t.name}」的${verb}吗？`;
-    document.getElementById('confirmOk').onclick=()=>{ closeOverlay('confirmOverlay'); t.done=false; renderHome(); };
+    document.getElementById('confirmOk').onclick=()=>{ closeOverlay('confirmOverlay'); t.done=false; t.backfill=false; renderHome(); };
     openOverlay('confirmOverlay');
   }else{
-    t.done=true; renderHome();
+    t.done=true;
+    if(vd<TODAY) t.backfill=true;                // 补卡模式：标记为补卡
+    renderHome();
     if(homeTasks.length>0 && homeTasks.every(x=>x.done) && vd.getTime()===TODAY.getTime()) setTimeout(showCelebration,300);
   }
 }
@@ -404,9 +406,9 @@ function renderStats(){
   for(let i=0;i<first;i++)grid+=`<div class="cal-cell c-empty"></div>`;
   for(let d=1;d<=days;d++){
     const day=new Date(y,m,d);
-    if(day>TODAY){ grid+=`<div class="cal-cell c-empty"></div>`; }
+    if(day>TODAY){ grid+=`<div class="cal-cell c-empty">${d}</div>`; }
     else { const v=(d%3===0)?2:(d%4===0?2:1);
-      grid+=`<div class="cal-cell ${v===1?'c-done':v===2?'c-part':'c-none'}" onclick="pickDate(${d})"></div>`; }
+      grid+=`<div class="cal-cell ${v===1?'c-done':v===2?'c-part':'c-none'}" onclick="pickDate(${d})">${d}</div>`; }
   }
   let badges='';BADGES.forEach(b=>{badges+=`<div class="badge ${b.earned?'earned':b.reserved?'reserved locked':'locked'}">
     <div class="badge-icon">${b.icon}</div><div class="badge-name">${b.name}</div>${b.prog?`<div class="badge-prog">${b.prog}</div>`:''}</div>`;});
