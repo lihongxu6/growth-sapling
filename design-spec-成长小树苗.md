@@ -255,7 +255,8 @@
 | L8.1 | 统计页日历显示日期数字 | 每格中央显示日号（1-31），保留热力色块；未来日期透明背景 + 浅灰字 | `renderStats` |
 | L8.2 | 补卡卡片视觉区分 | 补卡任务卡片：右上角「补」标签（黄底白字胶囊）+ 整卡背景 `--orange-tag`（淡橙），与按期完成（`--green-light` 浅绿）明显区分 | 渲染首页任务卡片 |
 | L8.3 | 补卡模式 banner | 过去日期在打卡页顶部显示 📅 补卡模式 · X月X日（淡黄背景 `--orange-tag`） | `renderHome` |
-| L8.4 | 统计页日历数据源 = checkinsByDate | 统计页每格颜色按真实历史打卡记录：`done==0`→`c-none`；`0<done<total`→`c-part`；`done==total`→`c-done`。禁止写死颜色 | `renderStats` |
+| L8.4 | 统计页日历数据源 = checkinsByDate | 统计页每格颜色按真实历史打卡记录 + 是否含补卡。**新语义**（PRD 评审 1）：🟢 绿 = 当天全部完成且无补卡；🟠 橙 = 当天全部完成且含补卡（格子右上角加「补」标记）；⚪ 灰 = 部分完成或未打卡。格子显示日期数字 + 补卡标记。 | `renderStats` |
+| L8.5 | 今日补卡状态联动日历 | 今日 SSOT = `homeTasks`；`getCheckin(today).hasBackfill = homeTasks.some(t=>t.backfill)`；用户在打卡页补卡后，统计页 11号 颜色应自动从 绿→橙，格子右上角出现「补」标记 | `getCheckin` |
 | L9 | 删除任务二次确认 | 任务页点删除 → 弹确认弹窗 | `delTask(id)` |
 | L10 | 全部完成庆祝仅今日 | 今日打卡全完成才触发庆祝；补卡模式不触发 | `onTaskClick` 触发条件 |
 | L11 | 开屏页 1.5s 淡出 | 首次打开展示品牌页 1.5s 后淡出；点击可提前跳过 | `hideSplash()` |

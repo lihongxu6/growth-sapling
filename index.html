@@ -131,9 +131,13 @@ body{
 /* calendar heatmap */
 .cal-month{font-size:var(--fs-aux); font-weight:700; color:var(--text-secondary); margin-bottom:8px;}
 .cal-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:6px;}
-.cal-cell{aspect-ratio:1; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:11px; color:var(--text-secondary);}
+.cal-cell{position:relative; aspect-ratio:1; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:11px; color:var(--text-secondary);}
 .cal-head{font-size:10px; color:var(--text-secondary); font-weight:700; aspect-ratio:1; display:flex; align-items:center; justify-content:center;}
-.c-done{background:#7CC47F; cursor:pointer; color:#fff; font-weight:700;} .c-part{background:var(--yellow); cursor:pointer; color:#fff; font-weight:700;} .c-none{background:#E0E0E0; cursor:pointer; color:var(--text-secondary); font-weight:600;} .c-empty{background:transparent; color:var(--text-secondary);}
+.c-done{background:#7CC47F; cursor:pointer; color:#fff; font-weight:700;} /* 全完成（无补卡） */
+.c-part{background:var(--yellow); cursor:pointer; color:#fff; font-weight:700;}    /* 全完成且含补卡 */
+.c-none{background:#E0E0E0; cursor:pointer; color:var(--text-secondary); font-weight:600;}  /* 部分/未完成 */
+.c-empty{background:transparent; color:var(--text-secondary);}
+.bf-mark{position:absolute; top:2px; right:2px; font-size:8px; background:rgba(255,255,255,.9); color:var(--yellow); font-weight:800; padding:1px 3px; border-radius:4px; line-height:1;}
 .c-today{outline:2px solid var(--green); outline-offset:-2px;}
 /* badges */
 .badge-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:var(--sp-3);}
@@ -339,29 +343,32 @@ const checkinsByDate={};
 const _mkDate=(y,m,d)=>{const dt=new Date(y,m,d);dt.setHours(0,0,0,0);return isoOf(dt);};
 (function seed(){
   const y=TODAY.getFullYear(), m=TODAY.getMonth();
-  checkinsByDate[_mkDate(y,m,1)]={done:4,total:4};
-  checkinsByDate[_mkDate(y,m,2)]={done:3,total:4};
-  checkinsByDate[_mkDate(y,m,3)]={done:4,total:4};
-  checkinsByDate[_mkDate(y,m,4)]={done:4,total:4};
-  checkinsByDate[_mkDate(y,m,5)]={done:2,total:4};
-  checkinsByDate[_mkDate(y,m,6)]={done:4,total:4};
-  checkinsByDate[_mkDate(y,m,7)]={done:3,total:4};
-  checkinsByDate[_mkDate(y,m,8)]={done:4,total:4};
-  checkinsByDate[_mkDate(y,m,9)]={done:2,total:4};
-  checkinsByDate[_mkDate(y,m,10)]={done:3,total:4};
+  // hasBackfill: 该日是否含补卡记录（仅 7-9 含，演示用）
+  checkinsByDate[_mkDate(y,m,1)]={done:4,total:4,hasBackfill:false};
+  checkinsByDate[_mkDate(y,m,2)]={done:3,total:4,hasBackfill:false};
+  checkinsByDate[_mkDate(y,m,3)]={done:4,total:4,hasBackfill:false};
+  checkinsByDate[_mkDate(y,m,4)]={done:4,total:4,hasBackfill:false};
+  checkinsByDate[_mkDate(y,m,5)]={done:2,total:4,hasBackfill:false};
+  checkinsByDate[_mkDate(y,m,6)]={done:4,total:4,hasBackfill:false};
+  checkinsByDate[_mkDate(y,m,7)]={done:4,total:4,hasBackfill:true};
+  checkinsByDate[_mkDate(y,m,8)]={done:4,total:4,hasBackfill:true};
+  checkinsByDate[_mkDate(y,m,9)]={done:4,total:4,hasBackfill:true};
+  checkinsByDate[_mkDate(y,m,10)]={done:3,total:4,hasBackfill:false};
 })();
 function getCheckin(iso){
   // 今日以 homeTasks 为真源
   if(iso===isoOf(TODAY)){
-    return {done:homeTasks.filter(t=>t.done).length, total:homeTasks.length};
+    return {done:homeTasks.filter(t=>t.done).length, total:homeTasks.length,
+            hasBackfill:homeTasks.some(t=>t.backfill)};
   }
-  return checkinsByDate[iso] || {done:0,total:homeTasks.length};
+  return checkinsByDate[iso] || {done:0,total:homeTasks.length,hasBackfill:false};
 }
 function cellClassFor(iso){
+  // 新语义：🟢 全完成；🟠 全完成且含补卡；⚪ 部分/未完成
   const c=getCheckin(iso);
   if(c.done===0) return 'c-none';
-  if(c.done>=c.total) return 'c-done';
-  return 'c-part';
+  if(c.done>=c.total) return c.hasBackfill ? 'c-part' : 'c-done';
+  return 'c-none';
 }
 /* 累计星星 = 7 基础 + 全部历史日已打卡数（含今日） */
 function calcStars(){
@@ -450,9 +457,11 @@ function renderStats(){
     if(day>TODAY){ grid+=`<div class="cal-cell c-empty">${d}</div>`; }
     else {
       const iso=_mkDate(y,m,d);
+      const c=getCheckin(iso);
       const cls=cellClassFor(iso);
-      const tip=`${d}日 · ${getCheckin(iso).done}/${getCheckin(iso).total}`;
-      grid+=`<div class="cal-cell ${cls}" title="${tip}" onclick="pickDate(${d})">${d}</div>`;
+      const tip=`${d}日 · ${c.done}/${c.total}${c.hasBackfill?'（含补卡）':''}`;
+      const mark=c.hasBackfill?'<span class="bf-mark">补</span>':'';
+      grid+=`<div class="cal-cell ${cls}" title="${tip}" onclick="pickDate(${d})">${d}${mark}</div>`;
     }
   }
   let badges='';BADGES.forEach(b=>{badges+=`<div class="badge ${b.earned?'earned':b.reserved?'reserved locked':'locked'}">
