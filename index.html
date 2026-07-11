@@ -119,6 +119,7 @@ body{
 .stats-header{position:sticky; top:0; z-index:10; background:var(--bg); margin:0 calc(-1*var(--sp-4)); padding:var(--sp-3) var(--sp-4); text-align:center; font-size:var(--fs-title); font-weight:700;}
 .streak-block{text-align:center; padding:var(--sp-5) 0 var(--sp-4);}
 .streak-num{font-size:var(--fs-display); font-weight:800; color:var(--yellow); line-height:1; filter:drop-shadow(0 2px 6px rgba(240,173,78,.3));}
+.streak-num .streak-unit{font-size:24px; font-weight:700; margin-left:4px; color:var(--text-secondary); filter:none;}
 .streak-label{font-size:var(--fs-card-title); font-weight:600; margin-top:6px;}
 .streak-best{font-size:var(--fs-caption); color:var(--text-secondary); margin-top:4px;}
 .card{background:var(--card-bg); border-radius:var(--radius-md); padding:var(--sp-4); box-shadow:var(--shadow-card); margin-top:var(--sp-4);}
@@ -788,7 +789,7 @@ function renderStats(){
   badgesHtml+=`<div class="badge locked badge-reserved"><div class="badge-icon">🔒</div><div class="badge-name">敬请期待</div></div>`;
 
   c.innerHTML=`<div class="stats-header">📊 我的成长</div>
-    <div class="streak-block"><div class="streak-num">🔥 ${streak}</div><div class="streak-label">连续打卡</div></div>
+    <div class="streak-block"><div class="streak-num">🔥 ${streak} <span class="streak-unit">天</span></div><div class="streak-label">连续打卡</div></div>
     <div class="card"><div class="card-title">本周完成率</div><div class="ring-wrap">
       <div class="ring" style="background:conic-gradient(var(--green) 0% ${weekRate}%, #EFE7DC ${weekRate}% 100%);"><div class="ring-inner">${weekRate}%</div></div>
       <div class="ring-desc">这一周你完成得<br>很棒，继续保持！</div></div></div>
