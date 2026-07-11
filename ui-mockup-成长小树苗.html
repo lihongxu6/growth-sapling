@@ -496,11 +496,20 @@ function migrateData(){
 // Tech-spec §6.1: Total stars = 7 base + all historical + today
 function calcStars(){
   const base=7;
+  const todayIso=isoOf(TODAY);
   let s=0;
-  Object.values(checkinsByDate).forEach(day=>{
-    s+=Object.values(day).filter(r=>r.done).length;
+  Object.values(checkinsByDate).forEach((day,iso)=>{
+    // 今日从 homeTasks 实时计算（避免重复计数），历史日累加 checkinsByDate
+    if(iso===todayIso){
+      s+=homeTasks.filter(t=>t.done).length;
+    }else{
+      s+=Object.values(day).filter(r=>r.done).length;
+    }
   });
-  s+=homeTasks.filter(t=>t.done).length;
+  // 如果今日 checkinsByDate 还没建立（首次打开），补充从 homeTasks 计数
+  if(!checkinsByDate[todayIso]){
+    s+=homeTasks.filter(t=>t.done).length;
+  }
   return base+s;
 }
 
