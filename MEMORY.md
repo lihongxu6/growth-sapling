@@ -125,18 +125,33 @@ PRD ✅ → 设计评审 ✅ → 原型(已冻结) ✅ → UI设计稿(Route A) 
 - **L12**：状态栏极简（无品牌名/假时间/信号/电量）
 
 ---
-## 7. 可复用 Skill
+## 7. Skill 体系
 
-| Skill | 文件位置 | 状态 |
-|-------|---------|------|
-| project-memory | `/workspace/project-memory.skill`（zip）+ `/workspace/project-memory.md` | 待用户从 WorkBuddy 客户端上传到个人技能库 |
+### 7.1 分流策略
+
+| 类型 | 存放位置 | 例子 |
+|------|---------|------|
+| **通用 Skill**（跨项目复用） | 独立仓库 [`lihongxu6/workbuddy-skills`](https://github.com/lihongxu6/workbuddy-skills) | project-memory |
+| **项目专属 Skill**（仅本项目的业务能力） | `/workspace/skills/` 随项目仓库 | 暂无（待创建） |
+
+### 7.2 通用 Skill 清单
+
+| Skill | 仓库 | 状态 |
+|-------|------|------|
+| project-memory | https://github.com/lihongxu6/workbuddy-skills | ✅ v1.0 已发布 |
 
 **Skill 内容**：跨会话项目记忆系统（三条铁律：读 MEMORY.md、写 MEMORY.md、查 MEMORY.md）
 
-**如何生效**：用户在 WorkBuddy 客户端"上传技能"页面拖拽 `project-memory.skill` 文件 → 上传成功后下次会话自动可用。
+**如何生效**：用户在 WorkBuddy 客户端"上传技能"页面拖拽 `project-memory.skill` 文件 → 上传成功后下次会话自动可用。下载地址：https://github.com/lihongxu6/workbuddy-skills/blob/main/project-memory/project-memory.skill
 
-## 6. 下一步（待用户确认后执行）
+### 7.3 项目专属 Skill 清单
+
+| Skill | 文件位置 | 状态 |
+|-------|---------|------|
+| （暂无） | `/workspace/skills/` | 待后续有需要时创建 |
+
+## 6. 下一步
 
 1. 测试验证已完成（自动化 25/25 ✅，手动验收 14/14 ✅）
-2. 进入上线复盘阶段（可选）
-3. v1.1 迭代启动
+2. Skill 分流完成：通用 Skill → `lihongxu6/workbuddy-skills`；项目专属 → `/workspace/skills/`
+3. 用户确认是否进入上线复盘阶段（可选），或直接规划 v1.1
