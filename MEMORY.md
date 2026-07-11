@@ -36,11 +36,12 @@ PRD ✅ → 设计评审 ✅ → 原型(已冻结) ✅ → UI设计稿(Route A) 
 **已交付文件**：
 - `prd-成长小树苗-mvp.md` — 需求真源
 - `design-review-成长小树苗.md` — 设计评审材料
-- `prototype-成长小树苗.html` — 低保真原型（已冻结为交互验证稿，不再修改）
 - `design-spec-成长小树苗.md` — 视觉规范文档（视觉 SSOT，含 §8.1 交互逻辑清单）
-- `ui-mockup-成长小树苗.html` — 高保真视觉稿（Route A，手机可看，同步为 index.html 即 Pages 入口）
 - `tech-spec-成长小树苗.md` — 技术方案（微信小程序原生，精简版，仅前端）
+- `index.html` — **唯一产品代码文件**（GitHub Pages 入口，修改即上线）
 - `MEMORY.md` — 本文件
+
+> 已清理文件：prototype-成长小树苗.html（已冻结旧原型）、ui-mockup-成长小树苗.html（与 index 重复）。Git 历史完整保留，可随时回溯。
 
 ---
 
