@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>成长小树苗 · 高保真视觉稿</title>
+<title>成长小树苗 · 产品代码</title>
 <style>
 /* ===== Design Tokens (映射 design-spec §2) ===== */
 :root{
@@ -133,9 +133,9 @@ body{
 .cal-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:6px;}
 .cal-cell{position:relative; aspect-ratio:1; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:11px; color:var(--text-secondary);}
 .cal-head{font-size:10px; color:var(--text-secondary); font-weight:700; aspect-ratio:1; display:flex; align-items:center; justify-content:center;}
-.c-done{background:#7CC47F; cursor:pointer; color:#fff; font-weight:700;} /* 全完成（无补卡） */
-.c-part{background:var(--yellow); cursor:pointer; color:#fff; font-weight:700;}    /* 全完成且含补卡 */
-.c-none{background:#E0E0E0; cursor:pointer; color:var(--text-secondary); font-weight:600;}  /* 部分/未完成 */
+.c-done{background:#7CC47F; cursor:pointer; color:#fff; font-weight:700;}
+.c-part{background:var(--yellow); cursor:pointer; color:#fff; font-weight:700;}
+.c-none{background:#E0E0E0; cursor:pointer; color:var(--text-secondary); font-weight:600;}
 .c-empty{background:transparent; color:var(--text-secondary);}
 .bf-mark{position:absolute; top:2px; right:2px; font-size:8px; background:rgba(255,255,255,.9); color:var(--yellow); font-weight:800; padding:1px 3px; border-radius:4px; line-height:1;}
 .c-today{outline:2px solid var(--green); outline-offset:-2px;}
@@ -168,6 +168,7 @@ body{
   color:#fff; border:none; border-radius:var(--radius-pill); font-size:var(--fs-card-title); font-weight:700;
   padding:15px; box-shadow:var(--shadow-float); cursor:pointer; min-height:48px;
 }
+.add-btn:disabled{background:#C9C9C9; cursor:not-allowed; box-shadow:none;}
 
 /* ===== Tab Bar ===== */
 .tab-bar{display:flex; border-top:1px solid var(--border); background:var(--card-bg); flex-shrink:0; padding-bottom:env(safe-area-inset-bottom,8px);}
@@ -217,17 +218,35 @@ body{
 .toast{position:absolute; bottom:90px; left:50%; transform:translateX(-50%); background:rgba(51,51,51,.9); color:#fff; padding:10px 18px; border-radius:var(--radius-pill); font-size:var(--fs-caption); z-index:40; opacity:0; transition:opacity .25s; pointer-events:none; white-space:nowrap;}
 .toast.show{opacity:1;}
 
-/* demo control (仅演示用, 真实产品无) */
-.demo-bar{display:flex; gap:8px; justify-content:center; padding:var(--sp-2) 0; flex-shrink:0; background:var(--bg); border-top:1px dashed var(--border);}
-.demo-bar button{font-size:11px; border:1px solid var(--border); background:var(--card-bg); border-radius:var(--radius-pill); padding:6px 12px; cursor:pointer; color:var(--text-secondary); min-height:36px;}
+/* ===== Star burst animation ===== */
+.star-burst{position:absolute; pointer-events:none; z-index:50;}
+.star-particle{position:absolute; font-size:18px; animation:starFly .6s ease-out forwards;}
+@keyframes starFly{
+  0%{transform:translate(0,0) scale(1);opacity:1;}
+  100%{transform:translate(var(--dx),var(--dy)) scale(0);opacity:0;}
+}
+
+/* ===== Badge animation overlay ===== */
+.badge-animation{
+  position:absolute; inset:0; z-index:65; background:rgba(255,248,240,.95);
+  display:none; flex-direction:column; align-items:center; justify-content:center; gap:var(--sp-3);
+}
+.badge-animation.show{display:flex;}
+.badge-animation .ba-icon{font-size:80px; animation:badgeReveal 1.5s ease-out;}
+@keyframes badgeReveal{
+  0%{filter:grayscale(1);opacity:.3;transform:scale(.5);}
+  50%{filter:grayscale(.5);opacity:.8;transform:scale(1.1);}
+  100%{filter:grayscale(0);opacity:1;transform:scale(1);}
+}
+.badge-animation .ba-text{font-size:24px;font-weight:800;color:var(--green);}
+.badge-animation .ba-squirrel{font-size:60px;}
 </style>
 </head>
 <body>
 <div class="phone-frame" id="app">
-  <!-- Status Bar (安全区，无品牌名/无假数据) -->
   <div class="status-bar"></div>
 
-  <!-- Splash 开屏页 -->
+  <!-- Splash -->
   <div class="splash" id="splash" onclick="hideSplash()">
     <div class="splash-logo">🌱</div>
     <div class="splash-name">成长小树苗</div>
@@ -238,11 +257,8 @@ body{
 
   <!-- Content -->
   <div class="page-content" id="pageContent">
-    <!-- 页面1 今日打卡 -->
     <div class="page active" id="pageHome"></div>
-    <!-- 页面2 统计 -->
     <div class="page" id="pageStats"></div>
-    <!-- 页面3 任务 -->
     <div class="page" id="pageTasks"></div>
   </div>
 
@@ -253,26 +269,19 @@ body{
     <div class="tab-item" data-tab="tasks" onclick="switchTab('tasks')"><span class="tab-icon">⚙️</span>任务</div>
   </div>
 
-  <!-- 演示控制栏：仅用于高保真稿评审时切换状态，真实产品中不存在 -->
-  <div class="demo-bar">
-    <button onclick="demoEmpty('home')">演示空状态</button>
-    <button onclick="demoBackfill()">演示补卡</button>
-    <button onclick="resetHome()">恢复正常</button>
-  </div>
-
   <!-- Calendar Overlay -->
   <div class="overlay" id="calOverlay"><div class="sheet">
     <div class="cal-nav"><span onclick="shiftMonth(-1)">◀</span><span id="calTitle">2025年3月</span><span onclick="shiftMonth(1)">▶</span></div>
     <div class="cal-big" id="calBig"></div>
   </div></div>
 
-  <!-- Add Task Overlay -->
+  <!-- Task Form Overlay -->
   <div class="overlay" id="taskOverlay"><div class="sheet">
-    <div class="sheet-title">添加任务 <button class="sheet-close" onclick="closeOverlay('taskOverlay')">✕</button></div>
+    <div class="sheet-title" id="taskFormTitle">添加任务 <button class="sheet-close" onclick="closeOverlay('taskOverlay')">✕</button></div>
     <div class="field-label">任务名称</div>
-    <input class="input" id="fName" placeholder="例如：每日阅读30分钟">
+    <input class="input" id="fName" placeholder="例如：每日阅读30分钟" maxlength="20">
     <div class="field-label">为什么要做这个任务？（选填）</div>
-    <input class="input" id="fWhy" placeholder="例如：认识更多字">
+    <input class="input" id="fWhy" placeholder="例如：认识更多字" maxlength="50">
     <div class="field-label">选择图标</div>
     <div class="icon-grid" id="iconGrid"></div>
     <div class="field-label">重复周期</div>
@@ -304,115 +313,374 @@ body{
     <div class="celeb-sub">今天的任务全部完成！</div>
     <div class="celeb-squirrel">🐿️</div>
   </div>
+
+  <!-- Badge Animation Overlay -->
+  <div class="badge-animation" id="badgeAnimation" onclick="closeBadgeAnimation()">
+    <div class="ba-icon" id="baIcon">🌱</div>
+    <div class="ba-text" id="baText">获得新徽章！</div>
+    <div class="ba-squirrel">🐿️</div>
+  </div>
 </div>
 
 <script>
-/* ===== Mock Data ===== */
+/* ========================================================================
+   SECTION A: Constants & Initial Data
+   ======================================================================== */
+
 const ICONS=['📖','✏️','🏃','🎒','🪥','😴','🎹','🧮','🌿','🐶','🧹','🥛'];
-let homeTasks=[
-  {id:1,icon:'📖',name:'每日阅读30分钟',done:true},
-  {id:2,icon:'✏️',name:'练字15分钟',done:false},
-  {id:3,icon:'🏃',name:'跳绳100个',done:false},
-  {id:4,icon:'🎒',name:'整理书包',done:true},
+
+// Tech-spec §3.3: Badge definitions
+const BADGE_DEFS=[
+  {type:'sprout',      icon:'🌱',name:'新芽初绽',category:'stars', threshold:7},
+  {type:'growing',     icon:'🌿',name:'小有所成',category:'stars', threshold:30},
+  {type:'thriving',    icon:'🪴',name:'枝繁叶茂',category:'stars', threshold:100},
+  {type:'harvest',     icon:'🍎',name:'硕果累累',category:'stars', threshold:365},
+  {type:'week_streak', icon:'🔥',name:'连续打卡',category:'streak',threshold:7},
+  {type:'month_streak',icon:'🌕',name:'满月打卡',category:'streak',threshold:30},
+  {type:'star_hundred',icon:'🏅',name:'百颗星', category:'stars', threshold:100},
 ];
-let mgmtTasks=[
-  {id:1,icon:'📖',name:'每日阅读30分钟',why:'认识更多字',repeat:'每天'},
-  {id:2,icon:'✏️',name:'练字15分钟',why:'',repeat:'工作日'},
-  {id:3,icon:'🏃',name:'跳绳100个',why:'长高、身体更健康',repeat:'周一、三、五'},
+
+// Tech-spec §3.1: Default mgmtTasks (used when no saved data)
+const DEFAULT_MGMT_TASKS=[
+  {id:1,icon:'📖',name:'每日阅读30分钟',purpose:'认识更多字',repeat_type:'daily',repeat_days:[],sort_order:1,is_deleted:false,created_at:'2026-07-01T00:00:00.000Z'},
+  {id:2,icon:'✏️',name:'练字15分钟',purpose:'',repeat_type:'daily',repeat_days:[],sort_order:2,is_deleted:false,created_at:'2026-07-01T00:00:00.000Z'},
+  {id:3,icon:'🏃',name:'跳绳100个',purpose:'长高、身体更健康',repeat_type:'daily',repeat_days:[],sort_order:3,is_deleted:false,created_at:'2026-07-01T00:00:00.000Z'},
+  {id:4,icon:'🎒',name:'整理书包',purpose:'',repeat_type:'daily',repeat_days:[],sort_order:4,is_deleted:false,created_at:'2026-07-01T00:00:00.000Z'},
 ];
-const BADGES=[
-  {icon:'🌱',name:'新芽初绽',earned:true,prog:'累计7颗星'},
-  {icon:'🌿',name:'小有所成',earned:true,prog:'累计30颗星'},
-  {icon:'🪴',name:'枝繁叶茂',earned:false,prog:'还差70颗星'},
-  {icon:'🍎',name:'硕果累累',earned:false,prog:'还差341颗星'},
-  {icon:'🔥',name:'连续打卡',earned:true,prog:'连续7天'},
-  {icon:'🌕',name:'满月打卡',earned:false,prog:'还需连续23天'},
-  {icon:'🏅',name:'百颗星',earned:false,prog:'还差77颗星'},
-  {icon:'🔒',name:'敬请期待',earned:false,prog:'',reserved:true},
-];
-const STREAK=7, WEEK_RATE=85;
-let homeEmpty=false;
+
+/* ========================================================================
+   SECTION B: Global State (mutable)
+   ======================================================================== */
+
+let mgmtTasks=[...DEFAULT_MGMT_TASKS.map(t=>({...t}))];
+
+// Tech-spec §3.2: Fine-grained checkins: { dateIso: { taskId: {done,backfill,created_at} } }
+let checkinsByDate={};
+
+// Tech-spec §3.3: Badge earned state: { sprout: true, week_streak: true, ... }
+let badges={};
+
+// Snapshot mechanism (踩坑 #5/#12): ensures stats page and home page data consistency
+const homeTasksByDate={};
+function taskSnapshot(){ return homeTasks.map(t=>({...t})); }
+function loadSnapshot(iso){ homeTasks=(homeTasksByDate[iso]||homeTasks).map(t=>({...t})); }
+function saveSnapshot(iso){ homeTasksByDate[iso]=taskSnapshot(); }
+
+let homeTasks=[];          // Derived from mgmtTasks + checkinsByDate per viewDate
+let maxStreak=0;           // Historical max streak
 const TODAY=new Date(); TODAY.setHours(0,0,0,0);
 let calMonth=TODAY.getMonth(), calYear=TODAY.getFullYear();
 let viewDate=isoOf(TODAY);
+let editingTaskId=null;    // null=add mode, number=edit mode
 
-/* ===== Mock 历史打卡数据（仅历史日，1-10；今日 11 由 homeTasks 实时提供）=====
- * SSOT：历史日 → checkinsByDate；今日 → homeTasks（确保两页一致 + 星星数随操作联动）
- */
-const checkinsByDate={};
-const _mkDate=(y,m,d)=>{const dt=new Date(y,m,d);dt.setHours(0,0,0,0);return isoOf(dt);};
-(function seed(){
-  const y=TODAY.getFullYear(), m=TODAY.getMonth();
-  // hasBackfill: 该日是否含补卡记录（仅 7-9 含，演示用）
-  checkinsByDate[_mkDate(y,m,1)]={done:4,total:4,hasBackfill:false};
-  checkinsByDate[_mkDate(y,m,2)]={done:3,total:4,hasBackfill:false};
-  checkinsByDate[_mkDate(y,m,3)]={done:4,total:4,hasBackfill:false};
-  checkinsByDate[_mkDate(y,m,4)]={done:4,total:4,hasBackfill:false};
-  checkinsByDate[_mkDate(y,m,5)]={done:2,total:4,hasBackfill:false};
-  checkinsByDate[_mkDate(y,m,6)]={done:4,total:4,hasBackfill:false};
-  checkinsByDate[_mkDate(y,m,7)]={done:4,total:4,hasBackfill:true};
-  checkinsByDate[_mkDate(y,m,8)]={done:4,total:4,hasBackfill:true};
-  checkinsByDate[_mkDate(y,m,9)]={done:4,total:4,hasBackfill:true};
-  checkinsByDate[_mkDate(y,m,10)]={done:3,total:4,hasBackfill:false};
-})();
-function getCheckin(iso){
-  // 今日以 homeTasks 为真源
-  if(iso===isoOf(TODAY)){
-    return {done:homeTasks.filter(t=>t.done).length, total:homeTasks.length,
-            hasBackfill:homeTasks.some(t=>t.backfill)};
-  }
-  return checkinsByDate[iso] || {done:0,total:homeTasks.length,hasBackfill:false};
-}
-function cellClassFor(iso){
-  // 新语义：🟢 全完成；🟠 全完成且含补卡；⚪ 部分/未完成
-  const c=getCheckin(iso);
-  if(c.done===0) return 'c-none';
-  if(c.done>=c.total) return c.hasBackfill ? 'c-part' : 'c-done';
-  return 'c-none';
-}
-/* 累计星星 = 7 基础 + 全部历史日已打卡数（含今日） */
-function calcStars(){
-  const base=7;
-  let s=0;
-  Object.values(checkinsByDate).forEach(c=>{ s+=c.done; });
-  s += homeTasks.filter(t=>t.done).length;   // 今日
-  return base + s;
-}
+/* ========================================================================
+   SECTION C: Utils
+   ======================================================================== */
 
-/* ===== Utils ===== */
 function isoOf(d){return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;}
-function dateOfIso(s){const [y,m,dd]=s.split('-').map(Number);return new Date(y,m-1,dd);}
+function dateOfIso(s){const[y,m,dd]=s.split('-').map(Number);return new Date(y,m-1,dd);}
 function fmtDate(d){const w=['周日','周一','周二','周三','周四','周五','周六'][d.getDay()];return `${d.getMonth()+1}月${d.getDate()}日 ${w}`;}
 function showToast(t){const el=document.getElementById('toast');el.textContent=t;el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),1800);}
+function escapeHtml(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+function getWeekday(dateStr){const d=dateOfIso(dateStr);const w=d.getDay();return w===0?7:w;} // 1=Mon..7=Sun
 
-/* ===== Render Home ===== */
+// Tech-spec §1.4: Determine if task is active on a given date
+function isActiveOnDate(task,dateStr){
+  const wd=getWeekday(dateStr);
+  switch(task.repeat_type){
+    case 'daily': return true;
+    case 'weekday': return wd<=5;
+    case 'weekend': return wd>=6;
+    case 'custom': return task.repeat_days.includes(wd);
+    default: return true;
+  }
+}
+
+// Tech-spec §1.4: Human-readable repeat label
+function getRepeatLabel(t){
+  switch(t.repeat_type){
+    case 'daily': return '每天';
+    case 'weekday': return '工作日（周一至周五）';
+    case 'weekend': return '周末';
+    case 'custom':{
+      const names=['周一','周二','周三','周四','周五','周六','周日'];
+      return t.repeat_days.map(d=>names[d-1]).join('、')||'自定义';
+    }
+    default: return '每天';
+  }
+}
+
+// Tech-spec §1.4: Derive homeTasks from mgmtTasks + checkinsByDate
+function getHomeTasks(dateStr){
+  return mgmtTasks
+    .filter(t=>!t.is_deleted && isActiveOnDate(t,dateStr))
+    .map(t=>{
+      const record=checkinsByDate[dateStr]?.[t.id];
+      return {id:t.id,icon:t.icon,name:t.name,done:record?.done||false,backfill:record?.backfill||false};
+    });
+}
+
+/* ========================================================================
+   SECTION D: Persistence (localStorage)
+   ======================================================================== */
+
+const STORAGE_KEY='growth_sapling_v2';
+
+function saveToStorage(){
+  const data={mgmtTasks,checkinsByDate,badges,maxStreak};
+  try{localStorage.setItem(STORAGE_KEY,JSON.stringify(data));}catch(e){}
+}
+
+function loadFromStorage(){
+  try{
+    const raw=localStorage.getItem(STORAGE_KEY);
+    if(!raw) return false;
+    const data=JSON.parse(raw);
+    if(data.mgmtTasks) mgmtTasks=data.mgmtTasks;
+    if(data.checkinsByDate) checkinsByDate=data.checkinsByDate;
+    if(data.badges) badges=data.badges;
+    if(typeof data.maxStreak==='number') maxStreak=data.maxStreak;
+    return true;
+  }catch(e){return false;}
+}
+
+// Generate demo seed data for first-time users (or after migration from old format)
+function generateSeedData(){
+  const y=TODAY.getFullYear(), m=TODAY.getMonth();
+  const mk=(d)=>isoOf(new Date(y,m,d));
+  // Generate demo data for days 1-10
+  const demo=[];
+  // All done, no backfill
+  for(let d=1;d<=4;d++){ demo.push({d,allDone:true,hasBackfill:false}); }
+  // Partial (2/4)
+  demo.push({d:5,allDone:false,hasBackfill:false});
+  // All done, no backfill
+  demo.push({d:6,allDone:true,hasBackfill:false});
+  // All done, with backfill
+  for(let d=7;d<=9;d++){ demo.push({d,allDone:true,hasBackfill:true}); }
+  // Partial (3/4)
+  demo.push({d:10,allDone:false,hasBackfill:false});
+
+  checkinsByDate={};
+  demo.forEach(({d,allDone,hasBackfill})=>{
+    const iso=mk(d);
+    const activeTasks=DEFAULT_MGMT_TASKS.filter(t=>!t.is_deleted && isActiveOnDate(t,iso));
+    checkinsByDate[iso]={};
+    activeTasks.forEach((t,i)=>{
+      const done=allDone?true:(t.id===1||t.id===4); // partial: default done=id 1,4
+      const backfill=hasBackfill&&done&&(allDone?i===activeTasks.length-1:t.id===4);
+      checkinsByDate[iso][t.id]={task_id:t.id,done,backfill,created_at:new Date(y,m,d,8,0,0).toISOString()};
+    });
+  });
+}
+
+// Migration from old aggregate structure {done,total,hasBackfill} to new fine-grained structure
+function migrateData(){
+  let needsMigration=false;
+  for(const iso of Object.keys(checkinsByDate)){
+    const day=checkinsByDate[iso];
+    if(typeof day.done==='number'&&typeof day.total==='number'){
+      needsMigration=true; break;
+    }
+  }
+  if(needsMigration){
+    generateSeedData();
+    saveToStorage();
+  }
+}
+
+/* ========================================================================
+   SECTION E: Calculations
+   ======================================================================== */
+
+// Tech-spec §6.1: Total stars = 7 base + all historical + today
+function calcStars(){
+  const base=7;
+  const todayIso=isoOf(TODAY);
+  let s=0;
+  Object.values(checkinsByDate).forEach((day,iso)=>{
+    // 今日从 homeTasks 实时计算（避免重复计数），历史日累加 checkinsByDate
+    if(iso===todayIso){
+      s+=homeTasks.filter(t=>t.done).length;
+    }else{
+      s+=Object.values(day).filter(r=>r.done).length;
+    }
+  });
+  // 如果今日 checkinsByDate 还没建立（首次打开），补充从 homeTasks 计数
+  if(!checkinsByDate[todayIso]){
+    s+=homeTasks.filter(t=>t.done).length;
+  }
+  return base+s;
+}
+
+// Tech-spec §6.2: Consecutive streak (natural day 00:00 reset)
+function calcStreak(){
+  let streak=0;
+  const d=new Date(TODAY);
+  while(true){
+    const iso=isoOf(d);
+    let doneCount;
+    if(iso===isoOf(TODAY)){
+      doneCount=homeTasks.filter(t=>t.done).length;
+    }else{
+      const day=checkinsByDate[iso];
+      doneCount=day?Object.values(day).filter(r=>r.done).length:0;
+    }
+    if(doneCount===0) break;
+    streak++;
+    d.setDate(d.getDate()-1);
+  }
+  return streak;
+}
+
+// Tech-spec §6.3: Weekly completion rate (Mon-Sun)
+function calcWeekRate(){
+  const todayDow=TODAY.getDay(); // 0=Sun
+  const weekStart=new Date(TODAY);
+  weekStart.setDate(weekStart.getDate()-(todayDow===0?6:todayDow-1));
+  let doneTotal=0, taskTotal=0;
+  for(let i=0;i<7;i++){
+    const d=new Date(weekStart);
+    d.setDate(d.getDate()+i);
+    const iso=isoOf(d);
+    if(iso===isoOf(TODAY)){
+      doneTotal+=homeTasks.filter(t=>t.done).length;
+      taskTotal+=homeTasks.length;
+    }else{
+      const day=checkinsByDate[iso];
+      if(day){
+        const records=Object.values(day);
+        doneTotal+=records.filter(r=>r.done).length;
+        taskTotal+=records.length;
+      }
+    }
+  }
+  return taskTotal===0?0:Math.round(doneTotal/taskTotal*100);
+}
+
+// getCheckin: returns aggregate {done,total,hasBackfill} for a given date
+function getCheckin(iso){
+  if(iso===isoOf(TODAY)){
+    return {done:homeTasks.filter(t=>t.done).length,total:homeTasks.length,
+            hasBackfill:homeTasks.some(t=>t.backfill)};
+  }
+  if(homeTasksByDate[iso]){
+    const arr=homeTasksByDate[iso];
+    return {done:arr.filter(t=>t.done).length,total:arr.length,
+            hasBackfill:arr.some(t=>t.backfill)};
+  }
+  const day=checkinsByDate[iso];
+  if(!day) return {done:0,total:homeTasks.length,hasBackfill:false};
+  const records=Object.values(day);
+  return {done:records.filter(r=>r.done).length,total:records.length,
+          hasBackfill:records.some(r=>r.backfill)};
+}
+
+function cellClassFor(iso){
+  const c=getCheckin(iso);
+  if(c.done===0) return 'c-none';
+  if(c.done<c.total) return 'c-part';
+  return 'c-done';
+}
+
+/* ========================================================================
+   SECTION F: Badge Logic
+   ======================================================================== */
+
+function recalcBadges(){
+  const stars=calcStars();
+  const streak=calcStreak();
+  const oldBadges={...badges};
+  badges={};
+  BADGE_DEFS.forEach(b=>{
+    if(b.category==='stars') badges[b.type]=stars>=b.threshold;
+    else if(b.category==='streak') badges[b.type]=streak>=b.threshold;
+  });
+  // Update maxStreak
+  if(streak>maxStreak) maxStreak=streak;
+  // Check for newly earned badges
+  BADGE_DEFS.forEach(b=>{
+    if(badges[b.type]&&!oldBadges[b.type]){
+      setTimeout(()=>showBadgeAnimation(b),400);
+    }
+  });
+}
+
+function showBadgeAnimation(badge){
+  document.getElementById('baIcon').textContent=badge.icon;
+  document.getElementById('baText').textContent=`获得「${badge.name}」！`;
+  document.getElementById('badgeAnimation').classList.add('show');
+  setTimeout(()=>closeBadgeAnimation(),2000);
+}
+function closeBadgeAnimation(){
+  document.getElementById('badgeAnimation').classList.remove('show');
+}
+
+/* ========================================================================
+   SECTION G: Star Burst Animation
+   ======================================================================== */
+
+function spawnStars(cardEl){
+  const rect=cardEl.getBoundingClientRect();
+  const appRect=document.getElementById('app').getBoundingClientRect();
+  const cx=rect.left-appRect.left+rect.width/2;
+  const cy=rect.top-appRect.top+rect.height/2;
+  const container=document.createElement('div');
+  container.className='star-burst';
+  container.style.left=cx+'px';
+  container.style.top=cy+'px';
+  for(let i=0;i<5;i++){
+    const p=document.createElement('span');
+    p.className='star-particle';
+    p.textContent='⭐';
+    p.style.setProperty('--dx',(Math.random()-0.5)*120+'px');
+    p.style.setProperty('--dy',(Math.random()-0.5)*120+'px');
+    container.appendChild(p);
+  }
+  document.getElementById('app').appendChild(container);
+  setTimeout(()=>container.remove(),700);
+}
+
+/* ========================================================================
+   SECTION H: Render Home
+   ======================================================================== */
+
 function renderHome(){
   const c=document.getElementById('pageHome');
   const vd=dateOfIso(viewDate);
   const isPast=vd<TODAY, isFuture=vd>TODAY, isToday=vd.getTime()===TODAY.getTime();
-  if(isToday) homeTasks.forEach(t=>{ t.backfill=false; });     // L1.4 今日永不显示补卡
+
+  if(isToday) homeTasks.forEach(t=>{t.backfill=false;}); // L1.4
+
   const doneCount=homeTasks.filter(t=>t.done).length;
-  const fireLit=isPast || homeTasks.some(t=>t.done);
+  const streak=calcStreak();
+  // 火焰状态：仅看当日是否有任务完成（无论今日还是历史日）
+  const fireLit=homeTasks.some(t=>t.done);
+
   let h='';
   h+=`<div class="home-header">
-    <div class="streak-fire"><span class="fire-icon ${fireLit?'lit':''}">${fireLit?'🔥':'🪵'}</span><span>${STREAK}</span></div>
+    <div class="streak-fire"><span class="fire-icon ${fireLit?'lit':''}">${fireLit?'🔥':'🪵'}</span><span>${streak}</span></div>
     <div class="star-count">⭐ ${calcStars()}</div>
     <div class="date-display" onclick="openCal()"><span>${fmtDate(vd)}</span><span>📅</span></div>
   </div>`;
   h+=`<div class="backfill-banner ${isPast?'show':''}">📅 补卡模式 · ${fmtDate(vd)}</div>`;
-  if(homeEmpty){
-    h+=`<div class="empty-state"><div class="squirrel">🐿️</div><div class="empty-title">来添加你的第一个任务吧！</div><div class="empty-sub">果果陪你一起打卡哦～</div><button class="btn-primary" onclick="switchTab('tasks')">去添加任务</button></div>`;
-  }else if(isFuture){
+
+  if(isFuture){
     h+=`<div class="empty-state"><div class="squirrel">🐿️</div><div class="empty-title">这一天还没到哦</div><div class="empty-sub">${fmtDate(vd)} 是未来，先安排好任务吧～</div></div>`;
   }else if(homeTasks.length===0){
-    h+=`<div class="empty-state"><div class="squirrel">🐿️</div><div class="empty-title">今天没有安排任务</div><div class="empty-sub">好好休息吧～</div></div>`;
+    const hasAnyTask=mgmtTasks.filter(t=>!t.is_deleted).length>0;
+    if(hasAnyTask){
+      h+=`<div class="empty-state"><div class="squirrel">🐿️</div><div class="empty-title">今天没有安排任务</div><div class="empty-sub">好好休息吧～</div></div>`;
+    }else{
+      h+=`<div class="empty-state"><div class="squirrel">🐿️</div><div class="empty-title">来添加你的第一个任务吧！</div><div class="empty-sub">果果陪你一起打卡哦～</div><button class="btn-primary" onclick="switchTab('tasks')">去添加任务</button></div>`;
+    }
   }else{
     h+=`<div class="task-list">`;
     homeTasks.forEach(t=>{
-      h+=`<div class="task-card ${t.done?'completed':''} ${t.backfill?'backfill':''}" onclick="onTaskClick(${t.id})">
+      h+=`<div class="task-card ${t.done?'completed':''} ${t.backfill?'backfill':''}" data-task-id="${t.id}" onclick="onTaskClick(${t.id})">
         ${t.backfill?'<div class="backfill-tag">补</div>':''}
         <span class="task-icon">${t.icon}</span>
-        <span class="task-name">${t.name}</span>
+        <span class="task-name">${escapeHtml(t.name)}</span>
         <span class="task-status">${t.done?'✓':''}</span>
       </div>`;
     });
@@ -424,111 +692,273 @@ function renderHome(){
   }
   c.innerHTML=h;
 }
+
+/* ========================================================================
+   SECTION I: Task Click (Check-in / Undo)
+   ======================================================================== */
+
 function onTaskClick(id){
   const vd=dateOfIso(viewDate);
-  if(vd>TODAY) return;                          // 未来日期：不可点
+  if(vd>TODAY) return; // L5: future dates disabled
   const t=homeTasks.find(x=>x.id===id); if(!t) return;
+
   if(t.done){
+    // L3: Undo with confirmation
     const isBackfill=vd<TODAY;
     const verb=isBackfill?'补卡':'打卡';
     document.getElementById('confirmText').textContent=`确定撤销「${t.name}」的${verb}吗？`;
-    document.getElementById('confirmOk').onclick=()=>{ closeOverlay('confirmOverlay'); t.done=false; t.backfill=false; renderHome(); };
+    document.getElementById('confirmOk').onclick=()=>{
+      closeOverlay('confirmOverlay');
+      t.done=false; t.backfill=false; // L1.3
+      if(checkinsByDate[viewDate]) delete checkinsByDate[viewDate][id];
+      if(checkinsByDate[viewDate]&&Object.keys(checkinsByDate[viewDate]).length===0) delete checkinsByDate[viewDate];
+      saveSnapshot(viewDate);  // Always save snapshot after undo
+      saveToStorage(); recalcBadges(); renderHome(); renderStats();
+    };
     openOverlay('confirmOverlay');
   }else{
+    // L4: Direct check-in
     t.done=true;
-    if(vd<TODAY) t.backfill=true;                // 补卡模式：标记为补卡
-    renderHome();
-    if(homeTasks.length>0 && homeTasks.every(x=>x.done) && vd.getTime()===TODAY.getTime()) setTimeout(showCelebration,300);
+    const backfill=vd<TODAY;
+    t.backfill=backfill; // L1.1 / L1.2
+    // Write to fine-grained checkinsByDate
+    if(!checkinsByDate[viewDate]) checkinsByDate[viewDate]={};
+    checkinsByDate[viewDate][id]={task_id:id,done:true,backfill,created_at:new Date().toISOString()};
+    // Always save snapshot for data consistency
+    saveSnapshot(viewDate);
+
+    // Star burst animation
+    const card=document.querySelector(`.task-card[data-task-id="${id}"]`);
+    if(card) spawnStars(card);
+
+    saveToStorage(); recalcBadges();
+    renderHome(); renderStats();
+    showToast(backfill?'补卡成功！⭐+1':'打卡成功！⭐+1');
+
+    // L10: Celebration only for today
+    if(homeTasks.length>0&&homeTasks.every(x=>x.done)&&vd.getTime()===TODAY.getTime()){
+      setTimeout(showCelebration,500);
+    }
   }
 }
+
 function showCelebration(){document.getElementById('celebration').classList.add('show');}
 function closeCelebration(){document.getElementById('celebration').classList.remove('show');}
 
-/* ===== Render Stats ===== */
+/* ========================================================================
+   SECTION J: Render Stats
+   ======================================================================== */
+
 function renderStats(){
   const c=document.getElementById('pageStats');
   const y=TODAY.getFullYear(), m=TODAY.getMonth();
+  const streak=calcStreak();
+  const weekRate=calcWeekRate();
+
+  // Calendar grid
   let grid='';for(let i=0;i<7;i++)grid+=`<div class="cal-head">${['日','一','二','三','四','五','六'][i]}</div>`;
   const first=new Date(y,m,1).getDay();
   const days=new Date(y,m+1,0).getDate();
   for(let i=0;i<first;i++)grid+=`<div class="cal-cell c-empty"></div>`;
   for(let d=1;d<=days;d++){
     const day=new Date(y,m,d);
-    if(day>TODAY){ grid+=`<div class="cal-cell c-empty">${d}</div>`; }
-    else {
-      const iso=_mkDate(y,m,d);
-      const c=getCheckin(iso);
+    if(day>TODAY){grid+=`<div class="cal-cell c-empty">${d}</div>`;}
+    else{
+      const iso=isoOf(new Date(y,m,d));
+      const ck=getCheckin(iso);
       const cls=cellClassFor(iso);
-      const tip=`${d}日 · ${c.done}/${c.total}${c.hasBackfill?'（含补卡）':''}`;
-      const mark=c.hasBackfill?'<span class="bf-mark">补</span>':'';
-      grid+=`<div class="cal-cell ${cls}" title="${tip}" onclick="pickDate(${d})">${d}${mark}</div>`;
+      const mark=(ck.done>=ck.total&&ck.hasBackfill)?'<span class="bf-mark">补</span>':'';
+      grid+=`<div class="cal-cell ${cls}" onclick="pickDate(${d})">${d}${mark}</div>`;
     }
   }
-  let badges='';BADGES.forEach(b=>{badges+=`<div class="badge ${b.earned?'earned':b.reserved?'reserved locked':'locked'}">
-    <div class="badge-icon">${b.icon}</div><div class="badge-name">${b.name}</div>${b.prog?`<div class="badge-prog">${b.prog}</div>`:''}</div>`;});
+
+  // Badge wall
+  const stars=calcStars();
+  let badgesHtml='';
+  BADGE_DEFS.forEach(b=>{
+    const earned=!!badges[b.type];
+    let prog='';
+    if(!earned){
+      const val=b.category==='stars'?stars:streak;
+      const remain=b.threshold-val;
+      prog=`<div class="badge-prog">${remain>0?'还差'+remain+(b.category==='stars'?'颗星':'天'):''}</div>`;
+    }else{
+      prog=`<div class="badge-prog">已获得</div>`;
+    }
+    badgesHtml+=`<div class="badge ${earned?'earned':'locked'}">
+      <div class="badge-icon">${b.icon}</div><div class="badge-name">${b.name}</div>${prog}</div>`;
+  });
+  // Add reserved slot
+  badgesHtml+=`<div class="badge locked badge-reserved"><div class="badge-icon">🔒</div><div class="badge-name">敬请期待</div></div>`;
+
   c.innerHTML=`<div class="stats-header">📊 我的成长</div>
-    <div class="streak-block"><div class="streak-num">🔥 ${STREAK}</div><div class="streak-label">连续打卡</div><div class="streak-best">最长 12 天</div></div>
+    <div class="streak-block"><div class="streak-num">🔥 ${streak}</div><div class="streak-label">连续打卡</div><div class="streak-best">最长 ${maxStreak||streak} 天</div></div>
     <div class="card"><div class="card-title">本周完成率</div><div class="ring-wrap">
-      <div class="ring"><div class="ring-inner">${WEEK_RATE}%</div></div>
+      <div class="ring" style="background:conic-gradient(var(--green) 0% ${weekRate}%, #EFE7DC ${weekRate}% 100%);"><div class="ring-inner">${weekRate}%</div></div>
       <div class="ring-desc">这一周你完成得<br>很棒，继续保持！</div></div></div>
     <div class="card"><div class="card-title">打卡日历</div><div class="cal-month">${y}年${m+1}月</div><div class="cal-grid">${grid}</div></div>
-    <div class="card"><div class="card-title">🏅 徽章墙</div><div class="badge-grid">${badges}</div></div>`;
+    <div class="card"><div class="card-title">🏅 徽章墙</div><div class="badge-grid">${badgesHtml}</div></div>`;
 }
 
-/* ===== Render Tasks ===== */
+/* ========================================================================
+   SECTION K: Render Tasks (Management)
+   ======================================================================== */
+
 function renderTasks(){
   const c=document.getElementById('pageTasks');
+  const activeTasks=mgmtTasks.filter(t=>!t.is_deleted);
+  const atLimit=activeTasks.length>=6;
   let h=`<div class="tasks-header">⚙️ 我的任务</div>`;
-  if(mgmtTasks.length===0){
+  if(activeTasks.length===0){
     h+=`<div class="empty-state" style="padding-top:var(--sp-8);"><div class="squirrel">🐿️</div><div class="empty-title">还没有任务哦</div><div class="empty-sub">点击下方按钮，添加你的第一个任务吧！</div></div>`;
   }else{
     h+=`<div class="task-mgmt-list">`;
-    mgmtTasks.forEach(t=>{h+=`<div class="tm-card" onclick="editTask(${t.id})">
-      <span class="tm-icon">${t.icon}</span>
-      <div class="tm-info"><div class="tm-name">${t.name}</div>
-      ${t.why?`<div class="tm-purpose">💭 ${t.why}</div>`:''}<div class="tm-repeat">${t.repeat}</div></div>
-      <div class="tm-actions"><button class="tm-btn edit" onclick="event.stopPropagation();editTask(${t.id})">✏️</button>
-      <button class="tm-btn del" onclick="event.stopPropagation();delTask(${t.id})">🗑</button></div>
-    </div>`;});
+    activeTasks.forEach(t=>{
+      h+=`<div class="tm-card" onclick="openEditTask(${t.id})">
+        <span class="tm-icon">${t.icon}</span>
+        <div class="tm-info"><div class="tm-name">${escapeHtml(t.name)}</div>
+        ${t.purpose?`<div class="tm-purpose">💭 ${escapeHtml(t.purpose)}</div>`:''}<div class="tm-repeat">${getRepeatLabel(t)}</div></div>
+        <div class="tm-actions"><button class="tm-btn edit" onclick="event.stopPropagation();openEditTask(${t.id})">✏️</button>
+        <button class="tm-btn del" onclick="event.stopPropagation();delTask(${t.id})">🗑</button></div>
+      </div>`;
+    });
     h+=`</div>`;
   }
-  h+=`<button class="add-btn" onclick="openTask()">＋ 添加任务</button>`;
+  h+=`<button class="add-btn" ${atLimit?'disabled':''} onclick="openTask()">${atLimit?'最多添加6个任务哦～':'＋ 添加任务'}</button>`;
   c.innerHTML=h;
 }
-function editTask(id){const t=mgmtTasks.find(x=>x.id===id);if(t)showToast(`编辑：${t.name}`);}
-function delTask(id){const t=mgmtTasks.find(x=>x.id===id);
+
+/* ========================================================================
+   SECTION L: Task CRUD
+   ======================================================================== */
+
+function openEditTask(taskId){
+  const t=mgmtTasks.find(x=>x.id===taskId);
+  if(!t) return;
+  editingTaskId=taskId;
+  document.getElementById('taskFormTitle').innerHTML='编辑任务 <button class="sheet-close" onclick="closeOverlay(\'taskOverlay\')">✕</button>';
+  document.getElementById('fName').value=t.name;
+  document.getElementById('fWhy').value=t.purpose||'';
+  selIcon=t.icon;
+  // Render icon grid
+  const ig=document.getElementById('iconGrid');ig.innerHTML='';
+  ICONS.forEach((ic,i)=>{
+    const b=document.createElement('div');
+    b.className='icon-opt'+(ic===t.icon?' sel':'');
+    b.textContent=ic;b.onclick=()=>{selIcon=ic;[...ig.children].forEach(x=>x.classList.remove('sel'));b.classList.add('sel');};
+    ig.appendChild(b);
+  });
+  // Period
+  document.querySelectorAll('#periodRow .period-opt').forEach(p=>p.classList.remove('sel'));
+  const periodLabels={daily:'每天',weekday:'工作日',weekend:'周末',custom:'自定义'};
+  const targetLabel=periodLabels[t.repeat_type]||'每天';
+  const targetEl=[...document.querySelectorAll('#periodRow .period-opt')].find(p=>p.dataset.p===targetLabel);
+  if(targetEl) targetEl.classList.add('sel');
+  // Week row
+  const weekRow=document.getElementById('weekRow');
+  if(t.repeat_type==='custom'){
+    weekRow.style.display='flex';
+    [...weekRow.querySelectorAll('.week-opt')].forEach((w,i)=>{
+      const wd=i+1; // 1=Mon..7=Sun
+      w.classList.toggle('sel',t.repeat_days.includes(wd));
+    });
+  }else{weekRow.style.display='none';}
+  openOverlay('taskOverlay');
+}
+
+function delTask(id){
+  const t=mgmtTasks.find(x=>x.id===id);
+  if(!t) return;
   document.getElementById('confirmText').textContent=`确定删除「${t.name}」吗？之前的打卡记录会留着哦～`;
-  document.getElementById('confirmOk').onclick=()=>{mgmtTasks=mgmtTasks.filter(x=>x.id!==id);closeOverlay('confirmOverlay');renderTasks();showToast('已删除');};
+  document.getElementById('confirmOk').onclick=()=>{
+    t.is_deleted=true;
+    closeOverlay('confirmOverlay');
+    saveToStorage();
+    renderTasks();
+    renderHome();
+    showToast('已删除');
+  };
   openOverlay('confirmOverlay');
 }
 
-/* ===== Task form ===== */
+/* ========================================================================
+   SECTION M: Task Form (Add/Edit)
+   ======================================================================== */
+
 let selIcon=ICONS[0];
+
 function openTask(){
+  editingTaskId=null;
   selIcon=ICONS[0];
+  document.getElementById('taskFormTitle').innerHTML='添加任务 <button class="sheet-close" onclick="closeOverlay(\'taskOverlay\')">✕</button>';
   document.getElementById('fName').value='';document.getElementById('fWhy').value='';
   const ig=document.getElementById('iconGrid');ig.innerHTML='';
-  ICONS.forEach((ic,i)=>{const b=document.createElement('div');b.className='icon-opt'+(i===0?' sel':'');b.textContent=ic;b.onclick=()=>{selIcon=ic;[...ig.children].forEach(x=>x.classList.remove('sel'));b.classList.add('sel');};ig.appendChild(b);});
+  ICONS.forEach((ic,i)=>{
+    const b=document.createElement('div');
+    b.className='icon-opt'+(i===0?' sel':'');
+    b.textContent=ic;b.onclick=()=>{selIcon=ic;[...ig.children].forEach(x=>x.classList.remove('sel'));b.classList.add('sel');};
+    ig.appendChild(b);
+  });
   document.querySelectorAll('#periodRow .period-opt').forEach(p=>p.classList.remove('sel'));
   document.querySelector('#periodRow .period-opt').classList.add('sel');
   document.getElementById('weekRow').style.display='none';
   openOverlay('taskOverlay');
 }
-document.getElementById('periodRow').addEventListener('click',e=>{const p=e.target.closest('.period-opt');if(!p)return;
-  document.querySelectorAll('#periodRow .period-opt').forEach(x=>x.classList.remove('sel'));p.classList.add('sel');
-  document.getElementById('weekRow').style.display=p.dataset.p==='自定义'?'flex':'none';});
-document.getElementById('weekRow').addEventListener('click',e=>{const w=e.target.closest('.week-opt');if(!w)return;w.classList.toggle('sel');});
+
+document.getElementById('periodRow').addEventListener('click',e=>{
+  const p=e.target.closest('.period-opt');if(!p)return;
+  document.querySelectorAll('#periodRow .period-opt').forEach(x=>x.classList.remove('sel'));
+  p.classList.add('sel');
+  document.getElementById('weekRow').style.display=p.dataset.p==='自定义'?'flex':'none';
+});
+document.getElementById('weekRow').addEventListener('click',e=>{
+  const w=e.target.closest('.week-opt');if(!w)return;w.classList.toggle('sel');
+});
+
 function saveTask(){
-  const name=document.getElementById('fName').value.trim();if(!name){showToast('请填写任务名称');return;}
-  const why=document.getElementById('fWhy').value.trim();
-  const per=document.querySelector('#periodRow .period-opt.sel').dataset.p;
-  let repeat=per;
-  if(per==='自定义'){const sel=[...document.querySelectorAll('#weekRow .week-opt.sel')].map(x=>x.textContent);repeat=sel.join('、')||'自定义';}
-  mgmtTasks.push({id:Date.now(),icon:selIcon,name,why,repeat});
-  closeOverlay('taskOverlay');renderTasks();showToast('任务已添加 🌱');
+  const name=document.getElementById('fName').value.trim();
+  if(!name){showToast('请填写任务名称');return;}
+  const purpose=document.getElementById('fWhy').value.trim();
+  const perEl=document.querySelector('#periodRow .period-opt.sel');
+  const perLabel=perEl.dataset.p;
+  const typeMap={'每天':'daily','工作日':'weekday','周末':'weekend','自定义':'custom'};
+  const repeat_type=typeMap[perLabel]||'daily';
+  let repeat_days=[];
+  if(repeat_type==='custom'){
+    const weekNames=['周一','周二','周三','周四','周五','周六','周日'];
+    repeat_days=[...document.querySelectorAll('#weekRow .week-opt.sel')].map(x=>weekNames.indexOf(x.textContent)+1);
+    if(repeat_days.length===0){showToast('请选择至少一个工作日');return;}
+  }
+
+  if(editingTaskId){
+    const t=mgmtTasks.find(x=>x.id===editingTaskId);
+    if(t){
+      t.name=name; t.purpose=purpose; t.icon=selIcon;
+      t.repeat_type=repeat_type; t.repeat_days=repeat_days;
+    }
+    editingTaskId=null;
+  }else{
+    const activeCount=mgmtTasks.filter(t=>!t.is_deleted).length;
+    if(activeCount>=6){showToast('最多添加6个任务哦～');return;}
+    mgmtTasks.push({
+      id:Date.now(), icon:selIcon, name, purpose,
+      repeat_type, repeat_days,
+      sort_order:mgmtTasks.length+1,
+      is_deleted:false,
+      created_at:new Date().toISOString()
+    });
+  }
+  closeOverlay('taskOverlay');
+  saveToStorage();
+  renderTasks();
+  renderHome();
+  showToast(editingTaskId?'任务已更新 ✏️':'任务已添加 🌱');
 }
 
-/* ===== Calendar ===== */
+/* ========================================================================
+   SECTION N: Calendar & Date Picker
+   ======================================================================== */
+
 function openCal(){renderCal();openOverlay('calOverlay');}
 function renderCal(){
   document.getElementById('calTitle').textContent=`${calYear}年${calMonth+1}月`;
@@ -545,9 +975,35 @@ function renderCal(){
   document.getElementById('calBig').innerHTML=g;
 }
 function shiftMonth(n){calMonth+=n;if(calMonth<0){calMonth=11;calYear--;}if(calMonth>11){calMonth=0;calYear++;}renderCal();}
-function pickDate(d){ viewDate=isoOf(new Date(calYear,calMonth,d)); closeOverlay('calOverlay'); switchTab('home'); showToast(viewDate===isoOf(TODAY)?'已回到今天的打卡页':`已跳转到 ${fmtDate(dateOfIso(viewDate))}`); }
 
-/* ===== Tab / Overlay ===== */
+function pickDate(d){
+  // Save current snapshot before switching
+  if(viewDate!==isoOf(TODAY)) saveSnapshot(viewDate);
+  viewDate=isoOf(new Date(calYear,calMonth,d));
+
+  if(viewDate!==isoOf(TODAY)&&homeTasksByDate[viewDate]){
+    loadSnapshot(viewDate);
+  }else if(viewDate!==isoOf(TODAY)){
+    // Rebuild from checkinsByDate fine-grained records
+    const dayRecords=checkinsByDate[viewDate];
+    homeTasks=mgmtTasks
+      .filter(t=>!t.is_deleted&&isActiveOnDate(t,viewDate))
+      .map(t=>{
+        const record=dayRecords?.[t.id];
+        return {id:t.id,icon:t.icon,name:t.name,done:record?.done||false,backfill:record?.backfill||false};
+      });
+    saveSnapshot(viewDate);
+  }else{
+    loadSnapshot(viewDate);
+  }
+  closeOverlay('calOverlay'); switchTab('home');
+  showToast(viewDate===isoOf(TODAY)?'已回到今天的打卡页':`已跳转到 ${fmtDate(dateOfIso(viewDate))}`);
+}
+
+/* ========================================================================
+   SECTION O: Tab / Overlay / Splash
+   ======================================================================== */
+
 function switchTab(tab){
   document.querySelectorAll('.tab-item').forEach(t=>t.classList.toggle('active',t.dataset.tab===tab));
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -557,17 +1013,36 @@ function switchTab(tab){
 function openOverlay(id){document.getElementById(id).classList.add('show');}
 function closeOverlay(id){document.getElementById(id).classList.remove('show');}
 
-/* ===== Demo controls ===== */
-function demoEmpty(){homeEmpty=true;renderHome();showToast('演示：空状态');}
-function demoBackfill(){const p=new Date(TODAY);p.setDate(p.getDate()-2);viewDate=isoOf(p);homeEmpty=false;homeTasks.forEach((t,i)=>{t.done=(i<2);t.backfill=(i===0);});renderHome();showToast('演示：补卡模式（前 2 项已补卡 + 补卡标签）');}
-function resetHome(){homeEmpty=false;viewDate=isoOf(TODAY);homeTasks.forEach(t=>{t.done=(t.id===1||t.id===4);t.backfill=false;});renderHome();}
-
-/* ===== Splash ===== */
 function hideSplash(){document.getElementById('splash').classList.add('hide');}
 setTimeout(hideSplash,1500);
 
-/* ===== Init ===== */
-renderHome();
+/* ========================================================================
+   SECTION P: Init
+   ======================================================================== */
+
+(function init(){
+  const hasData=loadFromStorage();
+  if(!hasData){
+    // First-time: generate demo seed data
+    generateSeedData();
+    badges={};
+    maxStreak=0;
+    // Set today's default check-in state (task 1 & 4 done) for demo
+    const todayIso=isoOf(TODAY);
+    checkinsByDate[todayIso]={};
+    DEFAULT_MGMT_TASKS.filter(t=>!t.is_deleted).forEach(t=>{
+      checkinsByDate[todayIso][t.id]={task_id:t.id,done:(t.id===1||t.id===4),backfill:false,created_at:new Date().toISOString()};
+    });
+    saveToStorage();
+  }else{
+    migrateData(); // Handle old format migration
+  }
+  // Derive homeTasks for today
+  homeTasks=getHomeTasks(isoOf(TODAY));
+  saveSnapshot(isoOf(TODAY));
+  recalcBadges();
+  renderHome();
+})();
 </script>
 </body>
 </html>
