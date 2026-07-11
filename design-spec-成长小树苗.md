@@ -243,6 +243,8 @@
 | L1.2 | 按期打卡不标 backfill | 仅 `viewDate < today` 时完成的才设 `backfill=true`；`viewDate === today` 的打卡 `backfill=false`，不显示「补」标签 | `onTaskClick` 写盘逻辑 |
 | L1.3 | 撤销补卡清除 backfill | 撤销打卡时同步 `t.backfill=false`，补卡标签消失 | `confirmOk.onclick` |
 | L1.4 | 今日永不显示补卡 | `renderHome` 入口判断：`viewDate === today` 时强制 `homeTasks.forEach(t=>t.backfill=false)`，杜绝残留 | `renderHome` |
+| L1.5 | 今日打卡数据与统计页数据源打通 | 今日 SSOT = `homeTasks`；`getCheckin(today)` 实时从 `homeTasks` 计算 done/total；统计页 11号 必须与打卡页一致 | `getCheckin` |
+| L1.6 | 星星数随打卡操作联动 | `STARS` 不再是常量，改为 `calcStars()`：基础 7 颗 + 全部历史日已打卡数（含今日）累加；勾选/撤销时 `homeTasks.done` 变化 → 顶部 `⭐` 立即变化 | `calcStars` |
 | L2 | 补卡模式 banner | `viewDate < today` 时显示「📅 补卡模式 · 日期」 | 渲染首页 |
 | L3 | 撤销打卡二次确认 | 已完成状态点任务 → 弹确认弹窗，文案区分「打卡 / 补卡」 | `onTaskClick(id)` 且 `task.done === true` |
 | L4 | 未完成任务直接打卡 | 未完成点任务 → 立即标完成 + 触发完成庆祝 | `onTaskClick(id)` 且 `task.done === false` |

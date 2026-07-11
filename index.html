@@ -326,20 +326,19 @@ const BADGES=[
   {icon:'🏅',name:'百颗星',earned:false,prog:'还差77颗星'},
   {icon:'🔒',name:'敬请期待',earned:false,prog:'',reserved:true},
 ];
-const STREAK=7, STARS=23, WEEK_RATE=85;
+const STREAK=7, WEEK_RATE=85;
 let homeEmpty=false;
 const TODAY=new Date(); TODAY.setHours(0,0,0,0);
 let calMonth=TODAY.getMonth(), calYear=TODAY.getFullYear();
 let viewDate=isoOf(TODAY);
 
-/* ===== Mock 历史打卡数据（用于统计页日历热力图）=====
- * 与今日 homeTasks 模拟数据保持一致：11号 4 项中完成 2 项；10号 4 项中完成 3 项；其余按规律
+/* ===== Mock 历史打卡数据（仅历史日，1-10；今日 11 由 homeTasks 实时提供）=====
+ * SSOT：历史日 → checkinsByDate；今日 → homeTasks（确保两页一致 + 星星数随操作联动）
  */
 const checkinsByDate={};
 const _mkDate=(y,m,d)=>{const dt=new Date(y,m,d);dt.setHours(0,0,0,0);return isoOf(dt);};
 (function seed(){
   const y=TODAY.getFullYear(), m=TODAY.getMonth();
-  // 与用户期望一致：11号 2/4，10号 3/4，其他历史日按规律
   checkinsByDate[_mkDate(y,m,1)]={done:4,total:4};
   checkinsByDate[_mkDate(y,m,2)]={done:3,total:4};
   checkinsByDate[_mkDate(y,m,3)]={done:4,total:4};
@@ -350,16 +349,27 @@ const _mkDate=(y,m,d)=>{const dt=new Date(y,m,d);dt.setHours(0,0,0,0);return iso
   checkinsByDate[_mkDate(y,m,8)]={done:4,total:4};
   checkinsByDate[_mkDate(y,m,9)]={done:2,total:4};
   checkinsByDate[_mkDate(y,m,10)]={done:3,total:4};
-  checkinsByDate[_mkDate(y,m,11)]={done:2,total:4}; // 今天（示例：未全完成）
 })();
 function getCheckin(iso){
-  return checkinsByDate[iso] || {done:0,total:4};
+  // 今日以 homeTasks 为真源
+  if(iso===isoOf(TODAY)){
+    return {done:homeTasks.filter(t=>t.done).length, total:homeTasks.length};
+  }
+  return checkinsByDate[iso] || {done:0,total:homeTasks.length};
 }
 function cellClassFor(iso){
   const c=getCheckin(iso);
   if(c.done===0) return 'c-none';
   if(c.done>=c.total) return 'c-done';
   return 'c-part';
+}
+/* 累计星星 = 7 基础 + 全部历史日已打卡数（含今日） */
+function calcStars(){
+  const base=7;
+  let s=0;
+  Object.values(checkinsByDate).forEach(c=>{ s+=c.done; });
+  s += homeTasks.filter(t=>t.done).length;   // 今日
+  return base + s;
 }
 
 /* ===== Utils ===== */
@@ -379,7 +389,7 @@ function renderHome(){
   let h='';
   h+=`<div class="home-header">
     <div class="streak-fire"><span class="fire-icon ${fireLit?'lit':''}">${fireLit?'🔥':'🪵'}</span><span>${STREAK}</span></div>
-    <div class="star-count">⭐ ${STARS}</div>
+    <div class="star-count">⭐ ${calcStars()}</div>
     <div class="date-display" onclick="openCal()"><span>${fmtDate(vd)}</span><span>📅</span></div>
   </div>`;
   h+=`<div class="backfill-banner ${isPast?'show':''}">📅 补卡模式 · ${fmtDate(vd)}</div>`;
