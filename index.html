@@ -367,7 +367,6 @@ function loadSnapshot(iso){ homeTasks=(homeTasksByDate[iso]||homeTasks).map(t=>(
 function saveSnapshot(iso){ homeTasksByDate[iso]=taskSnapshot(); }
 
 let homeTasks=[];          // Derived from mgmtTasks + checkinsByDate per viewDate
-let maxStreak=0;           // Historical max streak
 const TODAY=new Date(); TODAY.setHours(0,0,0,0);
 let calMonth=TODAY.getMonth(), calYear=TODAY.getFullYear();
 let viewDate=isoOf(TODAY);
@@ -427,7 +426,7 @@ function getHomeTasks(dateStr){
 const STORAGE_KEY='growth_sapling_v2';
 
 function saveToStorage(){
-  const data={mgmtTasks,checkinsByDate,badges,maxStreak};
+  const data={mgmtTasks,checkinsByDate,badges};
   try{localStorage.setItem(STORAGE_KEY,JSON.stringify(data));}catch(e){}
 }
 
@@ -439,7 +438,6 @@ function loadFromStorage(){
     if(data.mgmtTasks) mgmtTasks=data.mgmtTasks;
     if(data.checkinsByDate) checkinsByDate=data.checkinsByDate;
     if(data.badges) badges=data.badges;
-    if(typeof data.maxStreak==='number') maxStreak=data.maxStreak;
     return true;
   }catch(e){return false;}
 }
@@ -596,8 +594,6 @@ function recalcBadges(){
     if(b.category==='stars') badges[b.type]=stars>=b.threshold;
     else if(b.category==='streak') badges[b.type]=streak>=b.threshold;
   });
-  // Update maxStreak
-  if(streak>maxStreak) maxStreak=streak;
   // Check for newly earned badges
   BADGE_DEFS.forEach(b=>{
     if(badges[b.type]&&!oldBadges[b.type]){
@@ -792,7 +788,7 @@ function renderStats(){
   badgesHtml+=`<div class="badge locked badge-reserved"><div class="badge-icon">🔒</div><div class="badge-name">敬请期待</div></div>`;
 
   c.innerHTML=`<div class="stats-header">📊 我的成长</div>
-    <div class="streak-block"><div class="streak-num">🔥 ${streak}</div><div class="streak-label">连续打卡</div><div class="streak-best">最长 ${maxStreak||streak} 天</div></div>
+    <div class="streak-block"><div class="streak-num">🔥 ${streak}</div><div class="streak-label">连续打卡</div></div>
     <div class="card"><div class="card-title">本周完成率</div><div class="ring-wrap">
       <div class="ring" style="background:conic-gradient(var(--green) 0% ${weekRate}%, #EFE7DC ${weekRate}% 100%);"><div class="ring-inner">${weekRate}%</div></div>
       <div class="ring-desc">这一周你完成得<br>很棒，继续保持！</div></div></div>
@@ -1026,7 +1022,6 @@ setTimeout(hideSplash,1500);
     // First-time: generate demo seed data
     generateSeedData();
     badges={};
-    maxStreak=0;
     // Set today's default check-in state (task 1 & 4 done) for demo
     const todayIso=isoOf(TODAY);
     checkinsByDate[todayIso]={};
