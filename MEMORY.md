@@ -140,16 +140,17 @@ PRD ✅ → 设计评审 ✅ → 原型(已冻结) ✅ → UI设计稿(Route A) 
 | Skill | 仓库 | 状态 |
 |-------|------|------|
 | project-memory | https://github.com/lihongxu6/workbuddy-skills | ✅ v1.0 已发布 |
+| code-change-workflow | https://github.com/lihongxu6/workbuddy-skills | ✅ v1.0 已发布 |
+| dev-pipeline-orchestrator | https://github.com/lihongxu6/workbuddy-skills | ✅ v1.0 已发布 |
+| test-automation | https://github.com/lihongxu6/workbuddy-skills | ✅ v1.0 已发布 |
 
-**Skill 内容**：跨会话项目记忆系统（三条铁律：读 MEMORY.md、写 MEMORY.md、查 MEMORY.md）
+**Skill 说明**：
+- **project-memory**：跨会话项目记忆系统（三条铁律：读/写/查 MEMORY.md）
+- **code-change-workflow**：代码修改强制两步确认流程（方案→确认→改→确认→上线），直接防止再犯规
+- **dev-pipeline-orchestrator**：产研全流程编排器，自动告诉你当前阶段和下一步
+- **test-automation**：测试一体化，从 PRD 自动生成测试用例矩阵和可执行脚本
 
-**如何生效**：从 https://github.com/lihongxu6/workbuddy-skills 下载 `project-memory/project-memory.zip`，在 WorkBuddy 客户端「技能管理」上传（接受 .zip 格式）。上传成功后**下次新会话**生效。
-
-**重要经验**：
-- WorkBuddy 客户端上传 Skill 接受 `.zip` 格式（非 `.skill`）
-- Skill 在沙箱启动时扫描加载，运行时新增不会被当前会话识别
-- 沙箱内 `/root/.codebuddy/skills/<name>/SKILL.md` 是系统扫描路径，但仅启动时加载
-- Skill 安装包（.zip）应放在独立仓库，不放产品代码仓库
+**如何生效**：从 https://github.com/lihongxu6/workbuddy-skills 下载对应 Skill 目录下的 `.zip` 文件，在 WorkBuddy 客户端「技能管理」上传。上传成功后**下次新会话**生效。
 
 ### 7.3 项目专属 Skill 清单
 
