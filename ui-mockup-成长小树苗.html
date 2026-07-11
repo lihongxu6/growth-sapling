@@ -332,6 +332,36 @@ const TODAY=new Date(); TODAY.setHours(0,0,0,0);
 let calMonth=TODAY.getMonth(), calYear=TODAY.getFullYear();
 let viewDate=isoOf(TODAY);
 
+/* ===== Mock 历史打卡数据（用于统计页日历热力图）=====
+ * 与今日 homeTasks 模拟数据保持一致：11号 4 项中完成 2 项；10号 4 项中完成 3 项；其余按规律
+ */
+const checkinsByDate={};
+const _mkDate=(y,m,d)=>{const dt=new Date(y,m,d);dt.setHours(0,0,0,0);return isoOf(dt);};
+(function seed(){
+  const y=TODAY.getFullYear(), m=TODAY.getMonth();
+  // 与用户期望一致：11号 2/4，10号 3/4，其他历史日按规律
+  checkinsByDate[_mkDate(y,m,1)]={done:4,total:4};
+  checkinsByDate[_mkDate(y,m,2)]={done:3,total:4};
+  checkinsByDate[_mkDate(y,m,3)]={done:4,total:4};
+  checkinsByDate[_mkDate(y,m,4)]={done:4,total:4};
+  checkinsByDate[_mkDate(y,m,5)]={done:2,total:4};
+  checkinsByDate[_mkDate(y,m,6)]={done:4,total:4};
+  checkinsByDate[_mkDate(y,m,7)]={done:3,total:4};
+  checkinsByDate[_mkDate(y,m,8)]={done:4,total:4};
+  checkinsByDate[_mkDate(y,m,9)]={done:2,total:4};
+  checkinsByDate[_mkDate(y,m,10)]={done:3,total:4};
+  checkinsByDate[_mkDate(y,m,11)]={done:2,total:4}; // 今天（示例：未全完成）
+})();
+function getCheckin(iso){
+  return checkinsByDate[iso] || {done:0,total:4};
+}
+function cellClassFor(iso){
+  const c=getCheckin(iso);
+  if(c.done===0) return 'c-none';
+  if(c.done>=c.total) return 'c-done';
+  return 'c-part';
+}
+
 /* ===== Utils ===== */
 function isoOf(d){return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;}
 function dateOfIso(s){const [y,m,dd]=s.split('-').map(Number);return new Date(y,m-1,dd);}
@@ -342,7 +372,8 @@ function showToast(t){const el=document.getElementById('toast');el.textContent=t
 function renderHome(){
   const c=document.getElementById('pageHome');
   const vd=dateOfIso(viewDate);
-  const isPast=vd<TODAY, isFuture=vd>TODAY;
+  const isPast=vd<TODAY, isFuture=vd>TODAY, isToday=vd.getTime()===TODAY.getTime();
+  if(isToday) homeTasks.forEach(t=>{ t.backfill=false; });     // L1.4 今日永不显示补卡
   const doneCount=homeTasks.filter(t=>t.done).length;
   const fireLit=isPast || homeTasks.some(t=>t.done);
   let h='';
@@ -407,8 +438,12 @@ function renderStats(){
   for(let d=1;d<=days;d++){
     const day=new Date(y,m,d);
     if(day>TODAY){ grid+=`<div class="cal-cell c-empty">${d}</div>`; }
-    else { const v=(d%3===0)?2:(d%4===0?2:1);
-      grid+=`<div class="cal-cell ${v===1?'c-done':v===2?'c-part':'c-none'}" onclick="pickDate(${d})">${d}</div>`; }
+    else {
+      const iso=_mkDate(y,m,d);
+      const cls=cellClassFor(iso);
+      const tip=`${d}日 · ${getCheckin(iso).done}/${getCheckin(iso).total}`;
+      grid+=`<div class="cal-cell ${cls}" title="${tip}" onclick="pickDate(${d})">${d}</div>`;
+    }
   }
   let badges='';BADGES.forEach(b=>{badges+=`<div class="badge ${b.earned?'earned':b.reserved?'reserved locked':'locked'}">
     <div class="badge-icon">${b.icon}</div><div class="badge-name">${b.name}</div>${b.prog?`<div class="badge-prog">${b.prog}</div>`:''}</div>`;});
