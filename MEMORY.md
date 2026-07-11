@@ -100,6 +100,7 @@ PRD ✅ → 设计评审 ✅ → 原型(已冻结) ✅ → UI设计稿(Route A) 
 | 13 | 2026-07-11 | 线上 Demo 加载的是 index.html（GitHub Pages 入口），与 ui-mockup 同步错位 | 早期手动同步过 index.html 但后来更新 ui-mockup 时忘了同步 | 建立 pre-commit hook：ui-mockup 修改时自动 cp 到 index.html | — |
 | 14 | 2026-07-11 | calcStars 打卡 +2 星 / 撤销 -2 星 | 把今日 done 在 checkinsByDate 和 homeTasks 各算一遍 | 今日从 homeTasks 实时计算（去重），历史日累加 checkinsByDate | — |
 | 15 | 2026-07-11 | 火焰图标：历史日 0 完成仍显示 🔥 | fireLit=isPast\|\|...，历史日强制点亮 | fireLit=homeTasks.some(t=>t.done)，纯按当日完成状态 | — |
+| 16 | 2026-07-11 | Skill 自动安装到沙箱无法被 WorkBuddy 识别 | ① 沙箱 Skill 扫描仅启动时执行；② 扫描路径要求 SKILL.md 在第一层子目录；③ 客户端上传接受 .zip 非 .skill | Skill 安装包用 .zip 格式，通过客户端「技能管理」上传；独立仓库管理，不放产品代码仓库 | — |
 
 ---
 
@@ -142,7 +143,13 @@ PRD ✅ → 设计评审 ✅ → 原型(已冻结) ✅ → UI设计稿(Route A) 
 
 **Skill 内容**：跨会话项目记忆系统（三条铁律：读 MEMORY.md、写 MEMORY.md、查 MEMORY.md）
 
-**如何生效**：用户在 WorkBuddy 客户端"上传技能"页面拖拽 `project-memory.skill` 文件 → 上传成功后下次会话自动可用。下载地址：https://github.com/lihongxu6/workbuddy-skills/blob/main/project-memory/project-memory.skill
+**如何生效**：从 https://github.com/lihongxu6/workbuddy-skills 下载 `project-memory/project-memory.zip`，在 WorkBuddy 客户端「技能管理」上传（接受 .zip 格式）。上传成功后**下次新会话**生效。
+
+**重要经验**：
+- WorkBuddy 客户端上传 Skill 接受 `.zip` 格式（非 `.skill`）
+- Skill 在沙箱启动时扫描加载，运行时新增不会被当前会话识别
+- 沙箱内 `/root/.codebuddy/skills/<name>/SKILL.md` 是系统扫描路径，但仅启动时加载
+- Skill 安装包（.zip）应放在独立仓库，不放产品代码仓库
 
 ### 7.3 项目专属 Skill 清单
 
