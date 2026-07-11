@@ -654,7 +654,8 @@ function renderHome(){
 
   const doneCount=homeTasks.filter(t=>t.done).length;
   const streak=calcStreak();
-  const fireLit=isPast||homeTasks.some(t=>t.done);
+  // 火焰状态：仅看当日是否有任务完成（无论今日还是历史日）
+  const fireLit=homeTasks.some(t=>t.done);
 
   let h='';
   h+=`<div class="home-header">
