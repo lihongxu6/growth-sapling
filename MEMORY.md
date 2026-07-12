@@ -18,7 +18,7 @@
 - **项目名**：成长小树苗
 - **产品**：面向小学二年级（7-8 岁）小朋友的习惯养成打卡微信小程序
 - **核心理念**：**帮助孩子自我管理**，而非家长监督工具
-- **IP 形象**：小松鼠"果果"（当前 emoji 🐿️ 占位，正式插画待外部插画师）
+- **IP 形象**：小松鼠"果果"（**正式插画已生成**：2026-07-12，AI 生成卡通松鼠在 `/workspace/miniprogram-assets/avatar.png`，与开屏/空状态/庆祝场景 IP 形象保持一致）
 - **GitHub**：`lihongxu6/growth-sapling`（公开）
 - **线上 Demo**：https://lihongxu6.github.io/growth-sapling/
 - **Git author**：`lihongxu6 <lihongxu6@users.noreply.github.com>`
