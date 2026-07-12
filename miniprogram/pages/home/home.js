@@ -56,6 +56,8 @@ Page({
 
     this.setData({
       viewDate,
+      viewDateFmt: fmtDate(viewDate),
+      viewDateShort: fmtDateShort(viewDate),
       activeTasks: tasksWithStatus,
       doneCount,
       progressPct,
