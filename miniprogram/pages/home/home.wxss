@@ -55,7 +55,7 @@
 }
 
 .date-arrow {
-  font-size: 16rpx;
+  font-size: var(--fs-xs);
   color: var(--text-secondary);
 }
 
@@ -296,7 +296,7 @@
 }
 
 .cal-cell.gray {
-  background: #F5F5F5;
+  background: var(--gray-bg);
   border-radius: var(--radius-sm);
 }
 

@@ -55,11 +55,19 @@ page {
   --radius-sm: 12rpx;
   --radius-md: 16rpx;
   --radius-lg: 24rpx;
+  --radius-xl: 32rpx;
   --radius-pill: 999rpx;
+  --radius-full: 9999rpx;
 
   /* === 阴影 === */
   --shadow-card: 0 2rpx 6rpx rgba(0,0,0,0.05);
   --shadow-float: 0 16rpx 48rpx rgba(0,0,0,0.12);
+  --shadow-sm: 0 2rpx 6rpx rgba(0,0,0,0.04);
+  --shadow-md: 0 8rpx 24rpx rgba(0,0,0,0.08);
+  --shadow-lg: 0 16rpx 48rpx rgba(0,0,0,0.12);
+
+  /* === 灰色调（用于日历等）=== */
+  --gray-bg: #F5F5F5;
 
   /* === 安全区 === */
   --safe-top: 88rpx;
