@@ -95,12 +95,16 @@ Page({
       });
     } else {
       // 打卡
+      const totalActive = Store.getActiveTasks().length;
+      const currentCi = Store.getTodayCheckins();
+      const doneBefore = Object.values(currentCi).filter(r => r.done).length;
+      const doneAfter = doneBefore + 1; // 这次打卡后
+
       Store.toggleTask(taskId);
       this._refresh();
 
-      // 检查是否全部完成
-      const newDoneCount = this.data.doneCount + 1;
-      if (newDoneCount === this.data.activeTasks.length && isToday(this.data.viewDate)) {
+      // 检查是否全部完成（用 toggle 后的实时数据）
+      if (doneAfter >= totalActive && isToday(this.data.viewDate)) {
         this.setData({ showCelebration: true });
       }
     }
