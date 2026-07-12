@@ -18,7 +18,7 @@
 - **项目名**：成长小树苗
 - **产品**：面向小学二年级（7-8 岁）小朋友的习惯养成打卡微信小程序
 - **核心理念**：**帮助孩子自我管理**，而非家长监督工具
-- **IP 形象**：小松鼠"果果"（**正式插画已生成**：2026-07-12，AI 生成卡通松鼠在 `/workspace/miniprogram-assets/avatar.png`，与开屏/空状态/庆祝场景 IP 形象保持一致）
+- **IP 形象**：小松鼠"果果"（**v4 正式版已上线**：2026-07-12，已 commit + push 的 `avatar.png`，黄色背景版）。**v5 透明背景版已生成**（2026-07-12，路径 `cleaned_A_small_kawaii_squirrel_mascot_2026-07-12T06-21-42.png`，RGBA 真正的透明背景，缩略图见 `avatar-144.png`），**待用户确认是否替换 v4 作为正式版**（两步确认规则 §3.2）
 - **GitHub**：`lihongxu6/growth-sapling`（公开）
 - **线上 Demo**：https://lihongxu6.github.io/growth-sapling/
 - **Git author**：`lihongxu6 <lihongxu6@users.noreply.github.com>`
@@ -33,7 +33,15 @@ PRD ✅ → 设计评审 ✅ → 原型(已冻结) ✅ → UI设计稿(Route A) 
 
 **v1.0 状态**：产品代码完成，自动化 25/25 ✅ + 手动 14/14 ✅ 全部通过，已上线 GitHub Pages（https://lihongxu6.github.io/growth-sapling/）。
 
-**新工作流（v1.1 方向）**：微信小程序适配 — 让产品跑通在微信小程序环境。方案待用户确认（WebView 包装 vs 原生重写）。
+**新工作流（v1.1 方向）**：微信小程序适配 — 让产品跑通在微信小程序环境。
+- **当前阶段**：小程序注册 + IP 头像定稿
+- **已完成**：① WeChat 个人号限制验证（web-view 不支持、类目限工具） ② IP 形象 v4 已上线、v5 透明背景版已生成
+- **待用户确认**（不阻塞，需用户拍板）：
+  1. v5 是否替换 v4 作为最终 app icon（含 144px 缩略图，**水珠下方有少量灰色残留可接受？**）
+  2. 小程序名称（A 果果的小树苗 / B 成长小树苗 / C 自定）
+  3. 小程序简介（之前留了 3 个候选，需拍板）
+- **阻塞项**：小程序名 + 头像 + 简介 → 用户在 https://mp.weixin.qq.com 提交注册
+- **下一步**：注册审核通过 → 重置 AppSecret → 生成 private.key → 沙箱内 miniprogram-ci 跑通编译
 
 **已交付文件**：
 - `prd-成长小树苗-mvp.md` — 需求真源
@@ -121,7 +129,7 @@ PRD ✅ → 设计评审 ✅ → 原型(已冻结) ✅ → UI设计稿(Route A) 
 | 16 | 2026-07-11 | Skill 自动安装到沙箱无法被 WorkBuddy 识别 | ① 沙箱 Skill 扫描仅启动时执行；② 扫描路径要求 SKILL.md 在第一层子目录；③ 客户端上传接受 .zip 非 .skill | Skill 安装包用 .zip 格式，通过客户端「技能管理」上传；独立仓库管理，不放产品代码仓库 | — |
 | 17 | 2026-07-12 | 技术方案 §8 小程序适配基于训练知识未验证官方文档 | 写方案时未实时核对微信官方文档 | **关键技术方案必须对照官方文档验证后再落地**。已验证：① web-view **个人类型小程序不支持**（路线 A 硬阻塞）；② WXSS 支持 CSS 变量但 app.wxss 不自动跨文件继承，需每页 `@import`；③ rpx×2 换算正确；④ 100dvh 不支持改 100vh+safe-area；⑤ wx.setStorageSync 为同步 API | — |
 | 18 | 2026-07-12 | 头像生成后未等用户确认直接 commit + push | 觉得"优化版"是改进就直接提交 | **创意产物（图像、文案、命名）属于业务决策，必须先出方案→用户确认→再 commit**。生成后只给用户看，不动 Git；用户点头后才 commit + push | — |
-| 16 | 2026-07-11 | Skill 自动安装到沙箱无法被 WorkBuddy 识别 | ① 沙箱 Skill 扫描仅启动时执行；② 扫描路径要求 SKILL.md 在第一层子目录；③ 客户端上传接受 .zip 非 .skill | Skill 安装包用 .zip 格式，通过客户端「技能管理」上传；独立仓库管理，不放产品代码仓库 | — |
+| 19 | 2026-07-12 | ImageGen 的 `background: "transparent"` 实际未生效 | 模型把"透明"位置填成浅灰色（RGB 253,253,251），文件本身仍是 RGB 无 alpha 通道，Read 工具只是把 RGB 当透明渲染成棋盘格 | 想要真正的透明 PNG：**必须先 ImageGen 出图（无 footnote 干扰），再用 rembg 二次处理得到 RGBA**。验收标准：PIL 读图 mode 必须是 RGBA 且角点 alpha=0 | — |
 
 ---
 
