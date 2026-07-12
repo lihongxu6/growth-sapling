@@ -18,7 +18,7 @@
 - **项目名**：成长小树苗
 - **产品**：面向小学二年级（7-8 岁）小朋友的习惯养成打卡微信小程序
 - **核心理念**：**帮助孩子自我管理**，而非家长监督工具
-- **IP 形象**：小松鼠"果果"（**v4 正式版已上线**：2026-07-12，已 commit + push 的 `avatar.png`，黄色背景版）。**v5 透明背景版已生成**（2026-07-12，路径 `cleaned_A_small_kawaii_squirrel_mascot_2026-07-12T06-21-42.png`，RGBA 真正的透明背景，缩略图见 `avatar-144.png`），**待用户确认是否替换 v4 作为正式版**（两步确认规则 §3.2）
+- **IP 形象**：小松鼠"果果"（**RGBA 透明背景版**（2026-07-12）：`miniprogram-assets/avatar.png` 1024×1024 + `avatar-144.png` 144×144 + `avatar-144-rgb.png` 144×144 RGB 用于微信上传）。**rembg alpha_matting 处理**，无灰边/雾残留，适配任意底色（开屏/加载/空状态/庆祝场景）
 - **GitHub**：`lihongxu6/growth-sapling`（公开）
 - **线上 Demo**：https://lihongxu6.github.io/growth-sapling/
 - **Git author**：`lihongxu6 <lihongxu6@users.noreply.github.com>`
@@ -129,7 +129,7 @@ PRD ✅ → 设计评审 ✅ → 原型(已冻结) ✅ → UI设计稿(Route A) 
 | 16 | 2026-07-11 | Skill 自动安装到沙箱无法被 WorkBuddy 识别 | ① 沙箱 Skill 扫描仅启动时执行；② 扫描路径要求 SKILL.md 在第一层子目录；③ 客户端上传接受 .zip 非 .skill | Skill 安装包用 .zip 格式，通过客户端「技能管理」上传；独立仓库管理，不放产品代码仓库 | — |
 | 17 | 2026-07-12 | 技术方案 §8 小程序适配基于训练知识未验证官方文档 | 写方案时未实时核对微信官方文档 | **关键技术方案必须对照官方文档验证后再落地**。已验证：① web-view **个人类型小程序不支持**（路线 A 硬阻塞）；② WXSS 支持 CSS 变量但 app.wxss 不自动跨文件继承，需每页 `@import`；③ rpx×2 换算正确；④ 100dvh 不支持改 100vh+safe-area；⑤ wx.setStorageSync 为同步 API | — |
 | 18 | 2026-07-12 | 头像生成后未等用户确认直接 commit + push | 觉得"优化版"是改进就直接提交 | **创意产物（图像、文案、命名）属于业务决策，必须先出方案→用户确认→再 commit**。生成后只给用户看，不动 Git；用户点头后才 commit + push | — |
-| 19 | 2026-07-12 | ImageGen 的 `background: "transparent"` 实际未生效 | 模型把"透明"位置填成浅灰色（RGB 253,253,251），文件本身仍是 RGB 无 alpha 通道，Read 工具只是把 RGB 当透明渲染成棋盘格 | 想要真正的透明 PNG：**必须先 ImageGen 出图（无 footnote 干扰），再用 rembg 二次处理得到 RGBA**。验收标准：PIL 读图 mode 必须是 RGBA 且角点 alpha=0 | — |
+| 19 | 2026-07-12 | ImageGen 的 `background: "transparent"` 实际未生效；rembg 默认模式在深色背景会暴露"灰雾" | 模型把"透明"位置填成浅灰色（RGB 无 alpha 通道）；rembg 默认会把原图浅色阴影当成半透明前景保留 | 想要真正的透明 PNG：**ImageGen 出图 → rembg `alpha_matting=True, alpha_matting_foreground_threshold=240`** 二次处理。验收：PIL 读图 mode 必须是 RGBA 且角点 alpha=0，在深色背景预览无灰雾 | — |
 
 ---
 
