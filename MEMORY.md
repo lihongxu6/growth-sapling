@@ -34,17 +34,15 @@ PRD ✅ → 设计评审 ✅ → 原型(已冻结) ✅ → UI设计稿(Route A) 
 **v1.0 状态**：产品代码完成，自动化 25/25 ✅ + 手动 14/14 ✅ 全部通过，已上线 GitHub Pages（https://lihongxu6.github.io/growth-sapling/）。
 
 **新工作流（v1.1 方向）**：微信小程序适配 — 让产品跑通在微信小程序环境。
-- **当前阶段**：小程序审核等待期 → **Phase 1 工程脚手架已完成** ✅
+- **当前阶段**：小程序审核等待期 → **CI 编译链已打通** ✅
 - **已完成**：
   ① WeChat 个人号限制验证（web-view 不支持、类目限工具）
-  ② IP 头像 RGBA 透明版定稿（avatar.png + avatar-144.png + avatar-144-rgb.png）
+  ② IP 头像 RGBA 透明版定稿
   ③ 小程序注册已提交
-  ④ Phase 1 工程脚手架：`/workspace/miniprogram/` — app.json/JS/WXSS + 3 页面三件套 + Store + utils
-- **下一步**：审核通过 → 重置 AppSecret → 生成 private.key → 沙箱内 miniprogram-ci 编译验证
-- **后续 Phase**：
-  - Phase 2：组件开发（task-card, progress-bar, cal-grid, badge-wall 等）
-  - Phase 3：交互逻辑移植（对标 H5 index.html，参考 MEMORY §5 交互逻辑清单）
-  - Phase 4：测试验证 + 预览二维码
+  ④ Phase 1 工程脚手架（app.json/JS/WXSS + 3 页面三件套 + Store + utils）
+  ⑤ **miniprogram-ci 编译链打通**：preview 命令成功生成二维码（包大小 54.3 KB / 15 个文件）
+- **下一步**：审核通过 → 上传代码 → 体验版测试
+- **后续 Phase**：组件开发 / 交互逻辑移植（每改一段代码就 `node scripts/build.js preview` 验证）
 
 **已交付文件**：
 - `prd-成长小树苗-mvp.md` — 需求真源
@@ -133,6 +131,7 @@ PRD ✅ → 设计评审 ✅ → 原型(已冻结) ✅ → UI设计稿(Route A) 
 | 17 | 2026-07-12 | 技术方案 §8 小程序适配基于训练知识未验证官方文档 | 写方案时未实时核对微信官方文档 | **关键技术方案必须对照官方文档验证后再落地**。已验证：① web-view **个人类型小程序不支持**（路线 A 硬阻塞）；② WXSS 支持 CSS 变量但 app.wxss 不自动跨文件继承，需每页 `@import`；③ rpx×2 换算正确；④ 100dvh 不支持改 100vh+safe-area；⑤ wx.setStorageSync 为同步 API | — |
 | 18 | 2026-07-12 | 头像生成后未等用户确认直接 commit + push | 觉得"优化版"是改进就直接提交 | **创意产物（图像、文案、命名）属于业务决策，必须先出方案→用户确认→再 commit**。生成后只给用户看，不动 Git；用户点头后才 commit + push | — |
 | 19 | 2026-07-12 | ImageGen 的 `background: "transparent"` 实际未生效；rembg 默认模式在深色背景会暴露"灰雾" | 模型把"透明"位置填成浅灰色（RGB 无 alpha 通道）；rembg 默认会把原图浅色阴影当成半透明前景保留 | 想要真正的透明 PNG：**ImageGen 出图 → rembg `alpha_matting=True, alpha_matting_foreground_threshold=240`** 二次处理。验收：PIL 读图 mode 必须是 RGBA 且角点 alpha=0，在深色背景预览无灰雾 | — |
+| 20 | 2026-07-12 | miniprogram-ci preview 报 `invalid ip`，无法生成预览 | 微信后台默认开启 IP 白名单，沙箱 IP `106.55.101.218` 不在白名单 | 预览/上传前必须把沙箱 IP 加入白名单（个人开发可关闭白名单）。预览时还会要求传 `project` 对象，参数名是 `qrcodeOutputDest`（不是 `qrcodeOutputPath`）| — |
 
 ---
 

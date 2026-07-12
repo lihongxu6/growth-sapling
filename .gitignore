@@ -8,3 +8,10 @@
 # ===== 系统/编辑器文件 =====
 .DS_Store
 *.swp
+
+# Private credentials (NEVER commit)
+.private/
+
+# 临时文件
+.preview-qr.png
+*.log
