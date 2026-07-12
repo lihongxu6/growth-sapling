@@ -104,6 +104,8 @@ PRD ✅ → 设计评审 ✅ → 原型(已冻结) ✅ → UI设计稿(Route A) 
 | 14 | 2026-07-11 | calcStars 打卡 +2 星 / 撤销 -2 星 | 把今日 done 在 checkinsByDate 和 homeTasks 各算一遍 | 今日从 homeTasks 实时计算（去重），历史日累加 checkinsByDate | — |
 | 15 | 2026-07-11 | 火焰图标：历史日 0 完成仍显示 🔥 | fireLit=isPast\|\|...，历史日强制点亮 | fireLit=homeTasks.some(t=>t.done)，纯按当日完成状态 | — |
 | 16 | 2026-07-11 | Skill 自动安装到沙箱无法被 WorkBuddy 识别 | ① 沙箱 Skill 扫描仅启动时执行；② 扫描路径要求 SKILL.md 在第一层子目录；③ 客户端上传接受 .zip 非 .skill | Skill 安装包用 .zip 格式，通过客户端「技能管理」上传；独立仓库管理，不放产品代码仓库 | — |
+| 17 | 2026-07-12 | 技术方案 §8 小程序适配基于训练知识未验证官方文档 | 写方案时未实时核对微信官方文档 | **关键技术方案必须对照官方文档验证后再落地**。已验证：① web-view **个人类型小程序不支持**（路线 A 硬阻塞）；② WXSS 支持 CSS 变量但 app.wxss 不自动跨文件继承，需每页 `@import`；③ rpx×2 换算正确；④ 100dvh 不支持改 100vh+safe-area；⑤ wx.setStorageSync 为同步 API | — |
+| 16 | 2026-07-11 | Skill 自动安装到沙箱无法被 WorkBuddy 识别 | ① 沙箱 Skill 扫描仅启动时执行；② 扫描路径要求 SKILL.md 在第一层子目录；③ 客户端上传接受 .zip 非 .skill | Skill 安装包用 .zip 格式，通过客户端「技能管理」上传；独立仓库管理，不放产品代码仓库 | — |
 
 ---
 
@@ -166,4 +168,6 @@ PRD ✅ → 设计评审 ✅ → 原型(已冻结) ✅ → UI设计稿(Route A) 
 1. ✅ 测试验证完成（自动化 25/25 ✅，手动验收 14/14 ✅）
 2. ✅ Skill 体系建立（4 个通用 Skill 已发布到 workbuddy-skills 独立仓库）
 3. 🔜 微信小程序适配：先确认方案（WebView 包装 vs 原生重写），再执行
+   - 官方文档已验证（pitfall #17）：web-view 个人类型不支持、CSS 变量需每页 @import、rpx×2 正确、100dvh 改 100vh
+   - **待用户确认**：小程序账号主体类型（个人/企业）——决定路线 A 是否可行
 4. 可选：上线复盘报告、v1.1 功能规划
