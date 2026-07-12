@@ -34,10 +34,17 @@ PRD ✅ → 设计评审 ✅ → 原型(已冻结) ✅ → UI设计稿(Route A) 
 **v1.0 状态**：产品代码完成，自动化 25/25 ✅ + 手动 14/14 ✅ 全部通过，已上线 GitHub Pages（https://lihongxu6.github.io/growth-sapling/）。
 
 **新工作流（v1.1 方向）**：微信小程序适配 — 让产品跑通在微信小程序环境。
-- **当前阶段**：小程序审核等待期 → **并行开写代码工程**
-- **已完成**：① WeChat 个人号限制验证（web-view 不支持、类目限工具） ② IP 头像 RGBA 透明版定稿（avatar.png） ③ 小程序注册已提交
-- **阻塞项**：审核通过（1-7 工作日）→ 重置 AppSecret → 生成 private.key
-- **下一步**：开始 Phase 1 工程脚手架（app.json/JS/WXSS + 页面三件套目录），审核通过后接入 miniprogram-ci
+- **当前阶段**：小程序审核等待期 → **Phase 1 工程脚手架已完成** ✅
+- **已完成**：
+  ① WeChat 个人号限制验证（web-view 不支持、类目限工具）
+  ② IP 头像 RGBA 透明版定稿（avatar.png + avatar-144.png + avatar-144-rgb.png）
+  ③ 小程序注册已提交
+  ④ Phase 1 工程脚手架：`/workspace/miniprogram/` — app.json/JS/WXSS + 3 页面三件套 + Store + utils
+- **下一步**：审核通过 → 重置 AppSecret → 生成 private.key → 沙箱内 miniprogram-ci 编译验证
+- **后续 Phase**：
+  - Phase 2：组件开发（task-card, progress-bar, cal-grid, badge-wall 等）
+  - Phase 3：交互逻辑移植（对标 H5 index.html，参考 MEMORY §5 交互逻辑清单）
+  - Phase 4：测试验证 + 预览二维码
 
 **已交付文件**：
 - `prd-成长小树苗-mvp.md` — 需求真源

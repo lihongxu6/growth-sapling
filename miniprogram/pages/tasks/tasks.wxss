@@ -1,0 +1,320 @@
+/* 任务管理页样式 */
+@import '../../app.wxss';
+
+.page {
+  min-height: 100vh;
+  padding-bottom: var(--safe-bottom);
+}
+
+.status-bar {
+  width: 100%;
+  background: var(--bg);
+}
+
+/* === 页头 === */
+.page-header {
+  padding: var(--sp-lg);
+}
+
+.page-title {
+  font-size: var(--fs-xl);
+  font-weight: 700;
+  display: block;
+}
+
+.page-subtitle {
+  font-size: var(--fs-sm);
+  color: var(--text-secondary);
+  margin-top: var(--sp-xs);
+  display: block;
+}
+
+/* === 任务管理列表 === */
+.task-mgmt-list {
+  padding: 0 var(--sp-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-sm);
+}
+
+.task-mgmt-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--sp-md) var(--sp-lg);
+  background: var(--card-bg);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.mgmt-left {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-md);
+  flex: 1;
+}
+
+.mgmt-icon {
+  font-size: var(--fs-xl);
+}
+
+.mgmt-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.mgmt-name {
+  font-size: var(--fs-base);
+  color: var(--text);
+}
+
+.mgmt-purpose {
+  font-size: var(--fs-xs);
+  color: var(--blue);
+}
+
+.mgmt-repeat {
+  font-size: var(--fs-xs);
+  color: var(--text-light);
+  background: var(--bg);
+  padding: 2rpx 12rpx;
+  border-radius: var(--radius-full);
+  align-self: flex-start;
+}
+
+.mgmt-actions {
+  display: flex;
+  gap: var(--sp-md);
+}
+
+.mgmt-action {
+  font-size: var(--fs-lg);
+  padding: var(--sp-xs);
+}
+
+/* === 添加按钮 === */
+.add-btn {
+  margin: var(--sp-lg);
+  padding: var(--sp-md);
+  background: var(--card-bg);
+  border: 2rpx dashed var(--border);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-sm);
+}
+
+.add-icon {
+  font-size: var(--fs-md);
+}
+
+.add-text {
+  font-size: var(--fs-base);
+  color: var(--text-secondary);
+}
+
+/* === 表单弹层 === */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 50;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s, visibility 0.2s;
+}
+
+.modal-overlay.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.form-panel {
+  background: var(--card-bg);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: var(--sp-xl);
+}
+
+.form-title {
+  font-size: var(--fs-md);
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: var(--sp-lg);
+  display: block;
+}
+
+.form-group {
+  margin-bottom: var(--sp-lg);
+}
+
+.form-label {
+  font-size: var(--fs-sm);
+  color: var(--text-secondary);
+  margin-bottom: var(--sp-sm);
+  display: block;
+}
+
+.form-input {
+  width: 100%;
+  padding: var(--sp-sm) var(--sp-md);
+  background: var(--bg);
+  border: 1rpx solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-base);
+  box-sizing: border-box;
+}
+
+.icon-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-sm);
+}
+
+.icon-option {
+  width: 72rpx;
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-lg);
+  border: 2rpx solid transparent;
+}
+
+.icon-option.selected {
+  border-color: var(--green);
+  background: var(--green-light);
+}
+
+.repeat-options {
+  display: flex;
+  gap: var(--sp-sm);
+}
+
+.repeat-option {
+  flex: 1;
+  text-align: center;
+  padding: var(--sp-sm);
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-sm);
+  border: 2rpx solid transparent;
+}
+
+.repeat-option.active {
+  border-color: var(--green);
+  background: var(--green-light);
+  color: var(--green);
+  font-weight: 500;
+}
+
+.form-actions {
+  display: flex;
+  gap: var(--sp-md);
+  margin-top: var(--sp-lg);
+}
+
+.form-btn {
+  flex: 1;
+  text-align: center;
+  padding: var(--sp-md);
+  border-radius: var(--radius-md);
+  font-size: var(--fs-base);
+}
+
+.form-btn.cancel {
+  background: var(--bg);
+  color: var(--text-secondary);
+}
+
+.form-btn.confirm {
+  background: var(--green);
+  color: #FFFFFF;
+}
+
+/* === 确认弹窗 === */
+.confirm-panel {
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  padding: var(--sp-xl);
+  width: 560rpx;
+  margin: 0 auto;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.confirm-title {
+  font-size: var(--fs-md);
+  font-weight: 600;
+  text-align: center;
+  display: block;
+  margin-bottom: var(--sp-md);
+}
+
+.confirm-msg {
+  font-size: var(--fs-sm);
+  color: var(--text-secondary);
+  text-align: center;
+  display: block;
+  margin-bottom: var(--sp-lg);
+}
+
+.confirm-actions {
+  display: flex;
+  gap: var(--sp-md);
+}
+
+.confirm-btn {
+  flex: 1;
+  text-align: center;
+  padding: var(--sp-md);
+  border-radius: var(--radius-md);
+  font-size: var(--fs-base);
+}
+
+.confirm-btn.cancel {
+  background: var(--bg);
+  color: var(--text-secondary);
+}
+
+.confirm-btn.danger {
+  background: var(--danger);
+  color: #FFFFFF;
+}
+
+/* === 空状态 === */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--sp-2xl);
+}
+
+.empty-image {
+  width: 200rpx;
+  height: 200rpx;
+  margin-bottom: var(--sp-lg);
+}
+
+.empty-title {
+  font-size: var(--fs-md);
+  color: var(--text);
+  margin-bottom: var(--sp-sm);
+}
+
+.empty-desc {
+  font-size: var(--fs-sm);
+  color: var(--text-secondary);
+  text-align: center;
+}

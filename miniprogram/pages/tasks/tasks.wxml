@@ -1,0 +1,139 @@
+<!-- 任务管理页 -->
+<view class="page">
+  <view class="status-bar" style="height: {{statusBarHeight}}px;"></view>
+
+  <view class="page-header">
+    <text class="page-title">我的任务</text>
+    <text class="page-subtitle">管理你的好习惯</text>
+  </view>
+
+  <!-- 任务管理列表 -->
+  <view class="task-mgmt-list" wx:if="{{tasks.length > 0}}">
+    <view
+      class="task-mgmt-card"
+      wx:for="{{tasks}}"
+      wx:key="id"
+    >
+      <view class="mgmt-left">
+        <text class="mgmt-icon">{{item.icon}}</text>
+        <view class="mgmt-info">
+          <text class="mgmt-name">{{item.name}}</text>
+          <text class="mgmt-purpose" wx:if="{{item.purpose}}">{{item.purpose}}</text>
+          <text class="mgmt-repeat">{{item.repeatLabel}}</text>
+        </view>
+      </view>
+      <view class="mgmt-actions">
+        <text class="mgmt-action edit" data-id="{{item.id}}" bindtap="onEdit">✏️</text>
+        <text class="mgmt-action delete" data-id="{{item.id}}" bindtap="onDelete">🗑️</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 添加按钮 -->
+  <view class="add-btn" bindtap="onAdd">
+    <text class="add-icon">➕</text>
+    <text class="add-text">添加新任务</text>
+  </view>
+
+  <!-- 添加/编辑弹层 -->
+  <view class="modal-overlay {{showForm ? 'show' : ''}}" wx:if="{{showForm}}" bindtap="closeForm">
+    <view class="form-panel" catchtap="">
+      <text class="form-title">{{editingId ? '编辑任务' : '添加任务'}}</text>
+
+      <!-- 图标选择 -->
+      <view class="form-group">
+        <text class="form-label">图标</text>
+        <view class="icon-picker">
+          <view
+            wx:for="{{iconSet}}"
+            wx:key="*this"
+            class="icon-option {{formData.icon === item ? 'selected' : ''}}"
+            data-icon="{{item}}"
+            bindtap="pickIcon"
+          >
+            <text>{{item}}</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 任务名 -->
+      <view class="form-group">
+        <text class="form-label">任务名称</text>
+        <input
+          class="form-input"
+          value="{{formData.name}}"
+          placeholder="例如：每日阅读30分钟"
+          maxlength="{{maxNameLen}}"
+          bindinput="onNameInput"
+        />
+      </view>
+
+      <!-- 任务意义 -->
+      <view class="form-group">
+        <text class="form-label">任务意义（选填）</text>
+        <input
+          class="form-input"
+          value="{{formData.purpose}}"
+          placeholder="例如：认识更多字"
+          maxlength="{{maxPurposeLen}}"
+          bindinput="onPurposeInput"
+        />
+      </view>
+
+      <!-- 重复周期 -->
+      <view class="form-group">
+        <text class="form-label">重复周期</text>
+        <view class="repeat-options">
+          <view
+            class="repeat-option {{formData.repeat_type === 'daily' ? 'active' : ''}}"
+            data-type="daily"
+            bindtap="setRepeat"
+          >
+            <text>每天</text>
+          </view>
+          <view
+            class="repeat-option {{formData.repeat_type === 'weekday' ? 'active' : ''}}"
+            data-type="weekday"
+            bindtap="setRepeat"
+          >
+            <text>工作日</text>
+          </view>
+          <view
+            class="repeat-option {{formData.repeat_type === 'weekend' ? 'active' : ''}}"
+            data-type="weekend"
+            bindtap="setRepeat"
+          >
+            <text>周末</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 按钮 -->
+      <view class="form-actions">
+        <view class="form-btn cancel" bindtap="closeForm">取消</view>
+        <view class="form-btn confirm" bindtap="submitForm">
+          {{editingId ? '保存' : '添加'}}
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 删除确认弹窗 -->
+  <view class="modal-overlay {{showDelete ? 'show' : ''}}" wx:if="{{showDelete}}" bindtap="cancelDelete">
+    <view class="confirm-panel" catchtap="">
+      <text class="confirm-title">确认删除</text>
+      <text class="confirm-msg">删除「{{deleteTargetName}}」后，相关的打卡记录也会被隐藏哦。</text>
+      <view class="confirm-actions">
+        <view class="confirm-btn cancel" bindtap="cancelDelete">取消</view>
+        <view class="confirm-btn danger" bindtap="confirmDelete">删除</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{tasks.length === 0}}">
+    <image class="empty-image" src="/miniprogram-assets/avatar.png" mode="aspectFit"></image>
+    <text class="empty-title">还没有任务</text>
+    <text class="empty-desc">点击下方按钮，添加你想坚持的好习惯吧！</text>
+  </view>
+</view>

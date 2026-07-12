@@ -1,0 +1,375 @@
+/* 打卡页样式 */
+@import '../../app.wxss';
+
+.page {
+  min-height: 100vh;
+  padding-bottom: var(--safe-bottom);
+}
+
+/* === 状态栏 === */
+.status-bar {
+  width: 100%;
+  background: var(--bg);
+}
+
+/* === 顶部信息栏 === */
+.home-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--sp-md) var(--sp-lg);
+  background: var(--card-bg);
+  border-bottom: 1rpx solid var(--border);
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-xs);
+}
+
+.streak-icon {
+  font-size: var(--fs-lg);
+}
+
+.streak-num {
+  font-size: var(--fs-sm);
+  color: var(--text-secondary);
+}
+
+.header-center {
+  font-size: var(--fs-md);
+  font-weight: 600;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-xs);
+}
+
+.date-text {
+  font-size: var(--fs-sm);
+  color: var(--text-secondary);
+}
+
+.date-arrow {
+  font-size: 16rpx;
+  color: var(--text-secondary);
+}
+
+/* === 补卡提示条 === */
+.backfill-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-sm);
+  padding: var(--sp-sm) var(--sp-lg);
+  background: var(--orange-tag);
+  font-size: var(--fs-sm);
+}
+
+.banner-back {
+  color: var(--green);
+  font-weight: 500;
+}
+
+/* === 进度条 === */
+.progress-section {
+  padding: var(--sp-md) var(--sp-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-md);
+}
+
+.progress-bar {
+  flex: 1;
+  height: 12rpx;
+  background: var(--border);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--green);
+  border-radius: var(--radius-full);
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  font-size: var(--fs-xs);
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+/* === 任务列表 === */
+.task-list {
+  padding: 0 var(--sp-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-sm);
+}
+
+.task-card {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-md);
+  padding: var(--sp-md) var(--sp-lg);
+  background: var(--card-bg);
+  border: 1rpx solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.task-card.done {
+  background: var(--green-light);
+  border-color: var(--green);
+}
+
+.task-card.backfill {
+  background: var(--orange-tag);
+  border-color: var(--yellow);
+}
+
+.task-icon {
+  font-size: var(--fs-xl);
+}
+
+.task-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.task-name {
+  font-size: var(--fs-base);
+  color: var(--text);
+}
+
+.task-purpose {
+  font-size: var(--fs-xs);
+  color: var(--blue);
+}
+
+.task-check {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-xs);
+}
+
+.check-icon {
+  font-size: var(--fs-lg);
+  color: var(--text-secondary);
+}
+
+.task-card.done .check-icon {
+  color: var(--green);
+}
+
+.backfill-tag {
+  font-size: var(--fs-xs);
+  background: var(--yellow);
+  color: #FFFFFF;
+  padding: 2rpx 8rpx;
+  border-radius: var(--radius-sm);
+}
+
+/* === 空状态 === */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--sp-2xl) var(--sp-xl);
+}
+
+.empty-image {
+  width: 200rpx;
+  height: 200rpx;
+  margin-bottom: var(--sp-lg);
+}
+
+.empty-title {
+  font-size: var(--fs-md);
+  color: var(--text);
+  margin-bottom: var(--sp-sm);
+}
+
+.empty-desc {
+  font-size: var(--fs-sm);
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+/* === 日历弹层 === */
+.cal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 50;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 120rpx;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s, visibility 0.2s;
+}
+
+.cal-overlay.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.cal-panel {
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  padding: var(--sp-lg);
+  width: 640rpx;
+  box-shadow: var(--shadow-lg);
+}
+
+.cal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--sp-md);
+}
+
+.cal-title {
+  font-size: var(--fs-md);
+  font-weight: 600;
+}
+
+.cal-nav {
+  font-size: var(--fs-sm);
+  color: var(--text-secondary);
+  padding: var(--sp-xs);
+}
+
+.cal-weekdays {
+  display: flex;
+  margin-bottom: var(--sp-sm);
+}
+
+.cal-weekday {
+  flex: 1;
+  text-align: center;
+  font-size: var(--fs-xs);
+  color: var(--text-secondary);
+}
+
+.cal-grid {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.cal-cell {
+  width: calc(100% / 7);
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.cal-day {
+  font-size: var(--fs-sm);
+  color: var(--text);
+}
+
+.cal-cell.today .cal-day {
+  color: var(--green);
+  font-weight: 700;
+}
+
+.cal-cell.green {
+  background: var(--green-light);
+  border-radius: var(--radius-sm);
+}
+
+.cal-cell.orange {
+  background: var(--yellow-light);
+  border-radius: var(--radius-sm);
+}
+
+.cal-cell.gray {
+  background: #F5F5F5;
+  border-radius: var(--radius-sm);
+}
+
+.cal-dot {
+  position: absolute;
+  bottom: 4rpx;
+  width: 8rpx;
+  height: 8rpx;
+  border-radius: 50%;
+  background: var(--green);
+}
+
+/* === 庆祝弹层 === */
+.celebration-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s, visibility 0.3s;
+}
+
+.celebration-overlay.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.celebration-content {
+  background: var(--card-bg);
+  border-radius: var(--radius-xl);
+  padding: var(--sp-2xl);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-md);
+  animation: bounceIn 0.5s ease;
+}
+
+@keyframes bounceIn {
+  0% { transform: scale(0.5); opacity: 0; }
+  60% { transform: scale(1.1); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.celebration-image {
+  width: 160rpx;
+  height: 160rpx;
+}
+
+.celebration-title {
+  font-size: var(--fs-xl);
+  font-weight: 700;
+  color: var(--text);
+}
+
+.celebration-desc {
+  font-size: var(--fs-base);
+  color: var(--text-secondary);
+}
+
+.celebration-stars {
+  font-size: var(--fs-lg);
+  color: var(--gold);
+  font-weight: 600;
+}
+
+.celebration-btn {
+  background: var(--green);
+  color: #FFFFFF;
+  padding: var(--sp-sm) var(--sp-2xl);
+  border-radius: var(--radius-full);
+  font-size: var(--fs-base);
+}

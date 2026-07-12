@@ -1,0 +1,101 @@
+<!-- 打卡页 -->
+<view class="page">
+  <!-- 状态栏安全区 -->
+  <view class="status-bar" style="height: {{statusBarHeight}}px;"></view>
+
+  <!-- 顶部信息栏：连续天数 + 星星 + 日期 -->
+  <view class="home-header">
+    <view class="header-left">
+      <text class="streak-icon">{{streak > 0 ? '🔥' : '🪵'}}</text>
+      <text class="streak-num">连续 {{streak}} 天</text>
+    </view>
+    <view class="header-center">
+      <text class="star-num">⭐ {{stars}}</text>
+    </view>
+    <view class="header-right" bindtap="openCalendar">
+      <text class="date-text">{{fmtDate(viewDate)}}</text>
+      <text class="date-arrow">▼</text>
+    </view>
+  </view>
+
+  <!-- 补卡模式提示条 -->
+  <view class="backfill-banner" wx:if="{{isBackfill}}">
+    <text class="banner-icon">📅</text>
+    <text class="banner-text">正在为 {{fmtDateShort(viewDate)}} 补卡</text>
+    <text class="banner-back" bindtap="goBackToday">回到今天</text>
+  </view>
+
+  <!-- 进度条 -->
+  <view class="progress-section" wx:if="{{activeTasks.length > 0}}">
+    <view class="progress-bar">
+      <view class="progress-fill" style="width: {{progressPct}}%;"></view>
+    </view>
+    <text class="progress-text">已完成 {{doneCount}}/{{activeTasks.length}}</text>
+  </view>
+
+  <!-- 任务卡片列表 -->
+  <view class="task-list" wx:if="{{activeTasks.length > 0}}">
+    <view
+      class="task-card {{item.done ? 'done' : ''}} {{item.isBackfill ? 'backfill' : ''}}"
+      wx:for="{{activeTasks}}"
+      wx:key="id"
+      data-id="{{item.id}}"
+      bindtap="onTaskTap"
+    >
+      <view class="task-icon">{{item.icon}}</view>
+      <view class="task-info">
+        <text class="task-name">{{item.name}}</text>
+        <text class="task-purpose" wx:if="{{item.purpose}}">💭 {{item.purpose}}</text>
+      </view>
+      <view class="task-check">
+        <text class="check-icon" wx:if="{{item.done}}">✅</text>
+        <text class="check-icon" wx:else>○</text>
+        <text class="backfill-tag" wx:if="{{item.isBackfill}}">补</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-state" wx:else>
+    <image class="empty-image" src="/miniprogram-assets/avatar.png" mode="aspectFit"></image>
+    <text class="empty-title">今天没有任务哦</text>
+    <text class="empty-desc">去「任务」页添加你想要坚持的好习惯吧！</text>
+  </view>
+</view>
+
+<!-- 日历弹层 -->
+<view class="cal-overlay {{showCal ? 'show' : ''}}" wx:if="{{showCal}}" bindtap="closeCalendar">
+  <view class="cal-panel" catchtap="">
+    <view class="cal-header">
+      <text class="cal-nav" bindtap="prevMonth">◀</text>
+      <text class="cal-title">{{calYear}}年 {{calMonth + 1}}月</text>
+      <text class="cal-nav" bindtap="nextMonth">▶</text>
+    </view>
+    <view class="cal-weekdays">
+      <text wx:for="{{weekDays}}" wx:key="*this" class="cal-weekday">{{item}}</text>
+    </view>
+    <view class="cal-grid">
+      <view
+        wx:for="{{calDays}}"
+        wx:key="index"
+        class="cal-cell {{item.isToday ? 'today' : ''}} {{item.color}}"
+        data-iso="{{item.iso}}"
+        bindtap="pickDate"
+      >
+        <text class="cal-day">{{item.day}}</text>
+        <text class="cal-dot" wx:if="{{item.hasData}}"></text>
+      </view>
+    </view>
+  </view>
+</view>
+
+<!-- 全部完成庆祝弹层 -->
+<view class="celebration-overlay {{showCelebration ? 'show' : ''}}" wx:if="{{showCelebration}}">
+  <view class="celebration-content">
+    <image class="celebration-image" src="/miniprogram-assets/avatar.png" mode="aspectFit"></image>
+    <text class="celebration-title">太棒了！🎉</text>
+    <text class="celebration-desc">今天的任务全部完成啦！</text>
+    <text class="celebration-stars">⭐ +{{doneCount}}</text>
+    <view class="celebration-btn" bindtap="dismissCelebration">继续加油</view>
+  </view>
+</view>

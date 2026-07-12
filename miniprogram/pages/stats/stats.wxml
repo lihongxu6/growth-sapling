@@ -1,0 +1,65 @@
+<!-- 统计页 -->
+<view class="page">
+  <view class="status-bar" style="height: {{statusBarHeight}}px;"></view>
+
+  <!-- 连续天数展示 -->
+  <view class="streak-section">
+    <view class="streak-card">
+      <text class="streak-icon">🔥</text>
+      <view class="streak-info">
+        <text class="streak-num">{{streak}} 天</text>
+        <text class="streak-label">当前连续</text>
+      </view>
+    </view>
+    <view class="streak-card">
+      <text class="streak-icon">⭐</text>
+      <view class="streak-info">
+        <text class="streak-num">{{stars}}</text>
+        <text class="streak-label">累计星星</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 本月概览 -->
+  <view class="section">
+    <text class="section-title">本月打卡日历</text>
+    <view class="cal-grid">
+      <view class="cal-weekdays">
+        <text wx:for="{{weekDays}}" wx:key="*this" class="cal-weekday">{{item}}</text>
+      </view>
+      <view class="cal-days">
+        <view
+          wx:for="{{calDays}}"
+          wx:key="index"
+          class="cal-cell {{item.color}} {{item.isToday ? 'today' : ''}}"
+        >
+          <text class="cal-day">{{item.day}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 徽章墙 -->
+  <view class="section">
+    <text class="section-title">我的徽章</text>
+    <view class="badge-wall">
+      <view
+        wx:for="{{badges}}"
+        wx:key="type"
+        class="badge-card {{item.acquired ? 'acquired' : 'locked'}}"
+      >
+        <text class="badge-icon">{{item.icon}}</text>
+        <text class="badge-name">{{item.name}}</text>
+        <text class="badge-desc">{{item.desc}}</text>
+        <text class="badge-lock" wx:if="{{!item.acquired}}">🔒</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{stars <= 7}}">
+    <image class="empty-image" src="/miniprogram-assets/avatar.png" mode="aspectFit"></image>
+    <text class="empty-title">还没有成长记录哦</text>
+    <text class="empty-desc">坚持打卡，你的成长数据和小树苗都会在这里！</text>
+  </view>
+</view>
