@@ -177,7 +177,7 @@ function deleteTask(taskId) {
  * 基础 7 星 + 所有历史已打卡数
  */
 function calcStars() {
-  let total = 7; // 基础星星
+  let total = 0; // 从 0 起步，每打卡一次 +1 星
   Object.values(state.checkinsByDate).forEach(dayCi => {
     Object.values(dayCi).forEach(record => {
       if (record.done) total += 1;

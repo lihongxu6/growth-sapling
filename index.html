@@ -492,9 +492,8 @@ function migrateData(){
    SECTION E: Calculations
    ======================================================================== */
 
-// Tech-spec §6.1: Total stars = 7 base + all historical + today
+// Tech-spec §6.1: Total stars = all historical + today
 function calcStars(){
-  const base=7;
   const todayIso=isoOf(TODAY);
   let s=0;
   Object.values(checkinsByDate).forEach((day,iso)=>{
