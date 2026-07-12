@@ -1,9 +1,9 @@
 <!-- 打卡页 -->
 <view class="page">
-  <!-- 顶部信息栏：连续天数 + 星星 + 日期 -->
+  <!-- 顶部信息栏：连续天数 + 星星 + 日期（吸顶） -->
   <view class="home-header">
     <view class="header-left">
-      <text class="streak-icon">{{streak > 0 ? '🔥' : '🪵'}}</text>
+      <text class="streak-icon">{{doneCount > 0 ? '🔥' : '🪵'}}</text>
       <text class="streak-num">连续 {{streak}} 天</text>
     </view>
     <view class="header-center">
@@ -18,16 +18,8 @@
   <!-- 补卡模式提示条 -->
   <view class="backfill-banner" wx:if="{{isBackfill}}">
     <text class="banner-icon">📅</text>
-    <text class="banner-text">正在为 {{fmtDateShort(viewDate)}} 补卡</text>
+    <text class="banner-text">补卡模式 · {{fmtDateShort(viewDate)}}</text>
     <text class="banner-back" bindtap="goBackToday">回到今天</text>
-  </view>
-
-  <!-- 进度条 -->
-  <view class="progress-section" wx:if="{{activeTasks.length > 0}}">
-    <view class="progress-bar">
-      <view class="progress-fill" style="width: {{progressPct}}%;"></view>
-    </view>
-    <text class="progress-text">已完成 {{doneCount}}/{{activeTasks.length}}</text>
   </view>
 
   <!-- 任务卡片列表 -->
@@ -50,6 +42,14 @@
         <text class="backfill-tag" wx:if="{{item.isBackfill}}">补</text>
       </view>
     </view>
+  </view>
+
+  <!-- 进度条（任务列表下方） -->
+  <view class="progress-section" wx:if="{{activeTasks.length > 0}}">
+    <view class="progress-bar">
+      <view class="progress-fill" style="width: {{progressPct}}%;"></view>
+    </view>
+    <text class="progress-text">已完成 {{doneCount}}/{{activeTasks.length}}</text>
   </view>
 
   <!-- 空状态 -->

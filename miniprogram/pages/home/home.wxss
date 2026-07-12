@@ -13,8 +13,11 @@
   align-items: center;
   justify-content: space-between;
   padding: var(--sp-md) var(--sp-lg);
-  background: var(--card-bg);
+  background: var(--bg);
   border-bottom: 1rpx solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .header-left {
