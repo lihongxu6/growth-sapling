@@ -133,6 +133,7 @@ PRD ✅ → 设计评审 ✅ → 原型(已冻结) ✅ → UI设计稿(Route A) 
 | 19 | 2026-07-12 | ImageGen 的 `background: "transparent"` 实际未生效；rembg 默认模式在深色背景会暴露"灰雾" | 模型把"透明"位置填成浅灰色（RGB 无 alpha 通道）；rembg 默认会把原图浅色阴影当成半透明前景保留 | 想要真正的透明 PNG：**ImageGen 出图 → rembg `alpha_matting=True, alpha_matting_foreground_threshold=240`** 二次处理。验收：PIL 读图 mode 必须是 RGBA 且角点 alpha=0，在深色背景预览无灰雾 | — |
 | 20 | 2026-07-12 | miniprogram-ci preview 报 `invalid ip`，无法生成预览 | 微信后台默认开启 IP 白名单，沙箱 IP `106.55.101.218` 不在白名单 | 预览/上传前必须把沙箱 IP 加入白名单（个人开发可关闭白名单）。预览时还会要求传 `project` 对象，参数名是 `qrcodeOutputDest`（不是 `qrcodeOutputPath`）| — |
 | 21 | 2026-07-12 | 首次扫码预览发现大量样式和逻辑问题 | Phase 1 代码为快速搭建骨架，CSS 变量/字号/圆角/背景色未严格对齐 design-spec；庆祝弹层触发条件有 bug（3/4 完成即弹出） | 每次 Phase 完成后必须跑一遍「对版检查清单」对照 design-spec 和 H5 index.html 逐项验证。celebrate 条件需用 toggle 前的实时数据判断（`Store.getActiveTasks().length`），而非依赖 setData 后的 this.data | — |
+| 22 | 2026-07-12 | 修复声称生效但用户截图显示未生效 | 1) WXML 不可调用 data 里的函数（`{{fmtDate(viewDate)}}` 传函数引用会失败）→ JS 计算后存为 `viewDateFmt` 字符串传给 WXML；2) TabBar iconPath 实际渲染仅中心 27x27 区域，81x81 满铺圆点会被裁掉 → 改画中心 27x27 圆 | **改完代码必须对照实际渲染验证**（ffmpeg 切帧或用户截图），不能只 grep "已改" 就说修好 | — |
 
 ---
 
