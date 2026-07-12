@@ -8,7 +8,6 @@ const { BADGE_DEFS } = require('../../utils/constants');
 
 Page({
   data: {
-    statusBarHeight: 0,
     streak: 0,
     stars: 0,
     weekDays: ['日', '一', '二', '三', '四', '五', '六'],
@@ -16,10 +15,7 @@ Page({
     badges: [],
   },
 
-  onLoad() {
-    const app = getApp();
-    this.setData({ statusBarHeight: app.globalData.statusBarHeight });
-  },
+  onLoad() {},
 
   onShow() {
     this._refresh();

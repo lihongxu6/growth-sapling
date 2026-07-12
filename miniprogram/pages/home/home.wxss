@@ -7,12 +7,6 @@
   padding-bottom: var(--safe-bottom);
 }
 
-/* === 状态栏 === */
-.status-bar {
-  width: 100%;
-  background: var(--bg);
-}
-
 /* === 顶部信息栏 === */
 .home-header {
   display: flex;

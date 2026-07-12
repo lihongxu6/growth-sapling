@@ -7,7 +7,6 @@ const { today, fmtDate, fmtDateShort, isToday, isoOf, dateOfIso, daysInMonth, fi
 
 Page({
   data: {
-    statusBarHeight: 0,
     viewDate: today(),
     activeTasks: [],
     doneCount: 0,
@@ -25,10 +24,7 @@ Page({
     fmtDateShort,
   },
 
-  onLoad() {
-    const app = getApp();
-    this.setData({ statusBarHeight: app.globalData.statusBarHeight });
-  },
+  onLoad() {},
 
   onShow() {
     this._refresh();

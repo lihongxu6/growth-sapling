@@ -5,7 +5,7 @@
     "pages/tasks/tasks"
   ],
   "window": {
-    "navigationStyle": "custom",
+    "navigationStyle": "default",
     "backgroundTextStyle": "light",
     "navigationBarBackgroundColor": "#FFF8F0",
     "navigationBarTitleText": "成长小树苗",

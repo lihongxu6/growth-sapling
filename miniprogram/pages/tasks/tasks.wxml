@@ -1,6 +1,5 @@
 <!-- 任务管理页 -->
 <view class="page">
-  <view class="status-bar" style="height: {{statusBarHeight}}px;"></view>
 
   <view class="page-header">
     <text class="page-title">我的任务</text>

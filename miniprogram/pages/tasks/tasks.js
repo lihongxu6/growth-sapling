@@ -14,7 +14,6 @@ const REPEAT_LABELS = {
 
 Page({
   data: {
-    statusBarHeight: 0,
     tasks: [],
     showForm: false,
     showDelete: false,
@@ -25,11 +24,6 @@ Page({
     iconSet: ICON_SET,
     maxNameLen: MAX_TASK_NAME,
     maxPurposeLen: MAX_TASK_PURPOSE,
-  },
-
-  onLoad() {
-    const app = getApp();
-    this.setData({ statusBarHeight: app.globalData.statusBarHeight });
   },
 
   onShow() {

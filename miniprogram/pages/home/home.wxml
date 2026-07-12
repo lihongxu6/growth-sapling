@@ -1,8 +1,5 @@
 <!-- 打卡页 -->
 <view class="page">
-  <!-- 状态栏安全区 -->
-  <view class="status-bar" style="height: {{statusBarHeight}}px;"></view>
-
   <!-- 顶部信息栏：连续天数 + 星星 + 日期 -->
   <view class="home-header">
     <view class="header-left">

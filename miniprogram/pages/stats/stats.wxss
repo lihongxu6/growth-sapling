@@ -7,11 +7,6 @@
   padding-bottom: var(--safe-bottom);
 }
 
-.status-bar {
-  width: 100%;
-  background: var(--bg);
-}
-
 /* === 连续天数 === */
 .streak-section {
   display: flex;
