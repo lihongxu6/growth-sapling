@@ -142,18 +142,9 @@
   border-radius: var(--radius-lg);
   width: 100%;
   max-width: 640rpx;
-  max-height: 80vh;
-  display: flex;
-  flex-direction: column;
-  box-shadow: var(--shadow-float);
-  box-sizing: border-box;
-  overflow: hidden;        /* 防止滚动溢出 */
-}
-
-.form-scroll {
-  flex: 1;
-  height: 0;              /* 与 flex:1 配合，确保内容超出时可滚动 */
+  height: 80vh;           /* 固定高度，scroll-view 才能滚动 */
   padding: var(--sp-xl);
+  box-shadow: var(--shadow-float);
   box-sizing: border-box;
 }
 

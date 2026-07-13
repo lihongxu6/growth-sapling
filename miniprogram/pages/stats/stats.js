@@ -3,7 +3,7 @@
  */
 
 const Store = require('../../store/index');
-const { today, isoOf, daysInMonth, firstDayOfMonth } = require('../../utils/date');
+const { today, isoOf, daysInMonth, firstDayOfMonth, dateOfIso } = require('../../utils/date');
 const { BADGE_DEFS } = require('../../utils/constants');
 
 Page({
@@ -54,12 +54,13 @@ Page({
 
   /**
    * 计算本周完成率
+   * 每天根据当天的活跃任务计算（weekday/weekend/custom 过滤）
    */
   _calcWeekRate() {
-    const today = new Date();
-    const dayOfWeek = today.getDay();
-    const monday = new Date(today);
-    monday.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+    const now = dateOfIso(today());
+    const dayOfWeek = now.getDay(); // 0=周日
+    const monday = new Date(now);
+    monday.setDate(now.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
 
     let totalDays = 0;
     let completedDays = 0;
@@ -68,12 +69,25 @@ Page({
       const d = new Date(monday);
       d.setDate(monday.getDate() + i);
       const iso = isoOf(d);
-      const ci = Store.state.checkinsByDate[iso] || {};
-      const doneCount = Object.values(ci).filter(r => r.done).length;
-      const totalTasks = Store.state.tasks.filter(t => !t.is_deleted).length;
+
+      // 用 Store.getActiveTasks 的逻辑：取当天活跃任务
+      const wd = d.getDay();
+      const activeTasks = Store.state.tasks.filter(t => {
+        if (t.is_deleted) return false;
+        switch (t.repeat_type) {
+          case 'daily': return true;
+          case 'weekday': return wd >= 1 && wd <= 5;
+          case 'weekend': return wd === 0 || wd === 6;
+          case 'custom': return (t.repeat_days || []).includes(wd === 0 ? 7 : wd);
+          default: return true;
+        }
+      });
+      const totalTasks = activeTasks.length;
 
       if (totalTasks > 0) {
         totalDays++;
+        const ci = Store.state.checkinsByDate[iso] || {};
+        const doneCount = activeTasks.filter(t => ci[t.id] && ci[t.id].done).length;
         if (doneCount >= totalTasks) completedDays++;
       }
     }

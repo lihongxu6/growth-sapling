@@ -39,6 +39,7 @@ Page({
     maxPurposeLen: MAX_TASK_PURPOSE,
     keyboardHeight: 0,
     scrollTop: 0,
+    scrollVersion: 0,        // 每次打开递增，强制 scroll-view 重置位置
   },
 
   onShow() {
@@ -60,7 +61,11 @@ Page({
       return;
     }
     this._resetForm();
-    this.setData({ showForm: true, scrollTop: 0 });
+    this.setData({
+      showForm: true,
+      scrollTop: 0,
+      scrollVersion: this.data.scrollVersion + 1,
+    });
   },
 
   /**
@@ -94,6 +99,7 @@ Page({
       },
       weekDays,
       scrollTop: 0,
+      scrollVersion: this.data.scrollVersion + 1,
     });
   },
 
