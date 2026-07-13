@@ -37,7 +37,7 @@
   </view>
 
   <!-- 添加/编辑弹层 -->
-  <view class="modal-overlay {{showForm ? 'show' : ''}}" wx:if="{{showForm}}" catchtouchmove="preventTouchMove" style="padding-bottom: {{keyboardHeight}}px;">
+  <view class="modal-overlay {{showForm ? 'show' : ''}}" wx:if="{{showForm}}" catchtouchmove="preventTouchMove">
     <view class="form-panel" catchtap="">
       <view class="form-title-row">
         <text class="form-title">{{editingId ? '编辑任务' : '添加任务'}}</text>

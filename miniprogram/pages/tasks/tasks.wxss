@@ -117,16 +117,17 @@
   color: var(--text-secondary);
 }
 
-/* === 表单弹层（居中浮窗，标题固定 + 内容滚动） === */
+/* === 表单弹层（position: fixed + transform 居中，最稳定） === */
 .modal-overlay {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background: rgba(0, 0, 0, 0.4);
   z-index: 50;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   padding: var(--sp-lg);
+  box-sizing: border-box;
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.2s, visibility 0.2s;
@@ -142,12 +143,18 @@
   border-radius: var(--radius-lg);
   width: 100%;
   max-width: 640rpx;
-  max-height: 80vh;          /* 限制最大高度 */
+  max-height: 80vh;
   display: flex;
-  flex-direction: column;   /* 标题 + 内容垂直布局 */
+  flex-direction: column;
   box-shadow: var(--shadow-float);
   box-sizing: border-box;
   overflow: hidden;
+  /* 真正的垂直水平居中：position fixed + transform translate(-50%, -50%) */
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  -webkit-transform: translate(-50%, -50%);
 }
 
 .form-title-row {
@@ -333,11 +340,15 @@
   border-radius: var(--radius-lg);
   padding: var(--sp-xl);
   width: 560rpx;
-  margin: 0 auto;
-  position: absolute;
+  max-width: 90%;
+  box-shadow: var(--shadow-float);
+  box-sizing: border-box;
+  position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+  -webkit-transform: translate(-50%, -50%);
+  z-index: 51;
 }
 
 .confirm-title {
