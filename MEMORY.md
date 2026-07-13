@@ -141,6 +141,7 @@ PRD ✅ → 设计评审 ✅ → 原型(已冻结) ✅ → UI设计稿(Route A) 
 | 27 | 2026-07-13 | 用户发现"一半问题是没按设计稿来自己发挥了"——徽章加了锁而非 grayscale、进度文案用固定 desc 而非动态计算、统计页缺标题/环图等 12 项不一致 | Phase 1 代码搭建时只粗略移植了视觉骨架，细节（灰度、动态文案、环图、斜体等）全部被省略或自己发挥 | **每次编写小程序代码前必须先逐项对照 H5 index.html 设计稿**，不得凭印象发挥。任何"觉得这样做更好"的改动必须先出方案让用户确认（对齐 MEMORY §3.2 两步确认流程）。本次建立 audit-vs-design.md 对版审计机制 | — |
 | 28 | 2026-07-13 | 用户反馈"我得了 12 颗星但新芽初绽还没获得" | H5 设计稿的 `recalcBadges()` 函数在打卡后检查 stars/streak 是否达标并写入 `state.badges`，但**小程序 Store 完全没有这个函数**，导致 `state.badges` 永远是空数组。状态页的"已获得"判断读不到任何记录 | **移植 H5 → 小程序时，UI/视觉/交互容易看到，核心数据流（recalc/save/load）容易漏**。每个 Store 函数都必须显式列出并写注释来源（"移植自 index.html §X"）。本次在 `toggleTask` 末尾 + `app.js onLaunch` 都加了 `recalcBadges()` 调用 | — |
 | 29 | 2026-07-13 | 用户反馈"周一到周日的这个选择设计太丑了"，7 个圆形小球 + "周"+"一"换行 + 纯绿大色块 | 没有先查"周选择器"的设计规范就自作主张画了一组小圆球。设计原则：① 7 个选项用 Segmented Control 扩展形态（等宽等高）；② 选中态用绿底白字，未选中白底细边；③ 避免密集小圆球（视觉太碎） | **任何 UI 组件都要先查设计规范**（设计原则/竞品/平台规范），再出 3 套方案让用户选，最后实现。已在 #25/#26/#28 基础上形成完整 UI 流程：查规范 → 出 3 套提案 → 用户选 → 实现 → 编译验证 | — |
+| 30 | 2026-07-13 | 弹窗标题被遮挡 + 删除任务拉起添加弹窗 | ① form-panel 内嵌 scroll-view，flex 布局下 scroll-view 撑大后 form-title-row 被挤出可视区；② task-mgmt-card 上 `bindtap="onEdit"`，子按钮删除事件冒泡触发 onEdit | **小程序弹窗稳定方案**：form-panel(view, max-height+overflow:hidden) + form-title-row(view, flex-shrink:0 固定) + form-scroll(view, flex:1 + overflow-y:auto)。**view 销毁重建时滚动位置自动归零**——无需 scrollTop 编程式重置。**子按钮必须用 catchtap 阻止冒泡**到父级卡片 | — |
 
 ---
 
