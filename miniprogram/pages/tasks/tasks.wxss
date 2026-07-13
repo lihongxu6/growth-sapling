@@ -183,12 +183,14 @@
 
 .form-input {
   width: 100%;
-  padding: var(--sp-sm) var(--sp-md);
-  background: var(--bg);
-  border: 1rpx solid var(--border);
-  border-radius: var(--radius-sm);
+  min-height: 88rpx;        /* ≈ 44px，匹配 H5 设计稿 */
+  padding: 24rpx var(--sp-md);
+  background: var(--card-bg);
+  border: 2rpx solid var(--border);
+  border-radius: var(--radius-md);
   font-size: var(--fs-base);
   box-sizing: border-box;
+  line-height: 1.4;
 }
 
 .icon-picker {
@@ -217,16 +219,20 @@
 .repeat-options {
   display: flex;
   gap: var(--sp-sm);
+  flex-wrap: wrap;
 }
 
 .repeat-option {
   flex: 1;
+  min-width: 120rpx;
   text-align: center;
-  padding: var(--sp-sm);
+  padding: var(--sp-sm) 0;
   background: var(--bg);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   font-size: var(--fs-sm);
   border: 2rpx solid transparent;
+  min-height: 44px;
+  box-sizing: border-box;
 }
 
 .repeat-option.active {
@@ -234,6 +240,33 @@
   background: var(--green-light);
   color: var(--green);
   font-weight: 500;
+}
+
+/* === 自定义星期行 === */
+.week-row {
+  display: flex;
+  gap: 12rpx;
+  flex-wrap: wrap;
+  margin-top: var(--sp-md);
+}
+
+.week-option {
+  flex: 1;
+  min-width: 88rpx;
+  text-align: center;
+  padding: 20rpx 24rpx;
+  border: 2rpx solid var(--border);
+  border-radius: 999rpx;       /* 胶囊形 */
+  font-size: var(--fs-xs);
+  background: var(--bg);
+  box-sizing: border-box;
+  min-height: 44px;
+}
+
+.week-option.active {
+  background: var(--green);
+  color: #FFFFFF;
+  border-color: var(--green);
 }
 
 .form-actions {

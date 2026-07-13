@@ -115,6 +115,26 @@
           >
             <text>周末</text>
           </view>
+          <view
+            class="repeat-option {{formData.repeat_type === 'custom' ? 'active' : ''}}"
+            data-type="custom"
+            bindtap="setRepeat"
+          >
+            <text>自定义</text>
+          </view>
+        </view>
+
+        <!-- 自定义：选择星期（1=周一...7=周日） -->
+        <view class="week-row" wx:if="{{formData.repeat_type === 'custom'}}">
+          <view
+            wx:for="{{weekDays}}"
+            wx:key="index"
+            class="week-option {{item.selected ? 'active' : ''}}"
+            data-day="{{item.day}}"
+            bindtap="toggleWeekDay"
+          >
+            <text>{{item.label}}</text>
+          </view>
         </view>
       </view>
 

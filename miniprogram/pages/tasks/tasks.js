@@ -7,10 +7,21 @@ const { ICON_SET, MAX_TASK_NAME, MAX_TASK_PURPOSE } = require('../../utils/const
 
 const REPEAT_LABELS = {
   daily: '每天',
-  weekday: '工作日',
+  weekday: '工作日（周一至周五）',
   weekend: '周末',
   custom: '自定义',
 };
+
+// 1=周一, 2=周二, ..., 7=周日
+const WEEK_DAY_LABELS = [
+  { day: 1, label: '周一', selected: false },
+  { day: 2, label: '周二', selected: false },
+  { day: 3, label: '周三', selected: false },
+  { day: 4, label: '周四', selected: false },
+  { day: 5, label: '周五', selected: false },
+  { day: 6, label: '周六', selected: false },
+  { day: 7, label: '周日', selected: false },
+];
 
 Page({
   data: {
@@ -21,8 +32,9 @@ Page({
     editingId: null,
     deleteTargetId: null,
     deleteTargetName: '',
-    formData: { icon: '📖', name: '', purpose: '', repeat_type: 'daily' },
+    formData: { icon: '📖', name: '', purpose: '', repeat_type: 'daily', repeat_days: [] },
     iconSet: ICON_SET,
+    weekDays: WEEK_DAY_LABELS.map(d => ({ ...d })),
     maxNameLen: MAX_TASK_NAME,
     maxPurposeLen: MAX_TASK_PURPOSE,
     keyboardHeight: 0,
@@ -46,11 +58,8 @@ Page({
       wx.showToast({ title: '最多添加 6 个任务', icon: 'none' });
       return;
     }
-    this.setData({
-      showForm: true,
-      editingId: null,
-      formData: { icon: '📖', name: '', purpose: '', repeat_type: 'daily' },
-    });
+    this._resetForm();
+    this.setData({ showForm: true });
   },
 
   /**
@@ -66,6 +75,12 @@ Page({
     const id = e.currentTarget.dataset.id;
     const task = Store.state.tasks.find(t => t.id === id);
     if (!task) return;
+    this._resetForm();
+    // 同步星期选择
+    const weekDays = this.data.weekDays.map(d => ({
+      ...d,
+      selected: (task.repeat_days || []).includes(d.day),
+    }));
     this.setData({
       showForm: true,
       editingId: id,
@@ -74,7 +89,18 @@ Page({
         name: task.name,
         purpose: task.purpose || '',
         repeat_type: task.repeat_type,
+        repeat_days: task.repeat_days || [],
       },
+      weekDays,
+    });
+  },
+
+  /** 重置表单到初始状态 */
+  _resetForm() {
+    this.setData({
+      editingId: null,
+      formData: { icon: '📖', name: '', purpose: '', repeat_type: 'daily', repeat_days: [] },
+      weekDays: WEEK_DAY_LABELS.map(d => ({ ...d, selected: false })),
     });
   },
 
@@ -122,7 +148,19 @@ Page({
 
   /** 设置重复周期 */
   setRepeat(e) {
-    this.setData({ 'formData.repeat_type': e.currentTarget.dataset.type });
+    const type = e.currentTarget.dataset.type;
+    this.setData({ 'formData.repeat_type': type });
+  },
+
+  /** 切换星期选中（仅 custom 模式生效） */
+  toggleWeekDay(e) {
+    const day = e.currentTarget.dataset.day;
+    const weekDays = this.data.weekDays.map(d => ({
+      ...d,
+      selected: d.day === day ? !d.selected : d.selected,
+    }));
+    const repeat_days = weekDays.filter(d => d.selected).map(d => d.day);
+    this.setData({ weekDays, 'formData.repeat_days': repeat_days });
   },
 
   /** 提交表单 */
@@ -133,10 +171,22 @@ Page({
       return;
     }
 
+    // custom 必须至少选一天
+    if (formData.repeat_type === 'custom' && formData.repeat_days.length === 0) {
+      wx.showToast({ title: '请至少选择一天', icon: 'none' });
+      return;
+    }
+
+    // 清理非 custom 的 repeat_days
+    const payload = {
+      ...formData,
+      repeat_days: formData.repeat_type === 'custom' ? formData.repeat_days : [],
+    };
+
     if (editingId) {
-      Store.updateTask(editingId, formData);
+      Store.updateTask(editingId, payload);
     } else {
-      Store.addTask(formData);
+      Store.addTask(payload);
     }
 
     this.setData({ showForm: false });
