@@ -133,7 +133,7 @@
             data-day="{{item.day}}"
             bindtap="toggleWeekDay"
           >
-            <text>{{item.label}}</text>
+            <text class="week-label">{{item.label}}</text>
           </view>
         </view>
       </view>
