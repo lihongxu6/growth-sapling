@@ -9,10 +9,9 @@ const BADGE_DEFS = [
   { type: 'sprout',       name: '新芽初绽', icon: '🌱', threshold: 7,    unit: 'stars',      desc: '累计获得 7 颗星' },
   { type: 'growing',      name: '小有所成', icon: '🌿', threshold: 30,   unit: 'stars',      desc: '累计获得 30 颗星' },
   { type: 'thriving',     name: '枝繁叶茂', icon: '🪴', threshold: 100,  unit: 'stars',      desc: '累计获得 100 颗星' },
-  { type: 'harvest',      name: '硕果累累', icon: '🍎', threshold: 365,  unit: 'stars',      desc: '累计获得 365 颗星' },
+  { type: 'harvest',      name: '硕果累累', icon: '🍎', threshold: 365,  unit: 'stars',      desc: '累计获得 365 颗星（顶级挑战）' },
   { type: 'week_streak',  name: '连续打卡', icon: '🔥', threshold: 7,    unit: 'streak_days', desc: '连续 7 天不间断' },
   { type: 'month_streak', name: '满月打卡', icon: '🌕', threshold: 30,   unit: 'streak_days', desc: '连续 30 天不间断' },
-  { type: 'star_hundred', name: '百颗星',  icon: '🏅', threshold: 100,  unit: 'stars',      desc: '累计获得 100 颗星' },
 ];
 
 /** 图标选择集 */
