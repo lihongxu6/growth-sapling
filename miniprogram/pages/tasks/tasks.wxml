@@ -38,12 +38,13 @@
 
   <!-- 添加/编辑弹层 -->
   <view class="modal-overlay {{showForm ? 'show' : ''}}" wx:if="{{showForm}}" style="padding-bottom: {{keyboardHeight}}px;">
-    <view class="form-panel">
+    <view class="form-panel" catchtap="">
       <view class="form-title-row">
         <text class="form-title">{{editingId ? '编辑任务' : '添加任务'}}</text>
         <text class="form-close" bindtap="closeForm">✕</text>
       </view>
 
+      <scroll-view class="form-scroll" scroll-y="true" scroll-top="{{scrollTop}}" enhanced="true" show-scrollbar="false">
       <!-- 图标选择 -->
       <view class="form-group">
         <text class="form-label">图标</text>
@@ -145,6 +146,7 @@
           {{editingId ? '保存' : '添加'}}
         </view>
       </view>
+      </scroll-view>
     </view>
   </view>
 

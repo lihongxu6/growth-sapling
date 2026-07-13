@@ -38,6 +38,7 @@ Page({
     maxNameLen: MAX_TASK_NAME,
     maxPurposeLen: MAX_TASK_PURPOSE,
     keyboardHeight: 0,
+    scrollTop: 0,
   },
 
   onShow() {
@@ -59,7 +60,7 @@ Page({
       return;
     }
     this._resetForm();
-    this.setData({ showForm: true });
+    this.setData({ showForm: true, scrollTop: 0 });
   },
 
   /**
@@ -92,6 +93,7 @@ Page({
         repeat_days: task.repeat_days || [],
       },
       weekDays,
+      scrollTop: 0,
     });
   },
 

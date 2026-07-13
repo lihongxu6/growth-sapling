@@ -143,9 +143,17 @@
   width: 100%;
   max-width: 640rpx;
   max-height: 80vh;
-  overflow-y: auto;
-  padding: var(--sp-xl);
+  display: flex;
+  flex-direction: column;
   box-shadow: var(--shadow-float);
+  box-sizing: border-box;
+  overflow: hidden;        /* 防止滚动溢出 */
+}
+
+.form-scroll {
+  flex: 1;
+  height: 0;              /* 与 flex:1 配合，确保内容超出时可滚动 */
+  padding: var(--sp-xl);
   box-sizing: border-box;
 }
 
