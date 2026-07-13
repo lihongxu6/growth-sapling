@@ -135,7 +135,11 @@ Page({
 
   /** 关闭表单 */
   closeForm() {
-    this.setData({ showForm: false });
+    // 关闭前先重置滚动位置
+    this.setData({ showForm: false, scrollTop: 1 });
+    setTimeout(() => {
+      this.setData({ scrollTop: 0 });
+    }, 50);
   },
 
   /** 图标选择 */

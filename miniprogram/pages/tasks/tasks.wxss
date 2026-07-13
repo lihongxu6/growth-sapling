@@ -142,9 +142,18 @@
   border-radius: var(--radius-lg);
   width: 100%;
   max-width: 640rpx;
-  height: 80vh;           /* 固定高度，scroll-view 才能滚动 */
-  padding: var(--sp-xl);
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
   box-shadow: var(--shadow-float);
+  box-sizing: border-box;
+  overflow: hidden;        /* 防止 form-title-row 跑出 */
+}
+
+.form-scroll {
+  flex: 1;
+  min-height: 0;           /* 与 flex:1 配合，确保内容超出时可滚动 */
+  padding: var(--sp-xl);
   box-sizing: border-box;
 }
 
@@ -152,7 +161,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: var(--sp-lg);
+  padding: var(--sp-xl) var(--sp-xl) 0;   /* 顶部 padding，左右 padding */
+  flex-shrink: 0;                          /* 防止被压缩 */
 }
 
 .form-title {

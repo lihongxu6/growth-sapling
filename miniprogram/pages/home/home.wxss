@@ -306,68 +306,56 @@
   background: var(--green);
 }
 
-/* === 庆祝弹层 === */
+/* === 庆祝弹层（对齐 H5：全屏覆盖 + 松鼠 + 弹跳文字） === */
 .celebration-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6);
-  z-index: 70;
-  display: flex;
+  background: rgba(255, 248, 240, 0.92);
+  z-index: 60;
+  display: none;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.3s, visibility 0.3s;
+  gap: var(--sp-3);
 }
 
 .celebration-overlay.show {
-  opacity: 1;
-  visibility: visible;
-}
-
-.celebration-content {
-  background: var(--card-bg);
-  border-radius: var(--radius-xl);
-  padding: var(--sp-2xl);
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--sp-md);
-  animation: bounceIn 0.5s ease;
+  animation: celebFadeIn 0.3s ease;
 }
 
-@keyframes bounceIn {
-  0% { transform: scale(0.5); opacity: 0; }
-  60% { transform: scale(1.1); }
-  100% { transform: scale(1); opacity: 1; }
+@keyframes celebFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
-.celebration-image {
-  width: 160rpx;
-  height: 160rpx;
+.celeb-squirrel {
+  font-size: 144rpx;
+  line-height: 1;
+  margin-bottom: var(--sp-md);
 }
 
-.celebration-title {
-  font-size: var(--fs-xl);
-  font-weight: 700;
-  color: var(--text);
+.celeb-text {
+  font-size: 64rpx;
+  font-weight: 800;
+  color: var(--green);
+  animation: celebBounce 1.5s ease-in-out infinite alternate;
 }
 
-.celebration-desc {
-  font-size: var(--fs-base);
+@keyframes celebBounce {
+  from { transform: scale(1) rotate(-2deg); }
+  to   { transform: scale(1.08) rotate(2deg); }
+}
+
+.celeb-sub {
+  font-size: var(--fs-card-title);
   color: var(--text-secondary);
+  margin-top: var(--sp-2);
 }
 
-.celebration-stars {
+.celeb-stars {
   font-size: var(--fs-lg);
   color: var(--gold);
   font-weight: 600;
-}
-
-.celebration-btn {
-  background: var(--green);
-  color: #FFFFFF;
-  padding: var(--sp-sm) var(--sp-2xl);
-  border-radius: var(--radius-full);
-  font-size: var(--fs-base);
+  margin-top: var(--sp-2);
 }

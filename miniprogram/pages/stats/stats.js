@@ -53,25 +53,25 @@ Page({
   },
 
   /**
-   * 计算本周完成率
-   * 每天根据当天的活跃任务计算（weekday/weekend/custom 过滤）
+   * 计算本周完成率（与 H5 一致：doneTotal / taskTotal 累加形式）
+   * 每天按活跃任务数 + 实际完成数累加，今天用 Store.activeTasks
    */
   _calcWeekRate() {
-    const now = dateOfIso(today());
-    const dayOfWeek = now.getDay(); // 0=周日
-    const monday = new Date(now);
-    monday.setDate(now.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+    const todayDate = dateOfIso(today());
+    const dayOfWeek = todayDate.getDay(); // 0=周日
+    const monday = new Date(todayDate);
+    monday.setDate(todayDate.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
 
-    let totalDays = 0;
-    let completedDays = 0;
+    let doneTotal = 0;
+    let taskTotal = 0;
 
     for (let i = 0; i < 7; i++) {
       const d = new Date(monday);
       d.setDate(monday.getDate() + i);
       const iso = isoOf(d);
-
-      // 用 Store.getActiveTasks 的逻辑：取当天活跃任务
       const wd = d.getDay();
+
+      // 当天活跃任务（按 repeat_type 过滤）
       const activeTasks = Store.state.tasks.filter(t => {
         if (t.is_deleted) return false;
         switch (t.repeat_type) {
@@ -82,17 +82,21 @@ Page({
           default: return true;
         }
       });
-      const totalTasks = activeTasks.length;
+      const dayTaskCount = activeTasks.length;
+      if (dayTaskCount === 0) continue;
 
-      if (totalTasks > 0) {
-        totalDays++;
-        const ci = Store.state.checkinsByDate[iso] || {};
-        const doneCount = activeTasks.filter(t => ci[t.id] && ci[t.id].done).length;
-        if (doneCount >= totalTasks) completedDays++;
-      }
+      // 当天完成数
+      const ci = Store.state.checkinsByDate[iso] || {};
+      let dayDone = 0;
+      activeTasks.forEach(t => {
+        if (ci[t.id] && ci[t.id].done) dayDone++;
+      });
+
+      doneTotal += dayDone;
+      taskTotal += dayTaskCount;
     }
 
-    return totalDays > 0 ? Math.round((completedDays / totalDays) * 100) : 0;
+    return taskTotal > 0 ? Math.round((doneTotal / taskTotal) * 100) : 0;
   },
 
   _buildCalGrid() {

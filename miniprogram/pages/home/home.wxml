@@ -86,13 +86,10 @@
   </view>
 </view>
 
-<!-- 全部完成庆祝弹层 -->
-<view class="celebration-overlay {{showCelebration ? 'show' : ''}}" wx:if="{{showCelebration}}">
-  <view class="celebration-content">
-    <image class="celebration-image" src="/miniprogram-assets/avatar.png" mode="aspectFit"></image>
-    <text class="celebration-title">太棒了！🎉</text>
-    <text class="celebration-desc">今天的任务全部完成啦！</text>
-    <text class="celebration-stars">⭐ +{{doneCount}}</text>
-    <view class="celebration-btn" bindtap="dismissCelebration">继续加油</view>
-  </view>
+<!-- 全部完成庆祝弹层（全屏覆盖 + 松鼠 + 动态字） -->
+<view class="celebration-overlay {{showCelebration ? 'show' : ''}}" wx:if="{{showCelebration}}" bindtap="dismissCelebration">
+  <view class="celeb-squirrel">🐿️</view>
+  <view class="celeb-text">🌟 太棒了！🌟</view>
+  <view class="celeb-sub">今天的任务全部完成！</view>
+  <view class="celeb-stars">⭐ +{{doneCount}}</view>
 </view>
