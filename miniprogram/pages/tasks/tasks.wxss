@@ -117,15 +117,16 @@
   color: var(--text-secondary);
 }
 
-/* === 表单弹层 === */
+/* === 表单弹层（居中浮窗，对齐 H5 设计稿） === */
 .modal-overlay {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.4);
   z-index: 50;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
+  padding: var(--sp-lg);
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.2s, visibility 0.2s;
@@ -138,19 +139,35 @@
 
 .form-panel {
   background: var(--card-bg);
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  border-radius: var(--radius-lg);
   width: 100%;
+  max-width: 640rpx;
   max-height: 80vh;
   overflow-y: auto;
   padding: var(--sp-xl);
+  box-shadow: var(--shadow-float);
+  box-sizing: border-box;
+}
+
+.form-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--sp-lg);
 }
 
 .form-title {
   font-size: var(--fs-md);
   font-weight: 600;
   text-align: center;
-  margin-bottom: var(--sp-lg);
-  display: block;
+  flex: 1;
+}
+
+.form-close {
+  font-size: 36rpx;
+  color: var(--text-secondary);
+  padding: 0 var(--sp-sm);
+  line-height: 1;
 }
 
 .form-group {

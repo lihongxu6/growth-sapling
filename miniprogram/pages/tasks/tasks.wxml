@@ -37,9 +37,12 @@
   </view>
 
   <!-- 添加/编辑弹层 -->
-  <view class="modal-overlay {{showForm ? 'show' : ''}}" wx:if="{{showForm}}" bindtap="closeForm">
-    <view class="form-panel" catchtap="">
-      <text class="form-title">{{editingId ? '编辑任务' : '添加任务'}}</text>
+  <view class="modal-overlay {{showForm ? 'show' : ''}}" wx:if="{{showForm}}" style="padding-bottom: {{keyboardHeight}}px;">
+    <view class="form-panel">
+      <view class="form-title-row">
+        <text class="form-title">{{editingId ? '编辑任务' : '添加任务'}}</text>
+        <text class="form-close" bindtap="closeForm">✕</text>
+      </view>
 
       <!-- 图标选择 -->
       <view class="form-group">
@@ -66,6 +69,9 @@
           placeholder="例如：每日阅读30分钟"
           maxlength="{{maxNameLen}}"
           bindinput="onNameInput"
+          adjust-position="{{true}}"
+          hold-keyboard="{{true}}"
+          bindkeyboardheightchange="onKeyboardHeightChange"
         />
       </view>
 
@@ -78,6 +84,9 @@
           placeholder="例如：认识更多字"
           maxlength="{{maxPurposeLen}}"
           bindinput="onPurposeInput"
+          adjust-position="{{true}}"
+          hold-keyboard="{{true}}"
+          bindkeyboardheightchange="onKeyboardHeightChange"
         />
       </view>
 

@@ -25,6 +25,7 @@ Page({
     iconSet: ICON_SET,
     maxNameLen: MAX_TASK_NAME,
     maxPurposeLen: MAX_TASK_PURPOSE,
+    keyboardHeight: 0,
   },
 
   onShow() {
@@ -50,6 +51,14 @@ Page({
       editingId: null,
       formData: { icon: '📖', name: '', purpose: '', repeat_type: 'daily' },
     });
+  },
+
+  /**
+   * 监听键盘高度变化，动态调整弹层位置
+   */
+  onKeyboardHeightChange(e) {
+    const { height } = e.detail;
+    this.setData({ keyboardHeight: height });
   },
 
   /** 编辑任务 */
