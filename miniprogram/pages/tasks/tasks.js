@@ -15,6 +15,7 @@ const REPEAT_LABELS = {
 Page({
   data: {
     tasks: [],
+    atLimit: false,
     showForm: false,
     showDelete: false,
     editingId: null,
@@ -31,15 +32,19 @@ Page({
   },
 
   _refresh() {
-    const tasks = Store.state.tasks
-      .filter(t => !t.is_deleted)
+    const activeTasks = Store.state.tasks.filter(t => !t.is_deleted);
+    const tasks = activeTasks
       .map(t => ({ ...t, repeatLabel: REPEAT_LABELS[t.repeat_type] || '每天' }))
       .sort((a, b) => a.sort_order - b.sort_order);
-    this.setData({ tasks });
+    this.setData({ tasks, atLimit: activeTasks.length >= 6 });
   },
 
   /** 添加任务 */
   onAdd() {
+    if (this.data.atLimit) {
+      wx.showToast({ title: '最多添加 6 个任务', icon: 'none' });
+      return;
+    }
     this.setData({
       showForm: true,
       editingId: null,

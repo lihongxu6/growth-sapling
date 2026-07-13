@@ -12,6 +12,8 @@
       class="task-mgmt-card"
       wx:for="{{tasks}}"
       wx:key="id"
+      data-id="{{item.id}}"
+      bindtap="onEdit"
     >
       <view class="mgmt-left">
         <text class="mgmt-icon">{{item.icon}}</text>
@@ -29,9 +31,9 @@
   </view>
 
   <!-- 添加按钮 -->
-  <view class="add-btn" bindtap="onAdd">
+  <view class="add-btn {{atLimit ? 'disabled' : ''}}" bindtap="onAdd">
     <text class="add-icon">➕</text>
-    <text class="add-text">添加新任务</text>
+    <text class="add-text">{{atLimit ? '最多添加 6 个任务' : '添加新任务'}}</text>
   </view>
 
   <!-- 添加/编辑弹层 -->
@@ -132,7 +134,7 @@
   <!-- 空状态 -->
   <view class="empty-state" wx:if="{{tasks.length === 0}}">
     <image class="empty-image" src="/miniprogram-assets/avatar.png" mode="aspectFit"></image>
-    <text class="empty-title">还没有任务</text>
-    <text class="empty-desc">点击下方按钮，添加你想坚持的好习惯吧！</text>
+    <text class="empty-title">还没有任务哦</text>
+    <text class="empty-desc">点击下方按钮，添加你的第一个任务吧！</text>
   </view>
 </view>

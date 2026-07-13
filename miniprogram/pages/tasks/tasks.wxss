@@ -68,6 +68,7 @@
 .mgmt-purpose {
   font-size: var(--fs-xs);
   color: var(--blue);
+  font-style: italic;
 }
 
 .mgmt-repeat {
@@ -100,6 +101,11 @@
   align-items: center;
   justify-content: center;
   gap: var(--sp-sm);
+}
+
+.add-btn.disabled {
+  opacity: 0.4;
+  pointer-events: none;
 }
 
 .add-icon {

@@ -220,6 +220,13 @@ function _persist() {
   saveState({ state });
 }
 
+/**
+ * 设置当前查看日期（用于跨页面切换日期）
+ */
+function setViewDate(iso) {
+  state.viewDate = iso;
+}
+
 module.exports = {
   state,
   initToday,
@@ -235,4 +242,5 @@ module.exports = {
   deleteTask,
   calcStars,
   calcStreak,
+  setViewDate,
 };

@@ -18,7 +18,7 @@
   <!-- 补卡模式提示条 -->
   <view class="backfill-banner" wx:if="{{isBackfill}}">
     <text class="banner-icon">📅</text>
-    <text class="banner-text">补卡模式 · {{viewDateShort}}</text>
+    <text class="banner-text">正在为 {{viewDateShort}} 补卡</text>
     <text class="banner-back" bindtap="goBackToday">回到今天</text>
   </view>
 
