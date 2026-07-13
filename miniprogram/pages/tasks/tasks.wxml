@@ -24,8 +24,8 @@
         </view>
       </view>
       <view class="mgmt-actions">
-        <text class="mgmt-action edit" data-id="{{item.id}}" bindtap="onEdit">✏️</text>
-        <text class="mgmt-action delete" data-id="{{item.id}}" bindtap="onDelete">🗑️</text>
+        <text class="mgmt-action edit" data-id="{{item.id}}" catchtap="onEdit">✏️</text>
+        <text class="mgmt-action delete" data-id="{{item.id}}" catchtap="onDelete">🗑️</text>
       </view>
     </view>
   </view>
@@ -37,14 +37,14 @@
   </view>
 
   <!-- 添加/编辑弹层 -->
-  <view class="modal-overlay {{showForm ? 'show' : ''}}" wx:if="{{showForm}}" style="padding-bottom: {{keyboardHeight}}px;">
+  <view class="modal-overlay {{showForm ? 'show' : ''}}" wx:if="{{showForm}}" catchtouchmove="preventTouchMove" style="padding-bottom: {{keyboardHeight}}px;">
     <view class="form-panel" catchtap="">
       <view class="form-title-row">
         <text class="form-title">{{editingId ? '编辑任务' : '添加任务'}}</text>
         <text class="form-close" bindtap="closeForm">✕</text>
       </view>
 
-      <scroll-view class="form-scroll" scroll-y="true" scroll-top="{{scrollTop}}" enhanced="true" show-scrollbar="false">
+      <view class="form-scroll">
       <!-- 图标选择 -->
       <view class="form-group">
         <text class="form-label">图标</text>
@@ -146,12 +146,12 @@
           {{editingId ? '保存' : '添加'}}
         </view>
       </view>
-    </scroll-view>
+    </view>
   </view>
   </view>
 
   <!-- 删除确认弹窗 -->
-  <view class="modal-overlay {{showDelete ? 'show' : ''}}" wx:if="{{showDelete}}" bindtap="cancelDelete">
+  <view class="modal-overlay {{showDelete ? 'show' : ''}}" wx:if="{{showDelete}}" catchtouchmove="preventTouchMove" bindtap="cancelDelete">
     <view class="confirm-panel" catchtap="">
       <text class="confirm-title">确认删除</text>
       <text class="confirm-msg">删除「{{deleteTargetName}}」后，相关的打卡记录也会被隐藏哦。</text>

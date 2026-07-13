@@ -38,8 +38,6 @@ Page({
     maxNameLen: MAX_TASK_NAME,
     maxPurposeLen: MAX_TASK_PURPOSE,
     keyboardHeight: 0,
-    scrollTop: 0,
-    scrollVersion: 0,        // 每次打开递增，强制 scroll-view 重置位置
   },
 
   onShow() {
@@ -61,11 +59,7 @@ Page({
       return;
     }
     this._resetForm();
-    this.setData({
-      showForm: true,
-      scrollTop: 0,
-      scrollVersion: this.data.scrollVersion + 1,
-    });
+    this.setData({ showForm: true });
   },
 
   /**
@@ -98,8 +92,6 @@ Page({
         repeat_days: task.repeat_days || [],
       },
       weekDays,
-      scrollTop: 0,
-      scrollVersion: this.data.scrollVersion + 1,
     });
   },
 
@@ -133,13 +125,14 @@ Page({
     this._refresh();
   },
 
+  /**
+   * 阻止蒙层 touchmove 穿透（弹窗打开时禁止背景滚动）
+   */
+  preventTouchMove() {},
+
   /** 关闭表单 */
   closeForm() {
-    // 关闭前先重置滚动位置
-    this.setData({ showForm: false, scrollTop: 1 });
-    setTimeout(() => {
-      this.setData({ scrollTop: 0 });
-    }, 50);
+    this.setData({ showForm: false });
   },
 
   /** 图标选择 */

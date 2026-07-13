@@ -117,7 +117,7 @@
   color: var(--text-secondary);
 }
 
-/* === 表单弹层（居中浮窗，对齐 H5 设计稿） === */
+/* === 表单弹层（居中浮窗，标题固定 + 内容滚动） === */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -142,27 +142,45 @@
   border-radius: var(--radius-lg);
   width: 100%;
   max-width: 640rpx;
-  max-height: 80vh;
+  max-height: 80vh;          /* 限制最大高度 */
   display: flex;
-  flex-direction: column;
+  flex-direction: column;   /* 标题 + 内容垂直布局 */
   box-shadow: var(--shadow-float);
   box-sizing: border-box;
-  overflow: hidden;        /* 防止 form-title-row 跑出 */
-}
-
-.form-scroll {
-  flex: 1;
-  min-height: 0;           /* 与 flex:1 配合，确保内容超出时可滚动 */
-  padding: var(--sp-xl);
-  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .form-title-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--sp-xl) var(--sp-xl) 0;   /* 顶部 padding，左右 padding */
-  flex-shrink: 0;                          /* 防止被压缩 */
+  padding: var(--sp-xl);
+  padding-bottom: var(--sp-md);
+  flex-shrink: 0;            /* 标题不参与压缩 */
+  border-bottom: 1rpx solid var(--border);
+}
+
+.form-title {
+  font-size: var(--fs-md);
+  font-weight: 600;
+  text-align: center;
+  flex: 1;
+}
+
+.form-close {
+  font-size: 36rpx;
+  color: var(--text-secondary);
+  padding: 0 var(--sp-sm);
+  line-height: 1;
+}
+
+.form-scroll {
+  flex: 1;
+  min-height: 0;             /* 允许内部滚动 */
+  overflow-y: auto;
+  padding: var(--sp-md) var(--sp-xl) var(--sp-xl);
+  box-sizing: border-box;
+  -webkit-overflow-scrolling: touch;
 }
 
 .form-title {
