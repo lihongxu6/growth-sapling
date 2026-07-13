@@ -9,7 +9,7 @@
 
 const { today, isoOf, dateOfIso, isToday, daysInMonth, firstDayOfMonth } = require('../utils/date');
 const { saveState } = require('../utils/storage');
-const { DEFAULT_TASKS } = require('../utils/constants');
+const { DEFAULT_TASKS, BADGE_DEFS } = require('../utils/constants');
 
 const state = {
   /** 任务列表 */
@@ -130,6 +130,7 @@ function toggleTask(taskId) {
   }
 
   state.checkinsByDate[state.viewDate] = ci;
+  recalcBadges();
   _persist();
 }
 
@@ -214,6 +215,27 @@ function calcStreak() {
 }
 
 /**
+ * 重新计算徽章获得状态
+ * 每次打卡/撤销后调用，自动检测是否获得新徽章
+ */
+function recalcBadges() {
+  const stars = calcStars();
+  const streak = calcStreak();
+
+  BADGE_DEFS.forEach(def => {
+    const val = def.unit === 'stars' ? stars : streak;
+    const earned = val >= def.threshold;
+    const already = state.badges.some(b => b.type === def.type);
+
+    if (earned && !already) {
+      state.badges.push({ type: def.type, acquired_at: new Date().toISOString() });
+    }
+  });
+
+  _persist();
+}
+
+/**
  * 持久化
  */
 function _persist() {
@@ -242,5 +264,6 @@ module.exports = {
   deleteTask,
   calcStars,
   calcStreak,
+  recalcBadges,
   setViewDate,
 };

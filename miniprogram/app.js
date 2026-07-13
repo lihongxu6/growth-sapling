@@ -24,7 +24,10 @@ App({
     // 2. 初始化今日数据（如果今天还没初始化）
     Store.initToday();
 
-    // 3. 获取系统信息（安全区等）
+    // 3. 重新计算徽章（每次启动都检查一次，确保持久化数据加载后徽章状态正确）
+    Store.recalcBadges();
+
+    // 4. 获取系统信息（安全区等）
     const sysInfo = wx.getSystemInfoSync();
     this.globalData.systemInfo = sysInfo;
     this.globalData.statusBarHeight = sysInfo.statusBarHeight;
