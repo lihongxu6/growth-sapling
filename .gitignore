@@ -1,6 +1,5 @@
 # ===== GitHub Pages 站点入口 =====
-# index.html 由 prototype-成长小树苗.html 复制生成，作为线上 Demo 入口
-# 改完原型后请同步：cp prototype-成长小树苗.html index.html
+# index.html 是 H5 线上 Demo 入口
 
 # ===== AI 工作目录 =====
 .codebuddy/
@@ -9,9 +8,10 @@
 .DS_Store
 *.swp
 
-# Private credentials (NEVER commit)
+# ===== Private credentials (NEVER commit) =====
 .private/
 
-# 临时文件
+# ===== 临时文件 =====
 .preview-qr.png
 *.log
+.tmp

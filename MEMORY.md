@@ -18,7 +18,7 @@
 - **项目名**：成长小树苗
 - **产品**：面向小学二年级（7-8 岁）小朋友的习惯养成打卡微信小程序
 - **核心理念**：**帮助孩子自我管理**，而非家长监督工具
-- **IP 形象**：小松鼠"果果"（**RGBA 透明背景版**（2026-07-12）：`miniprogram-assets/avatar.png` 1024×1024 + `avatar-144.png` 144×144 + `avatar-144-rgb.png` 144×144 RGB 用于微信上传）。**rembg alpha_matting 处理**，无灰边/雾残留，适配任意底色（开屏/加载/空状态/庆祝场景）
+- **IP 形象**：小松鼠"果果"（**生成状态**：2026-07-13 已用 ImageGen + rembg 生成多版透明背景图，但**实际渲染均不可用**——`avatar-transparent.png` 是空透明 PNG（仅剩稀疏橙线），线稿不适合 rembg 处理。二期需要重新设计生成方案：用"高对比度+厚重色块"风格重新生成，或委托插画师手绘。**当前所有视觉/庆祝场景继续用 🐿️ emoji 占位**）
 - **GitHub**：`lihongxu6/growth-sapling`（公开）
 - **线上 Demo**：https://lihongxu6.github.io/growth-sapling/
 - **Git author**：`lihongxu6 <lihongxu6@users.noreply.github.com>`
@@ -135,6 +135,8 @@ PRD ✅ → 设计评审 ✅ → 原型(已冻结) ✅ → UI设计稿(Route A) 
 | 28 | 2026-07-13 | 用户反馈"我得了 12 颗星但新芽初绽还没获得" | H5 设计稿的 `recalcBadges()` 函数在打卡后检查 stars/streak 是否达标并写入 `state.badges`，但**小程序 Store 完全没有这个函数**，导致 `state.badges` 永远是空数组。状态页的"已获得"判断读不到任何记录 | **移植 H5 → 小程序时，UI/视觉/交互容易看到，核心数据流（recalc/save/load）容易漏**。每个 Store 函数都必须显式列出并写注释来源（"移植自 index.html §X"）。本次在 `toggleTask` 末尾 + `app.js onLaunch` 都加了 `recalcBadges()` 调用 | — |
 | 29 | 2026-07-13 | 用户反馈"周一到周日的这个选择设计太丑了"，7 个圆形小球 + "周"+"一"换行 + 纯绿大色块 | 没有先查"周选择器"的设计规范就自作主张画了一组小圆球。设计原则：① 7 个选项用 Segmented Control 扩展形态（等宽等高）；② 选中态用绿底白字，未选中白底细边；③ 避免密集小圆球（视觉太碎） | **任何 UI 组件都要先查设计规范**（设计原则/竞品/平台规范），再出 3 套方案让用户选，最后实现。已在 #25/#26/#28 基础上形成完整 UI 流程：查规范 → 出 3 套提案 → 用户选 → 实现 → 编译验证 | — |
 | 30 | 2026-07-13 | 弹窗标题被遮挡 + 删除任务拉起添加弹窗 | ① form-panel 内嵌 scroll-view，flex 布局下 scroll-view 撑大后 form-title-row 被挤出可视区；② task-mgmt-card 上 `bindtap="onEdit"`，子按钮删除事件冒泡触发 onEdit | **小程序弹窗稳定方案**：form-panel(view, max-height+overflow:hidden) + form-title-row(view, flex-shrink:0 固定) + form-scroll(view, flex:1 + overflow-y:auto)。**view 销毁重建时滚动位置自动归零**——无需 scrollTop 编程式重置。**子按钮必须用 catchtap 阻止冒泡**到父级卡片 | — |
+| 31 | 2026-07-13 | `avatar-transparent.png` 是空透明 PNG（仅橙线无填充），不可用 | rembg `alpha_matting=True, alpha_matting_foreground_threshold=240` 把所有浅色/线稿像素都识别为"背景"剔除，**前景区只剩稀疏深色像素** | **rembg 处理浅色/线稿图会过剔除**：① `alpha_matting_foreground_threshold` 调低（180-220）会保留更多；② 浅色线稿不适合直接 rembg，需先用 ImageGen 生成"高对比度+厚重色块"版本；③ 验收必须**目视检查渲染图**，不能只看 PIL `mode == 'RGBA'` 字段——`alpha=0` 不代表内容完整 | — |
+| 32 | 2026-07-13 | 仓库 1.9MB 过程文件堆积（视频/帧/原图/旧版本 Skill） | 早期未对仓库做定期清理，调试/分析用的中间产物一直累积 | **每完成一个大阶段，必须清理过程文件**。清理清单：① 视频/帧分析完后立即删；② 原图被定稿替代时删；③ 旧版本 Skill/MEMORY 被新版本替代时删；④ .gitignore 注释需同步更新引用过的文件名 | — |
 
 ---
 
@@ -201,5 +203,7 @@ PRD ✅ → 设计评审 ✅ → 原型(已冻结) ✅ → UI设计稿(Route A) 
 3. ✅ 项目专属 Skill：asset-generation v1.0（图标/头像生成经验沉淀）
 4. ✅ 小程序 MVP 完成（3 页面基本功能 + CI 编译链 + 30 条踩坑沉淀）
 5. ✅ MVP 复盘文档交付（`mvp-review-成长小树苗.md`）
-6. 🔜 用户确认复盘内容后 → 启动二期 P0：审核材料 + 松鼠 IP 集成 + 庆祝动画增强
-7. 🔜 统计页和任务页的视频分析修复（用户已录制，待发送）
+6. ✅ 仓库清理（删除 1.9MB 过程文件：视频/帧/原图/旧版本 Skill/空组件目录）
+7. ✅ Git 速查卡交付（`git-cheatsheet-成长小树苗.md`），用户本地 clone 准备就绪
+8. 🔜 用户在本地 `git clone` 完成后 → 跨会话协作模式建立
+9. 🔜 启动二期 P0：审核材料 + 松鼠 IP 重新设计 + 庆祝动画增强
