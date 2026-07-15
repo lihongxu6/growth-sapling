@@ -24,8 +24,14 @@
     </view>
   </view>
 
-  <!-- 补卡模式提示条 -->
-  <view class="backfill-banner" wx:if="{{isBackfill}}">
+  <!-- 未来日期提示条 -->
+  <view class="backfill-banner" wx:if="{{isFuture}}">
+    <text class="banner-icon">⏰</text>
+    <text class="banner-text">不要着急，到这天了才可以打卡哦</text>
+    <text class="banner-back" bindtap="goBackToday">回到今天</text>
+  </view>
+  <!-- 补卡模式提示条（历史日期） -->
+  <view class="backfill-banner" wx:elif="{{isBackfill}}">
     <text class="banner-icon">📅</text>
     <text class="banner-text">正在为 {{viewDateShort}} 补卡</text>
     <text class="banner-back" bindtap="goBackToday">回到今天</text>

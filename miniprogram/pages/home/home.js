@@ -50,7 +50,7 @@ Page({
       ? Math.round((doneCount / activeTasks.length) * 100)
       : 0;
 
-    const isBackfill = !isToday(viewDate);
+    const isBackfill = !isToday(viewDate) && viewDate < today();
     const isFuture = viewDate > today();
     const streak = Store.calcStreak();
     const stars = Store.calcStars();
@@ -81,7 +81,7 @@ Page({
 
     // 未来日期不可打卡
     if (!isToday(this.data.viewDate) && this.data.viewDate > today()) {
-      wx.showToast({ title: '未来日期不可打卡', icon: 'none' });
+      wx.showToast({ title: '不要着急，到这天了才可以打卡哦', icon: 'none' });
       return;
     }
 
