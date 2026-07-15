@@ -7,24 +7,6 @@
   padding-bottom: var(--safe-bottom);
 }
 
-/* === 页头 === */
-.page-header {
-  padding: var(--sp-lg);
-}
-
-.page-title {
-  font-size: var(--fs-xl);
-  font-weight: 700;
-  display: block;
-}
-
-.page-subtitle {
-  font-size: var(--fs-sm);
-  color: var(--text-secondary);
-  margin-top: var(--sp-xs);
-  display: block;
-}
-
 /* === 任务管理列表 === */
 .task-mgmt-list {
   padding: 0 var(--sp-lg);

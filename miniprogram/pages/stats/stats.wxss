@@ -7,15 +7,6 @@
   padding-bottom: var(--safe-bottom);
 }
 
-/* === 页面标题 === */
-.stats-header {
-  text-align: center;
-  font-size: var(--fs-xl);
-  font-weight: 700;
-  padding: var(--sp-lg) 0;
-  color: var(--text);
-}
-
 /* === 连续天数 === */
 .streak-section {
   display: flex;

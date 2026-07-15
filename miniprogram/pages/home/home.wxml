@@ -1,5 +1,14 @@
 <!-- 打卡页 -->
 <view class="page">
+  <!-- 页面标题 -->
+  <view class="page-header">
+    <image class="page-header-icon" src="/assets/headers/icon-checkin.png" mode="aspectFit" />
+    <view class="page-header-text">
+      <text class="page-header-title">今日打卡</text>
+      <text class="page-header-subtitle">今天也要加油哦</text>
+    </view>
+  </view>
+
   <!-- 顶部信息栏：连续天数 + 星星 + 日期（吸顶） -->
   <view class="home-header">
     <view class="header-left">

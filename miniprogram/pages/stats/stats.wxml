@@ -2,8 +2,12 @@
 <view class="page">
 
   <!-- 页面标题 -->
-  <view class="stats-header">
-    <text>📊 我的成长</text>
+  <view class="page-header">
+    <image class="page-header-icon" src="/assets/headers/icon-growth.png" mode="aspectFit" />
+    <view class="page-header-text">
+      <text class="page-header-title">我的成长</text>
+      <text class="page-header-subtitle">小树苗在长大</text>
+    </view>
   </view>
 
   <!-- 连续天数展示 -->
