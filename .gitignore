@@ -15,3 +15,7 @@
 .preview-qr.png
 *.log
 .tmp
+
+# ===== 本地构建依赖（npm install 产物，体积大，不提交）=====
+node_modules/
+package-lock.json

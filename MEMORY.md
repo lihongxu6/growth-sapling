@@ -222,4 +222,4 @@ PRD ✅ → 设计评审 ✅ → 原型(已冻结) ✅ → UI设计稿(Route A) 
 12. ✅ 三页标题统一样式：左对齐 + 手绘图标 + 副标题（"今天也要加油哦"/"小树苗在长大"/"我想养成这些好习惯"）
 13. ✅ TabBar 图标改为手绘水彩风格（与页面标题图标一致）
 14. 🔜 用户扫码体验并反馈问题
-15. 🔜 上线流程启动（2026-07-16）：① 文案修复确认 commit + push；② `node scripts/build.js compile` 编译验证；③ `node scripts/build.js upload` 上传（需 private.key + 关闭 IP 白名单）；④ 微信公众平台提交审核（个人号·工具类目）；⑤ 审核通过发布；⑥ 上线后数据观察
+15. 🔜 上线流程（2026-07-16）：① 文案修复本地完成（3处）待 commit+push（GitHub token 当前只读，push 需用户在 CodeBuddy 开启写权限）；② compile 待跑（miniprogram-ci 已装）；③ preview 二维码已生成✅（167KB，IP 白名单已关）；④ upload 上传 + 微信公众平台提交审核（个人号·工具类目）；⑤ 审核通过发布；⑥ 上线后数据观察
