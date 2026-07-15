@@ -97,6 +97,11 @@ PRD ✅ → 设计评审 ✅ → 原型(已冻结) ✅ → UI设计稿(Route A) 
 - **QC6 交付前检查清单**：每次交付给用户验证前，AI 必须跑完编译检查 + 交互逻辑清单回归，并在回复中报告结果。
 - **QC7 微信官方文档优先**：涉及小程序 API/组件/限制的判断，必须基于官方文档，不凭训练记忆。
 
+### 3.6 文案决策（2026-07-16 确认）
+- **未来日期 banner 文案**：选未来日期时，打卡页顶部 banner 显示「⏰ 不要着急，到这天了才可以打卡哦」（⏰ 图标）；历史补卡保持「📅 正在为 X月X日 补卡」。点击未来日期任务卡片的 toast 文案同步一致。
+- 根因：`isBackfill` 原逻辑 `!isToday(viewDate)` 把未来日期也判为补卡模式，导致 banner 误显示。
+- 修改文件：`miniprogram/pages/home/home.js`（isBackfill 逻辑 + toast 文案）、`miniprogram/pages/home/home.wxml`（banner 加 `wx:if="{{isFuture}}"` + `wx:elif="{{isBackfill}}"` 分支）。
+
 ---
 
 ## 4. 踩过的坑（规则变更日志）
@@ -141,6 +146,7 @@ PRD ✅ → 设计评审 ✅ → 原型(已冻结) ✅ → UI设计稿(Route A) 
 | 34 | 2026-07-15 | 客户端缓存导致"修了但没修好"——白底图标/导航栏标题都出现 | miniprogram-ci 推送后微信客户端会缓存旧资源；用户扫码看到的是旧版本 | **图片/全局配置改动必须告知用户清缓存**：① 重新扫码不一定清缓存（同一二维码 URL）；② 微信开发者工具需要「清缓存→全部清除」；③ 真机体验需要「删除小程序→重新扫码」；④ 长期方案：用 `wx.getUpdateManager()` 强制更新检查 | — |
 | 35 | 2026-07-15 | ImageGen 原图的"透明底"其实是浅灰/米色（**踩坑**） | `alpha_composite(white_bg, img)` 只能让 alpha=0 的真透明区域变白；对已经画了浅色像素的区域无效 | **校验图标"真白底"的方法**：用 PIL 读取后查四角像素 RGB，必须都是 (255,255,255)。如果有 (210,210,210) 这种就是浅灰不是白。**用 numpy 把"亮灰近白"像素 (RGB>215 且差<15) 直接刷成 255,255,255**——比 alpha_composite 更可靠 | — |
 | 36 | 2026-07-15 | **违反纪律**：错误诊断+擅自提交创意产物（**严重违规**） | 用户反馈打卡/任务页图标"没有白底"，我误判为"手绘图标不渲染"，直接换成纯色块风格并 commit + push——这是**视觉产物变更=业务决策**，必须先出方案给用户选 | **诊断错误时的硬性纪律**：① 不准凭"想当然"擅自改变视觉风格；② 不准在没有用户确认的情况下 commit + push 创意产物；③ 哪怕看起来"更好"，也要先 3 提案让用户选；④ 验收必须用用户截图而非自己判断；⑤ git reset --hard + git push --force 回退时不许用 `--force-with-lease` 之外的方式，必须先告知用户 | — |
+| 37 | 2026-07-16 | 新会话 GitHub 连接器：/user 与 /user/repos 返回 Bad credentials，gh CLI 未登录 | ① 界面 GitHub MCP toggle 显示已开启但无独立 MCP 工具；② get_token.sh 拿到的 token 仅 search API 可用，user/repos 报 401；③ 仓库实际在 GitHub 而非 CNB/工蜂 | 找仓库用 `GET /search/repositories?q=仓库名`；clone 用 `git clone https://oauth2:${GITHUB_TOKEN}@github.com/owner/repo.git`；本仓库 = lihongxu6/growth-sapling | — |
 
 ---
 
@@ -216,3 +222,4 @@ PRD ✅ → 设计评审 ✅ → 原型(已冻结) ✅ → UI设计稿(Route A) 
 12. ✅ 三页标题统一样式：左对齐 + 手绘图标 + 副标题（"今天也要加油哦"/"小树苗在长大"/"我想养成这些好习惯"）
 13. ✅ TabBar 图标改为手绘水彩风格（与页面标题图标一致）
 14. 🔜 用户扫码体验并反馈问题
+15. 🔜 上线流程启动（2026-07-16）：① 文案修复确认 commit + push；② `node scripts/build.js compile` 编译验证；③ `node scripts/build.js upload` 上传（需 private.key + 关闭 IP 白名单）；④ 微信公众平台提交审核（个人号·工具类目）；⑤ 审核通过发布；⑥ 上线后数据观察
