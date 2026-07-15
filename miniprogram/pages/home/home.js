@@ -51,6 +51,7 @@ Page({
       : 0;
 
     const isBackfill = !isToday(viewDate);
+    const isFuture = viewDate > today();
     const streak = Store.calcStreak();
     const stars = Store.calcStars();
 
@@ -64,6 +65,7 @@ Page({
       streak,
       stars,
       isBackfill,
+      isFuture,
       calYear: Store.state.calYear,
       calMonth: Store.state.calMonth,
     });
@@ -76,6 +78,12 @@ Page({
     const taskId = e.currentTarget.dataset.id;
     const task = this.data.activeTasks.find(t => t.id === taskId);
     if (!task) return;
+
+    // 未来日期不可打卡
+    if (!isToday(this.data.viewDate) && this.data.viewDate > today()) {
+      wx.showToast({ title: '未来日期不可打卡', icon: 'none' });
+      return;
+    }
 
     if (task.done) {
       // 撤销打卡 → 二次确认

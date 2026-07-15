@@ -129,6 +129,11 @@
   border-color: var(--yellow);
 }
 
+.task-card.future {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
 .task-icon {
   font-size: var(--fs-xl);
 }

@@ -34,11 +34,11 @@
   <!-- 任务卡片列表 -->
   <view class="task-list" wx:if="{{activeTasks.length > 0}}">
     <view
-      class="task-card {{item.done ? 'done' : ''}} {{item.isBackfill ? 'backfill' : ''}}"
+      class="task-card {{isFuture ? 'future' : ''}} {{item.done ? 'done' : ''}} {{item.isBackfill ? 'backfill' : ''}}"
       wx:for="{{activeTasks}}"
       wx:key="id"
       data-id="{{item.id}}"
-      bindtap="onTaskTap"
+      bindtap="{{isFuture ? '' : 'onTaskTap'}}"
     >
       <view class="task-icon">{{item.icon}}</view>
       <view class="task-info">
