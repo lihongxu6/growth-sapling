@@ -148,6 +148,7 @@ PRD ✅ → 设计评审 ✅ → 原型(已冻结) ✅ → UI设计稿(Route A) 
 | 36 | 2026-07-15 | **违反纪律**：错误诊断+擅自提交创意产物（**严重违规**） | 用户反馈打卡/任务页图标"没有白底"，我误判为"手绘图标不渲染"，直接换成纯色块风格并 commit + push——这是**视觉产物变更=业务决策**，必须先出方案给用户选 | **诊断错误时的硬性纪律**：① 不准凭"想当然"擅自改变视觉风格；② 不准在没有用户确认的情况下 commit + push 创意产物；③ 哪怕看起来"更好"，也要先 3 提案让用户选；④ 验收必须用用户截图而非自己判断；⑤ git reset --hard + git push --force 回退时不许用 `--force-with-lease` 之外的方式，必须先告知用户 | — |
 | 37 | 2026-07-16 | 新会话 GitHub 连接器：/user 与 /user/repos 返回 Bad credentials，gh CLI 未登录 | ① 界面 GitHub MCP toggle 显示已开启但无独立 MCP 工具；② get_token.sh 拿到的 token 仅 search API 可用，user/repos 报 401；③ 仓库实际在 GitHub 而非 CNB/工蜂 | 找仓库用 `GET /search/repositories?q=仓库名`；clone 用 `git clone https://oauth2:${GITHUB_TOKEN}@github.com/owner/repo.git`；本仓库 = lihongxu6/growth-sapling | — |
 | 38 | 2026-07-16 | 用户担心后台开发版本显示「c1机器人1」影响审核 | 该名称来自 miniprogram-ci upload 的 robot 参数（默认 robot=1 → c1机器人1），非微信硬定且不可去"机器人"字样 | ① 不影响审核，仅开发者后台可见，用户端不显示；② 可改 robot 编号(1-30)但格式"cN机器人N"去不掉"机器人"；③ 审核只看内容/类目/隐私协议，与上传者名称无关 | — |
+| 39 | 2026-07-16 | GitHub MCP 连接器 push 始终 403，重新绑定后仍失败 | 连接器 token 为 GitHub App 模式，`x-oauth-scopes` 为空且 `allows_permissionless_access=true`，天生只有公开资源只读权限；用户账号本身有 owner admin 写权限，但连接器 App 无法被授予 repo 写权限，绑定流程也无写权限选择环节 | ① 此连接器只能读（clone/search 可用），无法 push；② push 需用户提供带 `repo` scope 的 Personal Access Token 或本地 git；③ 重新绑定不能解决；④ 微信开发版 upload 不受影响，上线不阻塞 | — |
 
 ---
 
