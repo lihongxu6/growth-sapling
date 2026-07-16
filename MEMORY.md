@@ -225,3 +225,4 @@ PRD ✅ → 设计评审 ✅ → 原型(已冻结) ✅ → UI设计稿(Route A) 
 13. ✅ TabBar 图标改为手绘水彩风格（与页面标题图标一致）
 14. 🔜 用户扫码体验并反馈问题
 15. 🔜 上线流程（2026-07-16）：① 文案修复本地完成（3处）已 commit `8663ffd`（GitHub token 当前只读，push 需用户在 CodeBuddy 开启写权限）；② compile 待跑（miniprogram-ci 已装）；③ preview 二维码已生成✅（167KB）；④ ✅ **upload 开发版成功**（v1.0.0，包 137KB）；⑤ ⏭️ 用户操作：微信公众平台→版本管理→提交审核（个人号·工具类目）；⑥ 审核通过后发布；⑦ 上线后数据观察
+16. 📋 已生成 `SESSION-ENV-SETUP.md`（含 appid/secret/私钥 + 一键复现脚本，已 gitignore），新会话发此文件即可一键搭建 git/微信小程序环境；详见该文件 §1-§5。另：GitHub push 已用 classic PAT 成功（见 #39），PAT 用后已提醒用户撤销

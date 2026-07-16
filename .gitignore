@@ -19,3 +19,6 @@
 # ===== 本地构建依赖（npm install 产物，体积大，不提交）=====
 node_modules/
 package-lock.json
+
+# ===== 会话环境搭建指南（含私钥/AppSecret，禁止提交）=====
+SESSION-ENV-SETUP.md
