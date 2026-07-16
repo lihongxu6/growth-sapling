@@ -148,7 +148,7 @@ PRD ✅ → 设计评审 ✅ → 原型(已冻结) ✅ → UI设计稿(Route A) 
 | 36 | 2026-07-15 | **违反纪律**：错误诊断+擅自提交创意产物（**严重违规**） | 用户反馈打卡/任务页图标"没有白底"，我误判为"手绘图标不渲染"，直接换成纯色块风格并 commit + push——这是**视觉产物变更=业务决策**，必须先出方案给用户选 | **诊断错误时的硬性纪律**：① 不准凭"想当然"擅自改变视觉风格；② 不准在没有用户确认的情况下 commit + push 创意产物；③ 哪怕看起来"更好"，也要先 3 提案让用户选；④ 验收必须用用户截图而非自己判断；⑤ git reset --hard + git push --force 回退时不许用 `--force-with-lease` 之外的方式，必须先告知用户 | — |
 | 37 | 2026-07-16 | 新会话 GitHub 连接器：/user 与 /user/repos 返回 Bad credentials，gh CLI 未登录 | ① 界面 GitHub MCP toggle 显示已开启但无独立 MCP 工具；② get_token.sh 拿到的 token 仅 search API 可用，user/repos 报 401；③ 仓库实际在 GitHub 而非 CNB/工蜂 | 找仓库用 `GET /search/repositories?q=仓库名`；clone 用 `git clone https://oauth2:${GITHUB_TOKEN}@github.com/owner/repo.git`；本仓库 = lihongxu6/growth-sapling | — |
 | 38 | 2026-07-16 | 用户担心后台开发版本显示「c1机器人1」影响审核 | 该名称来自 miniprogram-ci upload 的 robot 参数（默认 robot=1 → c1机器人1），非微信硬定且不可去"机器人"字样 | ① 不影响审核，仅开发者后台可见，用户端不显示；② 可改 robot 编号(1-30)但格式"cN机器人N"去不掉"机器人"；③ 审核只看内容/类目/隐私协议，与上传者名称无关 | — |
-| 39 | 2026-07-16 | GitHub MCP 连接器 push 始终 403，重新绑定后仍失败 | 连接器 token 为 GitHub App 模式，`x-oauth-scopes` 为空且 `allows_permissionless_access=true`，天生只有公开资源只读权限；用户账号本身有 owner admin 写权限，但连接器 App 无法被授予 repo 写权限，绑定流程也无写权限选择环节 | ① 此连接器只能读（clone/search 可用），无法 push；② push 需用户提供带 `repo` scope 的 Personal Access Token 或本地 git；③ 重新绑定不能解决；④ 微信开发版 upload 不受影响，上线不阻塞 | — |
+| 39 | 2026-07-16 | GitHub MCP 连接器 push 始终 403，重新绑定后仍失败 | 连接器 token 为 GitHub App 模式，`x-oauth-scopes` 为空且 `allows_permissionless_access=true`，天生只有公开资源只读权限；用户账号本身有 owner admin 写权限，但连接器 App 无法被授予 repo 写权限，绑定流程也无写权限选择环节 | ① 此连接器只能读（clone/search 可用），无法 push；② push 需用户提供带 `repo` scope 的 Personal Access Token 或本地 git；③ 重新绑定不能解决；④ 微信开发版 upload 不受影响，上线不阻塞。**⑤ 用户已提供一枚 90 天有效 classic PAT，决策：直接持久化复用，不再走申请流程**。PAT 存于 `.private/pat.txt`（gitignore），值另记在 `SESSION-ENV-SETUP.md` §0/§2/§4，新会话发该文件即可一键重建，无需重新申请 | — |
 
 ---
 
@@ -225,4 +225,4 @@ PRD ✅ → 设计评审 ✅ → 原型(已冻结) ✅ → UI设计稿(Route A) 
 13. ✅ TabBar 图标改为手绘水彩风格（与页面标题图标一致）
 14. 🔜 用户扫码体验并反馈问题
 15. 🔜 上线流程（2026-07-16）：① 文案修复本地完成（3处）已 commit `8663ffd`（GitHub token 当前只读，push 需用户在 CodeBuddy 开启写权限）；② compile 待跑（miniprogram-ci 已装）；③ preview 二维码已生成✅（167KB）；④ ✅ **upload 开发版成功**（v1.0.0，包 137KB）；⑤ ⏭️ 用户操作：微信公众平台→版本管理→提交审核（个人号·工具类目）；⑥ 审核通过后发布；⑦ 上线后数据观察
-16. 📋 已生成 `SESSION-ENV-SETUP.md`（含 appid/secret/私钥 + 一键复现脚本，已 gitignore），新会话发此文件即可一键搭建 git/微信小程序环境；详见该文件 §1-§5。另：GitHub push 已用 classic PAT 成功（见 #39），PAT 用后已提醒用户撤销
+16. 📋 已生成 `SESSION-ENV-SETUP.md`（含 appid/secret/私钥/PAT + 一键复现脚本，已全部 gitignore），新会话发此文件即可一键搭建 git/微信小程序环境；详见该文件 §1-§5。另：GitHub push 用 classic PAT 成功（见 #39），**PAT 已持久化到 `.private/pat.txt` 并内嵌于指南，决策为长期复用（90 天到期再覆盖），不再"用后撤销"**
