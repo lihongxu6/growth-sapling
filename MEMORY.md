@@ -103,6 +103,11 @@ PRD ✅ → 设计评审 ✅ → 原型(已冻结) ✅ → UI设计稿(Route A) 
 - 根因：`isBackfill` 原逻辑 `!isToday(viewDate)` 把未来日期也判为补卡模式，导致 banner 误显示。
 - 修改文件：`miniprogram/pages/home/home.js`（isBackfill 逻辑 + toast 文案）、`miniprogram/pages/home/home.wxml`（banner 加 `wx:if="{{isFuture}}"` + `wx:elif="{{isBackfill}}"` 分支）。
 
+### 3.7 文档维护策略（2026-07-16 确认）
+- **PRD 用单一「living document」维护，不按版本拆多文件**。MVP PRD `prd-成长小树苗-mvp.md` 重命名为规范文件 `prd-成长小树苗.md`（去版本后缀）；版本以「顶部版本记录表 + 正文版本分区章节」区分。
+- **design-spec / tech-spec 维持独立文件**（既有约定），v2 账户体系技术方案另写，不塞进 PRD。
+- 历史不一致：PRD 原写「技术方案=微信云开发」，但 v1.0 实际落地为本地存储(`wx.setStorageSync`)无账户；叙事对齐为 v1.0=本地无账户(已上线)、v2.0=落地云开发+账户体系（补齐最初规划）。
+
 ---
 
 ## 4. 踩过的坑（规则变更日志）
