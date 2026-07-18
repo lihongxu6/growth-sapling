@@ -37,7 +37,7 @@
     background: #FFF8F0;
     display: flex; align-items: center; justify-content: center;
     font-size: 17px; font-weight: 600; color: #333;
-    border-bottom: 1px solid #F0EAE2;
+    /* 导航栏无底部横线，保持干净 */
   }
   .statusbar {
     height: 54px;
@@ -67,7 +67,7 @@
 
   /* ===== 新增：用户信息区（顶部，v2.0） ===== */
   .user-card {
-    margin: 4px 12px 0;
+    margin: 0 12px 0;
     display: flex; align-items: center; gap: 12px;
     background: #FFFFFF; border-radius: 16px;
     box-shadow: 0 2px 6px rgba(0,0,0,0.05);
@@ -166,7 +166,7 @@
 
   /* ===== 底部 TabBar（v2.0 顺序待二次确认） ===== */
   .tabbar {
-    position: absolute; left: 0; right: 0; bottom: 0;
+    position: relative;
     height: 64px; padding-bottom: 18px;
     background: #FFFFFF; border-top: 1px solid #F0EAE2;
     display: flex; align-items: center;
