@@ -123,6 +123,12 @@ body{
 .streak-label{font-size:var(--fs-card-title); font-weight:600; margin-top:6px;}
 .streak-best{font-size:var(--fs-caption); color:var(--text-secondary); margin-top:4px;}
 .card{background:var(--card-bg); border-radius:var(--radius-md); padding:var(--sp-4); box-shadow:var(--shadow-card); margin-top:var(--sp-4);}
+.user-card{display:flex; align-items:center; gap:12px; background:var(--card-bg); border-radius:var(--radius-md); padding:var(--sp-4); box-shadow:var(--shadow-card); margin-top:var(--sp-3); cursor:pointer;}
+.user-avatar{width:52px; height:52px; border-radius:50%; background:var(--green-light); display:flex; align-items:center; justify-content:center; font-size:28px; flex-shrink:0;}
+.user-meta{flex:1; min-width:0;}
+.user-name{font-size:17px; font-weight:700; color:var(--text);}
+.user-hint{font-size:12px; color:var(--text-secondary); margin-top:2px;}
+.user-chevron{color:#C9C9C9; font-size:18px;}
 .card-title{font-size:var(--fs-card-title); font-weight:700; margin-bottom:var(--sp-3);}
 /* ring */
 .ring-wrap{display:flex; align-items:center; gap:var(--sp-4);}
@@ -266,8 +272,8 @@ body{
   <!-- Tab Bar -->
   <div class="tab-bar">
     <div class="tab-item active" data-tab="home" onclick="switchTab('home')"><span class="tab-icon">🏠</span>打卡</div>
-    <div class="tab-item" data-tab="stats" onclick="switchTab('stats')"><span class="tab-icon">📊</span>统计</div>
-    <div class="tab-item" data-tab="tasks" onclick="switchTab('tasks')"><span class="tab-icon">⚙️</span>任务</div>
+    <div class="tab-item" data-tab="tasks" onclick="switchTab('tasks')"><span class="tab-icon">📋</span>任务</div>
+    <div class="tab-item" data-tab="stats" onclick="switchTab('stats')"><span class="tab-icon">👤</span>我的成长</div>
   </div>
 
   <!-- Calendar Overlay -->
@@ -425,6 +431,8 @@ function getHomeTasks(dateStr){
    ======================================================================== */
 
 const STORAGE_KEY='growth_sapling_v2';
+const NICK_KEY='gs_nickname';
+let userNickname='微信用户';
 
 function saveToStorage(){
   const data={mgmtTasks,checkinsByDate,badges};
@@ -508,7 +516,7 @@ function calcStars(){
   if(!checkinsByDate[todayIso]){
     s+=homeTasks.filter(t=>t.done).length;
   }
-  return base+s;
+  return s;
 }
 
 // Tech-spec §6.2: Consecutive streak (natural day 00:00 reset)
@@ -659,7 +667,11 @@ function renderHome(){
     <div class="star-count">⭐ ${calcStars()}</div>
     <div class="date-display" onclick="openCal()"><span>${fmtDate(vd)}</span><span>📅</span></div>
   </div>`;
-  h+=`<div class="backfill-banner ${isPast?'show':''}">📅 补卡模式 · ${fmtDate(vd)}</div>`;
+  if(isFuture){
+    h+=`<div class="backfill-banner show">⏰ 不要着急，到这天了才可以打卡哦 <span class="banner-back" onclick="goBackToday()">回到今天</span></div>`;
+  }else{
+    h+=`<div class="backfill-banner ${isPast?'show':''}">📅 补卡模式 · ${fmtDate(vd)}</div>`;
+  }
 
   if(isFuture){
     h+=`<div class="empty-state"><div class="squirrel">🐿️</div><div class="empty-title">这一天还没到哦</div><div class="empty-sub">${fmtDate(vd)} 是未来，先安排好任务吧～</div></div>`;
@@ -787,7 +799,12 @@ function renderStats(){
   // Add reserved slot
   badgesHtml+=`<div class="badge locked badge-reserved"><div class="badge-icon">🔒</div><div class="badge-name">敬请期待</div></div>`;
 
-  c.innerHTML=`<div class="stats-header">📊 我的成长</div>
+  c.innerHTML=`<div class="user-card" onclick="editNickname()">
+      <div class="user-avatar">🌱</div>
+      <div class="user-meta"><div class="user-name">${escapeHtml(userNickname)}</div><div class="user-hint">点击修改用户名</div></div>
+      <div class="user-chevron">›</div>
+    </div>
+    <div class="stats-header">我的成长</div>
     <div class="streak-block"><div class="streak-num">🔥 ${streak} <span class="streak-unit">天</span></div><div class="streak-label">连续打卡</div></div>
     <div class="card"><div class="card-title">本周完成率</div><div class="ring-wrap">
       <div class="ring" style="background:conic-gradient(var(--green) 0% ${weekRate}%, #EFE7DC ${weekRate}% 100%);"><div class="ring-inner">${weekRate}%</div></div>
@@ -1012,12 +1029,29 @@ function closeOverlay(id){document.getElementById(id).classList.remove('show');}
 function hideSplash(){document.getElementById('splash').classList.add('hide');}
 setTimeout(hideSplash,1500);
 
+function editNickname(){
+  const name=prompt('修改用户名',userNickname);
+  if(name===null) return;
+  const trimmed=name.trim().slice(0,20);
+  if(!trimmed) return;
+  userNickname=trimmed;
+  try{localStorage.setItem(NICK_KEY,trimmed);}catch(e){}
+  renderStats();
+  showToast('用户名已更新');
+}
+
+function goBackToday(){
+  viewDate=isoOf(TODAY);
+  renderHome();
+}
+
 /* ========================================================================
    SECTION P: Init
    ======================================================================== */
 
 (function init(){
   const hasData=loadFromStorage();
+  const nk=localStorage.getItem(NICK_KEY); if(nk) userNickname=nk;
   if(!hasData){
     // First-time: generate demo seed data
     generateSeedData();
