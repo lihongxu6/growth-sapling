@@ -496,8 +496,79 @@ page {
 
 ---
 
+## 版本 2.0（账户体系，规划中）
+
+> 配套 PRD：见 `prd-成长小树苗.md` → 「版本 2.0（账户体系，规划中）」。本技术方案描述实现路径。已确认范围：跨设备云同步 + 用户信息页字段（openid / 头像 / 昵称）。
+
+### 2.0.1 架构变更
+- v1.0：数据存 `wx.setStorageSync`（前端 Store，见 §3），单设备单人。
+- v2.0：引入**微信云开发**。数据层从前端 Store 迁移到**云数据库**（按 `_openid` 隔离），文件（头像）存**云存储**。用户标识统一为微信 `openid`。
+- 前端 Store 保留为**本地缓存 / 弱网降级层**，云数据库为 SSOT（Single Source of Truth）。
+
+### 2.0.2 云开发环境初始化
+- `app.js` `onLaunch` 调用 `wx.cloud.init({ env: '<env-id>', traceUser: true })`。
+- `env-id` 取自云开发控制台；不硬编码，放 `config.js`。
+- 个人号可使用云开发（无需自有服务器、无需配置 request 合法域名）。
+
+### 2.0.3 云函数设计
+| 云函数 | 入参 | 出参 | 说明 |
+|--------|------|------|------|
+| `login` | 无 | `{ openid }` | 云函数内 `cloud.getWXContext().OPENID` 取 openid；首次 upsert `users` 集合 |
+| `migrate` | 无 | `{ migrated, count }` | 读本地 `wx.setStorageSync` 旧数据写入云库（归属当前 openid），幂等（已迁移跳过） |
+
+> 个人号云函数免费额度足够低频使用；`getWXContext` 取 openid 不需 `wx.login` 换 code，登录最简。
+
+### 2.0.4 云数据库集合与索引
+沿用 PRD §9（tasks / checkins / badges），每条记录带 `_openid`；新增 `users` 承载用户信息页：
+
+| 集合 | 关键字段 | 索引 |
+|------|---------|------|
+| `tasks` | `_openid`, `name`, `repeat_type`, `is_deleted`, `sort_order` | `_openid + is_deleted` |
+| `checkins` | `_openid`, `task_id`, `date`, `is_backfill` | `_openid + date`；`_openid + task_id + date`（唯一约束） |
+| `badges` | `_openid`, `badge_type`, `is_active` | `_openid + badge_type + is_active` |
+| `users`（新增） | `_openid`, `nickname`, `avatar_file_id`, `created_at`, `migrated` | `_openid` |
+
+### 2.0.5 数据读写层改造
+- 封装 `db.js`：`getTasks()/saveTask()/getCheckins()/saveCheckin()/getBadges()` 等，全部带 `_openid` 查询条件。
+- `Store`（§3）改为：读云库 → 写本地缓存（弱网/首屏）→ UI 订阅云库结果。
+- 移除对 `wx.setStorageSync` 的强依赖，仅作缓存与迁移源。
+
+### 2.0.6 用户信息页实现
+- **入口**：底部 Tab「我的」（v2.0 新增）。
+- **昵称**：`<input type="nickname">`（官方「昵称填写」能力），取值写 `users.nickname`。
+- **头像**：`chooseAvatar` 按钮 → 临时路径 → `wx.cloud.uploadFile` 上传云存储得 `fileID` → 写 `users.avatar_file_id`。
+- **不收集**真实姓名 / 人脸 / 证件号（合规红线，见 PRD 2.0.5）。
+
+### 2.0.7 本地→云迁移实现
+1. 首次云登录且 `users.migrated != true` 且本地有数据 → 调 `migrate` 云函数。
+2. `migrate`：读 `wx.getStorageSync('tasks'/'checkins'/'badges')` → 批量 `add` 云库（带 `_openid`）→ 置 `users.migrated = true`。
+3. 迁移中 UI 显示「数据迁移中…」；失败保留本地、下次启动重试（不丢）。
+4. 云端已有数据（曾其他设备登录）→ 以云端为准，不覆盖（幂等）。
+
+### 2.0.8 弱网降级与一致性
+- 启动：本地缓存先渲染（秒开）→ 后台拉云库 → 差异合并（以云为准）。
+- 写操作：先写云库；失败写本地缓存并标记 `pending`，网络恢复重试。
+- 冲突：单人单 openid，以「云端最新写入」为准。
+
+### 2.0.9 隐私声明对应
+| 采集项 | 隐私指引勾选项 | 代码位置 |
+|--------|--------------|---------|
+| openid | 收集你的微信 OpenID | `login` 云函数 `getWXContext` |
+| 昵称 | 收集你选中的昵称 | `<input type="nickname">` |
+| 头像 | 收集你的头像 | `chooseAvatar` + `wx.cloud.uploadFile` |
+
+> 声明 = 调用（见 PRD 2.0.7 / 提审攻略 #40）；未声明项调用报 `errno 112`。
+
+### 2.0.10 验收与边界（对齐 PRD 2.0.8 / 2.0.9）
+- 跨设备同步、数据隔离、迁移完整、弱网降级、隐私三项声明——同 PRD 验收标准。
+- 「退出登录」：清空本地缓存态，云数据保留（下次登录恢复）。
+- 同微信多孩子：当前「一微信 = 一用户」，多孩子共用同账户（v2.0 范围外，留待后续）。
+
+---
+
 ## 11. 版本记录
 
 | 版本 | 日期 | 作者 | 变更 |
 |------|------|------|------|
 | v1.0 | 2026-07-11 | Sophia (AI) + 用户确认 | 初始版本，覆盖组件树/数据模型/状态矩阵/事件流/动效清单 |
+| v2.0 | 2026-07-17 | Sophia (AI) + 用户确认 | 账户体系技术方案：云开发初始化 / 云函数(login,migrate) / 云数据库集合与索引 / 数据读写层改造 / 用户信息页 / 本地→云迁移 / 弱网降级 / 隐私对应 |
