@@ -30,11 +30,20 @@ Page({
     this._refresh();
   },
 
+  /**
+   * T4：读取用户信息；首次无昵称时按原型预填默认昵称「果果的好朋友」并持久化（决策 A：默认身份即真实昵称）
+   */
   _loadProfile() {
     const profile = Storage.getProfile() || {};
+    let nickname = profile.nickname;
+    if (!nickname) {
+      nickname = '果果的好朋友';
+      profile.nickname = nickname;
+      Storage.setProfile(profile);
+    }
     this.setData({
       avatarUrl: profile.avatarUrl || '',
-      nickname: profile.nickname || '',
+      nickname,
     });
   },
 

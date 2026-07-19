@@ -116,11 +116,12 @@ test('T-U03', '边界', '空字符串存储后读取返回 null', () => {
 });
 
 // ============ onLoad / _loadProfile ============
-test('T-U04', '正常', 'onLoad 首次无 profile：头像/昵称留空', () => {
+test('T-U04', '正常', 'onLoad 首次无 profile：默认昵称「果果的好朋友」并持久化（决策 A）', () => {
   resetStore();
   _page.onLoad();
   eq(_page.data.avatarUrl, '', '首次头像应为空');
-  eq(_page.data.nickname, '', '首次昵称应为空');
+  eq(_page.data.nickname, '果果的好朋友', '首次应预填默认昵称');
+  eq(_store[PROFILE_KEY].nickname, '果果的好朋友', '默认昵称应写入存储');
 });
 test('T-U05', '正常', 'onLoad 已有 profile：回填头像/昵称', () => {
   resetStore();

@@ -5,12 +5,12 @@
   <view class="user-card">
     <view class="avatar-wrap">
       <button class="avatar-btn" open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar">
-        <image class="avatar" src="{{avatarUrl || defaultAvatar}}" mode="aspectFit" />
+        <image class="avatar" src="{{avatarUrl || defaultAvatar}}" mode="aspectFill" />
       </button>
       <view class="avatar-badge">✎</view>
     </view>
     <view class="user-meta">
-      <input class="user-name" type="nickname" value="{{nickname}}" placeholder="设置昵称" bindblur="onNicknameBlur" bindconfirm="onNicknameConfirm" />
+      <input class="user-name" type="nickname" value="{{nickname}}" bindblur="onNicknameBlur" bindconfirm="onNicknameConfirm" />
     </view>
   </view>
 
