@@ -1,0 +1,7 @@
+<!-- 开屏页 v2.0 -->
+<!-- 规范：design-spec §3.1.1 / §4.1 / §L11；ui-mockup-v2-splash.html（已锁版） -->
+<view class="splash {{fading ? 'fading' : ''}}" bindtap="onSkip">
+  <view class="splash-logo">🌱</view>
+  <view class="splash-name">成长小树苗</view>
+  <view class="splash-slogan">陪你慢慢长大</view>
+</view>

@@ -42,8 +42,9 @@ PRD ✅ → 设计评审 ✅ → 原型(已冻结) ✅ → UI设计稿(Route A) 
 - ✅ PRD v2.0 账户体系章节（单文件 living PRD，`50c1503`）
 - ✅ 技术方案 v2.0 章节（云开发环境 / 云函数 login+migrate / 云数据库集合与索引 / 本地→云迁移 / 弱网降级，`2ee6318`）
 - ✅ 开屏页高保真设计稿已锁版（`ui-mockup-v2-splash.html`，#32）：🌱+「成长小树苗」+「陪你慢慢长大」、600ms 入场、1.5s 停留 / 点击跳过、**无底部提示**（§3.11）
-- 🔜 **代码实现待启动**（下一步，即本新会话目标）：① 开屏页 `pages/splash` 三件套 + `app.json` 注册 + `app.js` 跳转控制（design-spec §3.1.1/§4.1/§L11，app.js 已有 `splashDone` 字段待实现）；② 成长页用户信息区（合并进成长页，**增量新增**、不动物上线内容，见 §3.10/#44）；③ 账户体系（云开发）
-- ⛔ **关键前置阻塞**：v2.0 完整实现依赖用户在微信公众平台开通**云开发环境**并给出 **env-id**（见 §6 #21/#31/#32 与 tech-spec v2.0 章节）。开屏页本身不依赖云，可先行实现；账户体系 / 成长页云同步必须等 env-id 到位后才能落地。
+- ✅ **开屏页 `pages/splash` 已实现**（本新会话落地）：四件套（wxml/wxss/js/json，`navigationStyle:custom` 全屏居中 🌱+品牌名+slogan，600ms 入场→1.5s 停留→600ms 淡出跳打卡页——TabBar 页必须用 `wx.switchTab`，QC7 官方文档优先；app.js `splashDone` 在 dismiss 时置 true）；`app.json` 已注册为启动页；`miniprogram-ci compile` 通过 + 预览二维码已生成（robot=1）。
+- 🔜 **代码实现待启动**：② 成长页用户信息区（合并进成长页，**增量新增**、不动物上线内容，见 §3.10/#44）；③ 账户体系（云开发）
+- ⛔ **关键前置阻塞**：v2.0 完整实现依赖用户在微信公众平台开通**云开发环境**并给出 **env-id**（见 §6 #21/#31/#32 与 tech-spec v2.0 章节）。开屏页本身不依赖云，已先行实现；账户体系 / 成长页云同步必须等 env-id 到位后才能落地。
 
 **H5 独立轨道（与小程序分叉，§3.12）**：从 v2.0 起 H5 与小程序走不同页面设计（功能集与底层架构不同），不再「H5 对齐小程序设计稿」。历史曾做「H5 拉齐方案 A」（#28/#29，2026-07-18）已完成，但**该约定不再约束后续迭代**。当前 H5 第一批优化已 push（`58b41f7`，#33：顶部状态栏/导航栏移除 + 我的成长页用户信息卡片移除 + 所有松鼠形象统一浇水松鼠 IP + 日历弹层点灰背景关闭）；后续 H5 优化按用户逐项反馈继续、独立维护。⚠️ 本新会话专注**小程序 2.0**，H5 的改动请勿反向套用到小程序设计稿。
 
@@ -202,6 +203,8 @@ PRD ✅ → 设计评审 ✅ → 原型(已冻结) ✅ → UI设计稿(Route A) 
 
 ---
 
+| 48 | 2026-07-19 | `miniprogram-ci compile` 打印「包大小: NaN KB」且命令进程长时间不退出（看似卡死，前台易超时转后台） | ① compile 模式返回的 result 不含 `.size` 字段，build.js 用 `result.size/1024` 算出 NaN（纯显示瑕疵）；② `summer-compiler` 子进程有时不干净退出，导致 `node scripts/build.js compile` 主进程挂起 | ① 日志出现 `✅ 编译成功` 即代表通过，忽略 NaN KB；② 编译卡住时直接读 `/tmp/compile.log` 已出成功日志即视为通过，TaskStop/kill 挂起进程即可，不必重跑；③ 勿因前台超时慌乱重跑（会再触发内核下载耗时） | — |
+---
 ## 5. 关键规则速查（design-spec §8.1 同步镜像）
 
 > 每次改代码/设计稿前，先对照此清单做回归检查。
@@ -304,3 +307,5 @@ PRD ✅ → 设计评审 ✅ → 原型(已冻结) ✅ → UI设计稿(Route A) 
 31. ✅ 本会话（新沙箱 2026-07-19）环境已用 `SESSION-ENV-SETUP.md` 再次一键复现：git clone ✅ + `.private/` 凭证(credentials.env/pat.txt/private.key) ✅ + miniprogram-ci 安装 ✅ + preview 二维码(`.preview-qr.png`) ✅。环境就绪，可继续 v2.0 研发。待用户：① 微信公众平台开通云开发环境(env-id)；② 提供/确认用户信息页(合并进成长页)高保真设计稿；③ 扫码体验预览二维码并反馈。
 32. ✅ **v2.0 开屏页设计稿已确认锁版**（2026-07-19）：小程序高保真设计稿 `ui-mockup-v2-splash.html` 已 commit（🌱 +「成长小树苗」+「陪你慢慢长大」、600ms splashPop 入场、1.5s 停留/点击跳过、**无底部提示语**）。待用户开通云开发环境后进入代码实现：创建 `pages/splash` 三件套 + `app.json` 注册 + `app.js` 跳转控制。
 33. ✅ **H5 优化第一批已 push**（2026-07-19，commit `58b41f7`）：① 顶部状态栏+导航栏移除；② 我的成长页用户信息卡片移除；③ 所有松鼠形象统一用浇水松鼠 IP（空状态/庆祝/徽章动画）；④ 日历弹层点击灰色背景关闭。已 push 到 main，GitHub Pages 自动更新。后续 H5 优化可继续。
+34. ✅ **新会话环境一键复现**（本会话 2026-07-19 新沙箱）：`SESSION-ENV-SETUP.md` 经新上传路径 `/root/uploads/<ts>-SESSION-ENV-SETUP.md` 传入，复制到仓库根（已被 .gitignore 忽略）；据此复现 git clone + `.private/` 凭证(credentials.env/pat.txt/private.key) + miniprogram-ci 安装 + compile ✅ + preview 二维码 ✅。环境就绪，可继续 v2.0 研发。
+35. ✅ **v2.0 开屏页已实现并提交**（本会话）：`pages/splash` 四件套 + `app.json` 注册为启动页 + `miniprogram-ci compile` 通过 + 预览二维码已生成（robot=1）；用户扫码确认效果后 `commit + push`（同时更新本 MEMORY §2/#48/#6）。下一步待 env-id：成长页用户信息区 + 云开发账户体系。
