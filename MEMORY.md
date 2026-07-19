@@ -43,7 +43,7 @@ PRD ✅ → 设计评审 ✅ → 原型(已冻结) ✅ → UI设计稿(Route A) 
 - ✅ 技术方案 v2.0 章节（云开发环境 / 云函数 login+migrate / 云数据库集合与索引 / 本地→云迁移 / 弱网降级，`2ee6318`）
 - ✅ 开屏页高保真设计稿已锁版（`ui-mockup-v2-splash.html`，#32）：🌱+「成长小树苗」+「陪你慢慢长大」、600ms 入场、1.5s 停留 / 点击跳过、**无底部提示**（§3.11）
 - ✅ **开屏页 `pages/splash` 已实现**（本新会话落地）：四件套（wxml/wxss/js/json，`navigationStyle:custom` 全屏居中 🌱+品牌名+slogan，600ms 入场→1.5s 停留→600ms 淡出跳打卡页——TabBar 页必须用 `wx.switchTab`，QC7 官方文档优先；app.js `splashDone` 在 dismiss 时置 true）；`app.json` 已注册为启动页；`miniprogram-ci compile` 通过 + 预览二维码已生成（robot=1）。
-- 🔜 **成长页用户信息区（本地版，待实现）**：合并进成长页，**增量新增**、不动物上线内容（见 §3.10/#44）；头像/昵称用 `chooseAvatar`+`<input type=nickname>` 存 `wx.setStorageSync` 本地，**不接云、无退出登录**（v2.0 账户体系已决策推迟，见 §3.14/#36）。
+- 🔜 **成长页用户信息区（本地版，技术方案设计中·阶段三）**：合并进成长页，**增量新增**、不动物上线内容（见 §3.10/#44）；头像/昵称用 `chooseAvatar`+`<input type=nickname>` 存 `wx.setStorageSync` 本地，**不接云、无退出登录**（v2.0 账户体系已决策推迟，见 §3.14/#36）。
 - ⏸️ **账户体系（云开发跨设备同步）= 已决策推迟**：用户从产品收益角度判断，真实用户少、跨设备需求低频时没必要承担月费（19.9 元/月）；等真实用户出现跨设备同步需求时再开通云环境（见 §3.14/#36）。⛔ 当前不依赖云的功能（开屏页、成长页本地版）正常推进。
 - ⛔ **关键前置阻塞**：v2.0 完整实现依赖用户在微信公众平台开通**云开发环境**并给出 **env-id**（见 §6 #21/#31/#32 与 tech-spec v2.0 章节）。开屏页本身不依赖云，已先行实现；账户体系 / 成长页云同步必须等 env-id 到位后才能落地。
 
@@ -326,3 +326,4 @@ PRD ✅ → 设计评审 ✅ → 原型(已冻结) ✅ → UI设计稿(Route A) 
 35. ✅ **v2.0 开屏页已实现并提交**（本会话）：`pages/splash` 四件套 + `app.json` 注册为启动页 + `miniprogram-ci compile` 通过 + 预览二维码已生成（robot=1）；用户扫码确认效果后 `commit + push`（同时更新本 MEMORY §2/#48/#6）。下一步待 env-id：成长页用户信息区 + 云开发账户体系。
 36. ✅ **云开发成本分析与策略决策（结论：v2.0 不做云开发账户体系）**（本会话）：用户确认 MVP 已上线，询问云开发免费额度。经查官方文档确认规则（免费 6 个月仅限未上线态；已上线态仅 15 天；基础套餐 19.9 元/月）。用户从**产品收益角度**最终决策：**微信云核心价值=同步微信名+跨设备不丢数据，真实用户少、跨设备需求低频时没必要承担月费** → **v2.0 账户体系（云开发跨设备同步）明确推迟**，等真实用户出现跨设备需求时再开通云环境。v2.0 当前聚焦：开屏页（已完成）+ 成长页用户信息区（本地版，不接云）。详见 §3.14。
 37. ✅ 新会话环境一键复现 + MEMORY 路径修复（本会话 2026-07-19）：用户再次通过 /root/uploads/<ts>-SESSION-ENV-SETUP.md 传入环境搭建指南，据此复现 git clone + .private/ 凭证(credentials.env/pat.txt/private.key) + miniprogram-ci 安装 + preview 二维码(.preview-qr.png)。环境就绪，可继续 v2.0 研发（待环境变量：成长页本地版用户信息区）。路径修复：系统提示词要求读 /workspace/MEMORY.md，但该路径不存在——真实记忆文件在仓库根 /workspace/growth-sapling/MEMORY.md。已创建软链 /workspace/MEMORY.md -> /workspace/growth-sapling/MEMORY.md，下个会话第一步读取即可命中。若仓库被删除重克隆，软链会悬空，届时按 SESSION-ENV-SETUP 先把仓库 clone 到 /workspace/growth-sapling 即可恢复。
+38. 🔜 成长页本地版用户信息区·技术方案设计（本会话，阶段三）：用户确认进入该特性技术方案设计。背景：v2.0 账户体系(云)已推迟(#36)，但“设置昵称/头像”不依赖云即可做，故派生本地版。与 tech-spec §2.0.6(云版: users 集合+uploadFile+openid+退出登录)的关键差异=去云、数据落 wx.setStorageSync 本地、无退出登录、增量新增于 pages/stats 顶部(§3.10 不动现有统计块)。已核验微信官方文档(#17/#QC7)：chooseAvatar 与 input type=nickname 均自基础库 2.21.2 起支持；avatarUrl 为临时路径须 saveFile 持久化；2.24.4+ 安全检测未过则不触发回调/清空输入；真机限制：DevTools 模拟 input 不还原真机，须真机体验版验证(我们已有 preview 真机二维码)。当前为方案草稿，待用户确认 3 项(首次轻引导/老设备降级/隐私声明)后写入 tech-spec §2.0.7 并 commit。
