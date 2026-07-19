@@ -86,7 +86,6 @@
   }
   .user-meta { display: flex; flex-direction: column; flex: 1; min-width: 0; }
   .user-name { font-size: 18px; font-weight: 700; color: #333; }
-  .user-hint { font-size: 12px; color: #888; margin-top: 2px; }
 
   /* 连续天数（线上原样） */
   .streak-section { display: flex; gap: 8px; padding: 12px; }
@@ -188,7 +187,6 @@
       </div>
       <div class="user-meta">
         <span class="user-name">果果的好朋友</span>
-        <span class="user-hint">点头像换图 · 点昵称修改（失焦自动保存）</span>
       </div>
     </div>
 
@@ -297,7 +295,7 @@
 <div class="legend">
   <b>图例</b><br/>
   <span class="n">■ 本次新增</span>：顶部用户信息区（头像/昵称），按 MEMORY §3.8/§3.10 做增量新增；<span class="k">其余模块（标题/连续天数/完成率/日历/徽章墙）布局·样式·文案完全保持 v1.0 原样不动</span>。<br/>
-  <b>用户信息区</b>：头像（松鼠占位图，可点换图，直接调起微信原生 chooseAvatar）+ 昵称（可点就地编辑，<code>&lt;input type="nickname"&gt;</code> 失焦即存，无保存按钮）。<b>无"修改资料"弹窗</b>——此前底部浮层已按技术方案（头像直接选、昵称失焦即改）删除。<br/>
+  <b>用户信息区</b>：头像（松鼠占位图，右下角 ✎ 表示可点换图，直接调起微信原生 chooseAvatar）+ 昵称（可点就地编辑，<code>&lt;input type="nickname"&gt;</code> 失焦即存，无保存按钮）。<b>无常驻提示文案</b>（头像/昵称修改极低频，不常驻提醒）+<b>无"修改资料"弹窗</b>（此前浮层已按技术方案删除）。<br/>
   <b>底部导航</b>：采用「打卡 / 任务 / 我的成长」顺序（我的成长 高亮绿色），与 design-spec §3.12 一致。<br/>
   <b>文档同步</b>：PRD/tech-spec v2.0 章节中关于独立「我的」页的旧结论已改为「合并进我的成长页·就地点改」。
 </div>
