@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>成长小树苗 · v2.0 开屏页设计稿</title>
+<style>
+/* ===== 设计稿全局 ===== */
+:root{
+  --green:#5CB85C;
+  --green-light:#E8F5E9;
+  --yellow:#F0AD4E;
+  --bg:#FFF8F0;
+  --card-bg:#FFFFFF;
+  --text:#333333;
+  --text-secondary:#888888;
+  --border:#E8E0D8;
+  --radius-md:16px;
+  --radius-lg:24px;
+  --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:20px; --sp-6:24px; --sp-8:32px;
+  --fs-title:20px; --fs-card-title:15px; --fs-body:15px; --fs-caption:13px; --fs-aux:12px;
+  --shadow-card:0 1px 3px rgba(0,0,0,0.05);
+  --shadow-float:0 8px 24px rgba(0,0,0,0.12);
+}
+* {box-sizing:border-box; margin:0; padding:0;}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  background:#f2f2f2; padding:40px; display:flex; flex-direction:column; align-items:center; gap:24px;
+}
+
+/* ===== 手机外框 ===== */
+.phone-frame{
+  width:375px; height:812px; background:var(--bg); border-radius:48px;
+  box-shadow:0 24px 60px rgba(0,0,0,0.18); overflow:hidden; position:relative;
+  border:10px solid #fff;
+}
+.status-bar{
+  height:44px; width:100%; position:absolute; top:0; left:0; z-index:10;
+}
+
+/* ===== Splash 开屏页（设计稿直接展示最终态） ===== */
+.splash{
+  position:absolute; inset:0; z-index:70; background:var(--bg);
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:var(--sp-3);
+  /* 设计稿中保持可见，便于评审；小程序中 1.5s 后 opacity 0 淡出 */
+}
+.splash-logo{
+  font-size:72px; line-height:1; animation:splashPop .6s ease both;
+}
+@keyframes splashPop{
+  from{transform:scale(.6); opacity:0;}
+  to{transform:scale(1); opacity:1;}
+}
+.splash-name{
+  font-size:28px; font-weight:800; color:var(--green); line-height:1.2; letter-spacing:1px;
+  animation:splashPop .6s ease .15s both;
+}
+.splash-slogan{
+  font-size:var(--fs-caption); color:var(--text-secondary); line-height:1.4;
+  animation:splashPop .6s ease .25s both;
+}
+
+/* ===== 图例说明 ===== */
+.legend{
+  width:375px; background:#fff; border-radius:var(--radius-lg); padding:var(--sp-5);
+  box-shadow:var(--shadow-card); font-size:var(--fs-body); color:var(--text); line-height:1.6;
+}
+.legend h2{font-size:var(--fs-title); color:var(--green); margin-bottom:var(--sp-3);}
+.legend ul{margin-left:var(--sp-4);}
+.legend li{margin-bottom:var(--sp-2);}
+.legend code{font-family:ui-monospace,monospace; background:#f5f5f5; padding:2px 6px; border-radius:4px; font-size:12px; color:#666;}
+</style>
+</head>
+<body>
+
+<div class="phone-frame">
+  <div class="status-bar"></div>
+
+  <!-- 开屏页 -->
+  <div class="splash" id="splash">
+    <div class="splash-logo">🌱</div>
+    <div class="splash-name">成长小树苗</div>
+    <div class="splash-slogan">陪你慢慢长大</div>
+  </div>
+</div>
+
+<div class="legend">
+  <h2>v2.0 开屏页（Splash）设计稿说明</h2>
+  <ul>
+    <li><strong>定位</strong>：独立小程序页面 <code>pages/splash/splash</code>，在 <code>app.json</code> 中注册为入口页；由 <code>app.js onLaunch</code> 或启动逻辑自动进入。</li>
+    <li><strong>视觉</strong>：全屏居中，背景色 <code>--bg #FFF8F0</code>；沿用 H5 开屏设计：🌱 logo + 产品名 + slogan。</li>
+    <li><strong>动画</strong>：logo 由 0.6 缩放淡入（<code>splashPop</code>，600ms ease），文字依次错开 150ms/250ms 出现；小程序中保持同动画曲线。</li>
+    <li><strong>停留</strong>：展示约 1.5s 后，整页 opacity 0 淡出（600ms transition），然后 <code>wx.reLaunch</code> 或 <code>wx.redirectTo</code> 到打卡页。</li>
+    <li><strong>跳过</strong>：点击屏幕任意区域可立即淡出并跳转；pointer-events 在淡出过程中禁用。<strong>不显示底部提示语</strong>，避免分散用户注意力。</li>
+    <li><strong>状态栏</strong>：按 design-spec §3.1，仅保留 44px 安全区，不显示品牌名/假时间/信号/电量。</li>
+    <li><strong>与 H5 差异</strong>：H5 中 splash 是 index.html 内的 overlay；小程序中为独立页面，跳转后不存在回退问题。</li>
+  </ul>
+</div>
+
+</body>
+</html>
