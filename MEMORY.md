@@ -43,8 +43,12 @@ PRD ✅ → 设计评审 ✅ → 原型(已冻结) ✅ → UI设计稿(Route A) 
 - ✅ 技术方案 v2.0 章节（云开发环境 / 云函数 login+migrate / 云数据库集合与索引 / 本地→云迁移 / 弱网降级，`2ee6318`）
 - ✅ 开屏页高保真设计稿已锁版（`ui-mockup-v2-splash.html`，#32）：🌱+「成长小树苗」+「陪你慢慢长大」、600ms 入场、1.5s 停留 / 点击跳过、**无底部提示**（§3.11）
 - ✅ **开屏页 `pages/splash` 已实现**（本新会话落地）：四件套（wxml/wxss/js/json，`navigationStyle:custom` 全屏居中 🌱+品牌名+slogan，600ms 入场→1.5s 停留→600ms 淡出跳打卡页——TabBar 页必须用 `wx.switchTab`，QC7 官方文档优先；app.js `splashDone` 在 dismiss 时置 true）；`app.json` 已注册为启动页；`miniprogram-ci compile` 通过 + 预览二维码已生成（robot=1）。
-- 🔜 **成长页用户信息区（本地版，技术方案设计中·阶段三）**：合并进成长页，**增量新增**、不动物上线内容（见 §3.10/#44）；头像/昵称用 `chooseAvatar`+`<input type=nickname>` 存 `wx.setStorageSync` 本地，**不接云、无退出登录**（v2.0 账户体系已决策推迟，见 §3.14/#36）。
-  - ✅ 研发设计方案已写入 tech-spec **§2.0.6（本地版）**：EARS 需求 + 任务拆分 T1–T10 + 微信官方约束核验(#17/#QC7) + 验收标准；云版顺延为 §2.0.7（推迟，待 env-id）。**待用户确认定稿后 commit**。原型与 MEMORY 已先行清理（见 §3.16 实例 + §4 #49/#50）。
+- ✅ **成长页用户信息区（本地版）= 已实现并提交**（本会话阶段三→四）：
+  - 研发设计方案已定稿并 commit（`e7c1d11`，tech-spec **§2.0.6 本地版**：EARS 需求 + 任务拆分 T1–T10 + 微信官方约束核验 #17/#QC7 + 验收标准；云版顺延 §2.0.7 待 env-id）。
+  - **工程师落地（T1–T10 全完成）**：`pages/stats` 三件套（移除本页 page-header + 增量新增 user-card：`button open-type=chooseAvatar` + `input type=nickname` 失焦即存）+ `utils/storage.js`（getProfile/setProfile，`gs_` 前缀，键 `userProfile`）+ `app.json`（tabBar 顺序 打卡/任务/我的成长）。
+  - **验证**：`miniprogram-ci compile` ✅（NaN KB 为 #48 显示瑕疵，实际包 ~177KB）；`preview` 真机二维码 `.preview-qr.png` ✅（robot=1，未 upload，按 §3.17 ④）；**QC5/QC6 回归 ✅**：git diff 证明 stats.wxml 仅 page-header 删除 + user-card 新增，下方统计块(连续天数/完成率/日历/徽章墙/空状态)逐字节未变，stats.js 全字段仍 setData，page-header 残留=0（仅本页移除，home/tasks 保留，§3.15）。
+  - 合并进成长页、增量新增、不动物上线内容（§3.10/#44）；头像/昵称存 `wx.setStorageSync` 本地，不接云、无退出登录（§3.14/#36）。
+  - **待用户决策（§3.17 ④）**：是否 `ci.upload` 到体验版 / 提交审核；真机扫码后交互微调（如头像圆角/昵称框宽度）反馈后再迭代。空状态图片仍误引 `/miniprogram-assets/avatar.png`（不存在，预存 bug，不在本期范围）。
 - ⏸️ **账户体系（云开发跨设备同步）= 已决策推迟**：用户从产品收益角度判断，真实用户少、跨设备需求低频时没必要承担月费（19.9 元/月）；等真实用户出现跨设备同步需求时再开通云环境（见 §3.14/#36）。⛔ 当前不依赖云的功能（开屏页、成长页本地版）正常推进。
 - ⛔ **关键前置阻塞**：v2.0 完整实现依赖用户在微信公众平台开通**云开发环境**并给出 **env-id**（见 §6 #21/#31/#32 与 tech-spec v2.0 章节）。开屏页本身不依赖云，已先行实现；账户体系 / 成长页云同步必须等 env-id 到位后才能落地。
 
@@ -364,3 +368,5 @@ PRD ✅ → 设计评审 ✅ → 原型(已冻结) ✅ → UI设计稿(Route A) 
 36. ✅ **云开发成本分析与策略决策（结论：v2.0 不做云开发账户体系）**（本会话）：用户确认 MVP 已上线，询问云开发免费额度。经查官方文档确认规则（免费 6 个月仅限未上线态；已上线态仅 15 天；基础套餐 19.9 元/月）。用户从**产品收益角度**最终决策：**微信云核心价值=同步微信名+跨设备不丢数据，真实用户少、跨设备需求低频时没必要承担月费** → **v2.0 账户体系（云开发跨设备同步）明确推迟**，等真实用户出现跨设备需求时再开通云环境。v2.0 当前聚焦：开屏页（已完成）+ 成长页用户信息区（本地版，不接云）。详见 §3.14。
 37. ✅ 新会话环境一键复现 + MEMORY 路径修复（本会话 2026-07-19）：用户再次通过 /root/uploads/<ts>-SESSION-ENV-SETUP.md 传入环境搭建指南，据此复现 git clone + .private/ 凭证(credentials.env/pat.txt/private.key) + miniprogram-ci 安装 + preview 二维码(.preview-qr.png)。环境就绪，可继续 v2.0 研发（待环境变量：成长页本地版用户信息区）。路径修复：系统提示词要求读 /workspace/MEMORY.md，但该路径不存在——真实记忆文件在仓库根 /workspace/growth-sapling/MEMORY.md。已创建软链 /workspace/MEMORY.md -> /workspace/growth-sapling/MEMORY.md，下个会话第一步读取即可命中。若仓库被删除重克隆，软链会悬空，届时按 SESSION-ENV-SETUP 先把仓库 clone 到 /workspace/growth-sapling 即可恢复。
 38. 🔜 成长页本地版用户信息区·技术方案设计（本会话，阶段三）：用户确认进入该特性技术方案设计。背景：v2.0 账户体系(云)已推迟(#36)，但“设置昵称/头像”不依赖云即可做，故派生本地版。与 tech-spec §2.0.6(云版: users 集合+uploadFile+openid+退出登录)的关键差异=去云、数据落 wx.setStorageSync 本地、无退出登录、增量新增于 pages/stats 顶部(§3.10 不动现有统计块)。已核验微信官方文档(#17/#QC7)：chooseAvatar 与 input type=nickname 均自基础库 2.21.2 起支持；avatarUrl 为临时路径须 saveFile 持久化；2.24.4+ 安全检测未过则不触发回调/清空输入；真机限制：DevTools 模拟 input 不还原真机，须真机体验版验证(我们已有 preview 真机二维码)。3 项已确认(见 §3.15：① 首次引导不做；② 方案A不降级已拍板(2026-07-19)；③ 隐私决策反转——撤原"应用内透明提示"，推迟下一版引导规划)。用户澄清 setStorageSync 纯前端/安全检测时机(§3.15)；角色切换规则见 §3.16。***设计稿/文档一致性清理已完成*（设计师角色，2026-07-19）：`ui-mockup-v2-userinfo.html` 已删退出登录 UI/CSS/图例/标题，并同步 design-spec/PRD/tech-spec 对同一问题的描述，见 §3.16 实例 + §4 #49。待用户确认清理结果 → 切回架构师角色写入 tech-spec §2.0.6（本地版）并 commit。**
+
+39. ✅ **成长页本地版用户信息区·工程师落地完成（本会话）**：T1–T10 全代码变更（stats.wxml/js/wxss + utils/storage.js + app.json tabBar）已写完并 commit `387c5c6`；`miniprogram-ci compile` ✅ + `preview` 真机二维码 `.preview-qr.png` ✅ + QC5/QC6 回归 ✅（下方统计块零变化）。交付物对齐 §3.17 工程师标准；凭证 `.private/` 与二维码均 gitignore，无泄露。下一步：① 用户扫码真机验证 chooseAvatar / 昵称失焦即存；② 用户决策是否 upload 体验版 / 提审（§3.17 ④，AI 不擅自动）；③ 仅交互微调反馈后迭代。
