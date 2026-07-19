@@ -1,8 +1,8 @@
 /**
  * 统计页逻辑
  */
-
 const Store = require('../../store/index');
+const Storage = require('../../utils/storage');
 const { today, isoOf, daysInMonth, firstDayOfMonth, dateOfIso } = require('../../utils/date');
 const { BADGE_DEFS } = require('../../utils/constants');
 
@@ -16,12 +16,68 @@ Page({
     weekDays: ['日', '一', '二', '三', '四', '五', '六'],
     calDays: [],
     badges: [],
+    // v2.0 本地版用户信息区（§2.0.6 T4）
+    avatarUrl: '',
+    nickname: '',
+    defaultAvatar: '/assets/avatar-144.png',
   },
 
-  onLoad() {},
+  onLoad() {
+    this._loadProfile();
+  },
 
   onShow() {
     this._refresh();
+  },
+
+  _loadProfile() {
+    const profile = Storage.getProfile() || {};
+    this.setData({
+      avatarUrl: profile.avatarUrl || '',
+      nickname: profile.nickname || '',
+    });
+  },
+
+  /**
+   * T5：头像选择（chooseAvatar 回调 → saveFile 持久化）
+   * 临时路径须 saveFile 持久化到本地用户目录，否则缓存回收后失效（§2.0.6 官方约束）。
+   * T7：saveFile 失败 → 保留上次有效头像，不写入损坏路径。
+   */
+  onChooseAvatar(e) {
+    const tempPath = e.detail.avatarUrl;
+    if (!tempPath) return;
+    const fs = wx.getFileSystemManager();
+    fs.saveFile({
+      tempFilePath: tempPath,
+      success: (res) => {
+        const savedPath = res.savedFilePath;
+        const profile = Storage.getProfile() || {};
+        profile.avatarUrl = savedPath;
+        Storage.setProfile(profile);
+        this.setData({ avatarUrl: savedPath });
+      },
+      fail: (err) => {
+        console.warn('[stats] saveFile 失败，保留原头像', err);
+      },
+    });
+  },
+
+  /**
+   * T6：昵称失焦 / 确认即存（input type=nickname）
+   */
+  onNicknameBlur(e) {
+    this._saveNickname(e.detail.value);
+  },
+  onNicknameConfirm(e) {
+    this._saveNickname(e.detail.value);
+  },
+  _saveNickname(val) {
+    const nickname = (val || '').trim();
+    if (!nickname) return; // 空值不覆盖
+    const profile = Storage.getProfile() || {};
+    profile.nickname = nickname;
+    Storage.setProfile(profile);
+    this.setData({ nickname });
   },
 
   _refresh() {

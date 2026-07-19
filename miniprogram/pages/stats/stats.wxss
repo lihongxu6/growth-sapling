@@ -7,6 +7,70 @@
   padding-bottom: var(--safe-bottom);
 }
 
+/* === 用户信息区（v2.0 本地版） === */
+.user-card {
+  margin: 0 var(--sp-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-md);
+  background: var(--card-bg);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: var(--sp-lg);
+  position: relative;
+}
+.avatar-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+.avatar-btn {
+  padding: 0;
+  margin: 0;
+  line-height: normal;
+  background: transparent;
+  border-radius: 50%;
+}
+.avatar-btn::after {
+  border: none;
+}
+.avatar {
+  width: 112rpx;
+  height: 112rpx;
+  border-radius: 50%;
+  background: var(--green-light);
+  border: 2rpx solid var(--green);
+  display: block;
+}
+.avatar-badge {
+  position: absolute;
+  right: -4rpx;
+  bottom: -4rpx;
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 50%;
+  background: var(--green);
+  color: #fff;
+  font-size: 22rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2rpx solid var(--bg);
+}
+.user-meta {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+.user-name {
+  font-size: var(--fs-card-title);
+  font-weight: 700;
+  color: var(--text);
+  width: 100%;
+  background: transparent;
+  border: none;
+}
+
 /* === 连续天数 === */
 .streak-section {
   display: flex;

@@ -9,6 +9,23 @@
 
 const STORAGE_PREFIX = 'gs_'; // growth-sapling 前缀
 
+// 本地版用户信息（v2.0 §2.0.6）：头像 + 昵称，不依赖云
+const PROFILE_KEY = 'userProfile';
+
+/**
+ * 读取用户信息（头像路径 + 昵称）
+ */
+function getProfile() {
+  return get(PROFILE_KEY);
+}
+
+/**
+ * 写入用户信息
+ */
+function setProfile(profile) {
+  return set(PROFILE_KEY, profile);
+}
+
 /**
  * 读取持久化数据
  */
@@ -81,6 +98,8 @@ module.exports = {
   get,
   set,
   remove,
+  getProfile,
+  setProfile,
   loadPersistedState,
   saveState,
 };

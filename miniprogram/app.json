@@ -27,16 +27,16 @@
         "selectedIconPath": "assets/icons/tab-home-active.png"
       },
       {
-        "pagePath": "pages/stats/stats",
-        "text": "成长",
-        "iconPath": "assets/icons/tab-stats.png",
-        "selectedIconPath": "assets/icons/tab-stats-active.png"
-      },
-      {
         "pagePath": "pages/tasks/tasks",
         "text": "任务",
         "iconPath": "assets/icons/tab-tasks.png",
         "selectedIconPath": "assets/icons/tab-tasks-active.png"
+      },
+      {
+        "pagePath": "pages/stats/stats",
+        "text": "我的成长",
+        "iconPath": "assets/icons/tab-stats.png",
+        "selectedIconPath": "assets/icons/tab-stats-active.png"
       }
     ]
   },
