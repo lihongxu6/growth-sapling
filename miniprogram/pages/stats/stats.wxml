@@ -4,9 +4,11 @@
   <!-- 用户信息区（顶部，v2.0 本地版） -->
   <view class="user-card">
     <view class="avatar-wrap">
-      <button class="avatar-btn" open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar">
-        <image class="avatar" src="{{avatarUrl || defaultAvatar}}" mode="aspectFill" />
-      </button>
+      <view class="avatar-circle">
+        <button class="avatar-btn" open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar">
+          <image class="avatar" src="{{avatarUrl || defaultAvatar}}" mode="aspectFill" />
+        </button>
+      </view>
       <view class="avatar-badge">✎</view>
     </view>
     <view class="user-meta">
