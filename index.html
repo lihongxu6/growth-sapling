@@ -36,6 +36,17 @@ body{
 .status-bar{
   height:44px; flex-shrink:0; background:var(--bg);
 }
+/* ===== System Navbar (全局小程序名) ===== */
+.navbar{
+  height:44px; flex-shrink:0; background:var(--bg); display:flex; align-items:center; justify-content:center;
+  font-size:17px; font-weight:700; color:var(--text); position:relative; z-index:10;
+}
+/* ===== Page Header (三页共用标题区) ===== */
+.page-header{display:flex; align-items:center; gap:12px; padding:var(--sp-3) 0 var(--sp-2);}
+.page-header-icon{width:40px; height:40px; border-radius:var(--radius-md); background:var(--green-light); display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0;}
+.page-header-text{display:flex; flex-direction:column;}
+.page-header-title{font-size:22px; font-weight:700; color:var(--text); line-height:1.2;}
+.page-header-subtitle{font-size:13px; color:var(--text-secondary); margin-top:2px; line-height:1.2;}
 /* ===== Splash 开屏页 ===== */
 .splash{
   position:absolute; inset:0; z-index:70; background:var(--bg);
@@ -116,7 +127,6 @@ body{
 .btn-block{display:block; width:100%; margin-top:var(--sp-4);}
 
 /* ===== Stats Page ===== */
-.stats-header{position:sticky; top:0; z-index:10; background:var(--bg); margin:0 calc(-1*var(--sp-4)); padding:var(--sp-3) var(--sp-4); text-align:center; font-size:var(--fs-title); font-weight:700;}
 .streak-block{text-align:center; padding:var(--sp-5) 0 var(--sp-4);}
 .streak-num{font-size:var(--fs-display); font-weight:800; color:var(--yellow); line-height:1; filter:drop-shadow(0 2px 6px rgba(240,173,78,.3));}
 .streak-num .streak-unit{font-size:24px; font-weight:700; margin-left:4px; color:var(--text-secondary); filter:none;}
@@ -158,7 +168,6 @@ body{
 .badge-reserved{opacity:.4;}
 
 /* ===== Tasks Page ===== */
-.tasks-header{position:sticky; top:0; z-index:10; background:var(--bg); margin:0 calc(-1*var(--sp-4)); padding:var(--sp-3) var(--sp-4); text-align:center; font-size:var(--fs-title); font-weight:700;}
 .task-mgmt-list{display:flex; flex-direction:column; gap:var(--sp-3); margin-top:var(--sp-4);}
 .tm-card{background:var(--card-bg); border-radius:var(--radius-md); padding:var(--sp-4); box-shadow:var(--shadow-card); display:flex; align-items:center; gap:var(--sp-3); min-height:64px;}
 .tm-icon{font-size:26px; width:30px; text-align:center; flex-shrink:0;}
@@ -252,6 +261,7 @@ body{
 <body>
 <div class="phone-frame" id="app">
   <div class="status-bar"></div>
+  <div class="navbar">成长小树苗</div>
 
   <!-- Splash -->
   <div class="splash" id="splash" onclick="hideSplash()">
@@ -662,6 +672,7 @@ function renderHome(){
   const fireLit=homeTasks.some(t=>t.done);
 
   let h='';
+  h+=`<div class="page-header"><div class="page-header-icon"><span>✅</span></div><div class="page-header-text"><div class="page-header-title">今日打卡</div><div class="page-header-subtitle">今天也要加油哦</div></div></div>`;
   h+=`<div class="home-header">
     <div class="streak-fire"><span class="fire-icon ${fireLit?'lit':''}">${fireLit?'🔥':'🪵'}</span><span>${streak}</span></div>
     <div class="star-count">⭐ ${calcStars()}</div>
@@ -799,12 +810,12 @@ function renderStats(){
   // Add reserved slot
   badgesHtml+=`<div class="badge locked badge-reserved"><div class="badge-icon">🔒</div><div class="badge-name">敬请期待</div></div>`;
 
-  c.innerHTML=`<div class="user-card" onclick="editNickname()">
+  c.innerHTML=`<div class="page-header"><div class="page-header-icon"><span>🌱</span></div><div class="page-header-text"><div class="page-header-title">我的成长</div><div class="page-header-subtitle">小树苗在长大</div></div></div>
+    <div class="user-card" onclick="editNickname()">
       <div class="user-avatar">🌱</div>
       <div class="user-meta"><div class="user-name">${escapeHtml(userNickname)}</div><div class="user-hint">点击修改用户名</div></div>
       <div class="user-chevron">›</div>
     </div>
-    <div class="stats-header">我的成长</div>
     <div class="streak-block"><div class="streak-num">🔥 ${streak} <span class="streak-unit">天</span></div><div class="streak-label">连续打卡</div></div>
     <div class="card"><div class="card-title">本周完成率</div><div class="ring-wrap">
       <div class="ring" style="background:conic-gradient(var(--green) 0% ${weekRate}%, #EFE7DC ${weekRate}% 100%);"><div class="ring-inner">${weekRate}%</div></div>
@@ -821,7 +832,7 @@ function renderTasks(){
   const c=document.getElementById('pageTasks');
   const activeTasks=mgmtTasks.filter(t=>!t.is_deleted);
   const atLimit=activeTasks.length>=6;
-  let h=`<div class="tasks-header">⚙️ 我的任务</div>`;
+  let h=`<div class="page-header"><div class="page-header-icon"><span>📝</span></div><div class="page-header-text"><div class="page-header-title">我的任务</div><div class="page-header-subtitle">我想养成这些好习惯</div></div></div>`;
   if(activeTasks.length===0){
     h+=`<div class="empty-state" style="padding-top:var(--sp-8);"><div class="squirrel">🐿️</div><div class="empty-title">还没有任务哦</div><div class="empty-sub">点击下方按钮，添加你的第一个任务吧！</div></div>`;
   }else{

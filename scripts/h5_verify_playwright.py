@@ -58,15 +58,15 @@ def run():
         page.screenshot(path=str(TMP / 'stats.png'))
         print('[ok] stats.png')
 
-        # 4) Verify visible text
+        # 4) Verify visible text (scoped to active page)
         home_tab = page.text_content('.tab-item[data-tab="home"]')
         task_tab = page.text_content('.tab-item[data-tab="tasks"]')
         stat_tab = page.text_content('.tab-item[data-tab="stats"]')
-        user_name = page.text_content('.user-name')
-        stat_header = page.text_content('.stats-header')
+        stat_header = page.text_content('#pageStats .page-header-title')
+        user_name = page.text_content('#pageStats .user-name')
         print(f"TabBar: {home_tab!r} / {task_tab!r} / {stat_tab!r}")
         print(f"user-card name: {user_name!r}")
-        print(f"stats-header: {stat_header!r}")
+        print(f"stats page-header: {stat_header!r}")
 
         # 5) Test nickname edit (mock prompt with JS injection)
         page.evaluate("""
@@ -76,7 +76,7 @@ def run():
             window.prompt = orig;
         """)
         page.wait_for_timeout(300)
-        new_name = page.text_content('.user-name')
+        new_name = page.text_content('#pageStats .user-name')
         print(f"after edit: {new_name!r}")
         page.screenshot(path=str(TMP / 'stats_nickname.png'))
         print('[ok] stats_nickname.png')
