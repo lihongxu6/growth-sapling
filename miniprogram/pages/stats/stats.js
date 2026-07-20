@@ -203,6 +203,11 @@ Page({
     for (let d = 1; d <= days; d++) {
       const date = new Date(year, month, d);
       const iso = isoOf(date);
+
+      // 未来日期：任务尚未到可打卡时间，不应着色（保持白底），也不可点击
+      const isFuture = date > todayDate;
+      const isToday = iso === todayIso;
+
       const ci = Store.state.checkinsByDate[iso] || {};
       const doneRecs = Object.values(ci).filter(r => r.done);
       const doneCount = doneRecs.length;
@@ -210,18 +215,17 @@ Page({
       const hasBackfill = doneRecs.some(r => r.backfill);
 
       // 方案 B（用户拍板）：有任务0完成=黄(yellow) / 部分完成=橙(orange) / 全完成=绿(green)；
-      // 补卡完成（全完成且含 backfill 记录）= 绿 + 补字。无任务日保持空白。
+      // 补卡完成（全完成且含 backfill 记录）= 绿 + 补字。未来日期保持白底。
       let color = '';
-      if (totalTasks > 0) {
-        if (doneCount >= totalTasks) color = 'green';
-        else if (doneCount > 0) color = 'orange';
-        else color = 'yellow';
+      let backfill = false;
+      if (!isFuture) {
+        if (totalTasks > 0) {
+          if (doneCount >= totalTasks) color = 'green';
+          else if (doneCount > 0) color = 'orange';
+          else color = 'yellow';
+        }
+        backfill = (color === 'green' && hasBackfill);
       }
-      const backfill = (color === 'green' && hasBackfill);
-
-      // 未来日期不可点击
-      const isFuture = date > todayDate;
-      const isToday = iso === todayIso;
 
       grid.push({ day: d, color, isToday, iso, disabled: isFuture && !isToday, backfill });
     }
