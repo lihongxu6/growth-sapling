@@ -61,6 +61,7 @@
           bindtap="onPickDate"
         >
           <text class="cal-day">{{item.day}}</text>
+          <text class="cal-bf" wx:if="{{item.backfill}}">补</text>
         </view>
       </view>
     </view>

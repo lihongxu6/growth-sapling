@@ -204,19 +204,26 @@ Page({
       const date = new Date(year, month, d);
       const iso = isoOf(date);
       const ci = Store.state.checkinsByDate[iso] || {};
-      const doneCount = Object.values(ci).filter(r => r.done).length;
+      const doneRecs = Object.values(ci).filter(r => r.done);
+      const doneCount = doneRecs.length;
       const totalTasks = Store.state.tasks.filter(t => !t.is_deleted).length;
+      const hasBackfill = doneRecs.some(r => r.backfill);
 
+      // 方案 B（用户拍板）：有任务0完成=黄(yellow) / 部分完成=橙(orange) / 全完成=绿(green)；
+      // 补卡完成（全完成且含 backfill 记录）= 绿 + 补字。无任务日保持空白。
       let color = '';
-      if (doneCount > 0) {
-        color = doneCount >= totalTasks ? 'green' : 'orange';
+      if (totalTasks > 0) {
+        if (doneCount >= totalTasks) color = 'green';
+        else if (doneCount > 0) color = 'orange';
+        else color = 'yellow';
       }
+      const backfill = (color === 'green' && hasBackfill);
 
       // 未来日期不可点击
       const isFuture = date > todayDate;
       const isToday = iso === todayIso;
 
-      grid.push({ day: d, color, isToday, iso, disabled: isFuture && !isToday });
+      grid.push({ day: d, color, isToday, iso, disabled: isFuture && !isToday, backfill });
     }
 
     this.setData({ calDays: grid });

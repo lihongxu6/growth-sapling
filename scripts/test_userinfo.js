@@ -18,6 +18,7 @@ let _fsMode = 'success';        // 'success' | 'fail'
 let _savedSeq = 0;             // saveFile 成功计数器
 const _fsMissing = new Set();  // access 时视为“文件已失效”的路径集合（模拟旧会话 stale 头像）
 let _chooseImageCb = null;     // wx.chooseImage 回调捕获（供用例驱动 success/fail）
+let _mockStore = null;         // store mock 引用捕获（供日历配色用例注入 tasks/checkins）
 
 global.wx = {
   getStorageSync(k) {
@@ -51,12 +52,12 @@ global.Page = (obj) => { _page = obj; };
 const _origLoad = Module._load;
 Module._load = function (request) {
   if (request === '../../store/index') {
-    return {
+    return (_mockStore = {
       state: { badges: [], tasks: [], checkinsByDate: {} },
       calcStreak: () => 0,
       calcStars: () => 0,
       setViewDate: () => {},
-    };
+    });
   }
   if (request === '../../utils/date') {
     return {
@@ -102,8 +103,17 @@ function eq(actual, expected, msg) {
 function resetStore() {
   for (const k of Object.keys(_store)) delete _store[k];
   _savedSeq = 0; _fsMode = 'success'; _fsMissing.clear(); _chooseImageCb = null;
+  if (_mockStore) _mockStore.state = { badges: [], tasks: [], checkinsByDate: {} };
   // 防止 _page.data 跨用例泄漏（setData 会原地修改 data 对象）
   if (_page) { _page.data.avatarUrl = ''; _page.data.nickname = ''; }
+}
+
+// 取日历网格里第一个“有日期且未禁用”的格子（方案 B 全量逻辑验证用）
+// 注：date mock 把 isoOf 固定成同一天，故所有有任务日同色，取首个即可反映映射
+function firstCalDay() {
+  const cells = _page.data.calDays.filter(c => c.day && !c.disabled);
+  if (!cells.length) throw new Error('日历网格无有效日格');
+  return cells[0];
 }
 
 // ============ storage 单元 ============
@@ -202,6 +212,55 @@ test('T-U11', '正常', 'onNicknameConfirm 与 blur 同路径：正常保存', (
   eq(_store[PROFILE_KEY].nickname, '乐乐', 'confirm 路径未保存');
 });
 
+// ============ 日历配色逻辑（方案 B）============
+// 直接驱动 _buildCalGrid（绕过 _refresh 的周完成率计算，后者依赖真实 Date）。
+// date mock 把 isoOf/daysInMonth/firstDayOfMonth 固定，故所有“有任务日”同色，取首个日格验证映射即可。
+test('T-C01', '正常', '方案 B：有任务但 0 完成 → 黄色 yellow（修复白底看不见任务的 bug）', () => {
+  resetStore();
+  _mockStore.state.tasks = [{ id: 1, is_deleted: false }];
+  _mockStore.state.checkinsByDate = {};            // 没有任何完成记录
+  _page._buildCalGrid();
+  const c = firstCalDay();
+  eq(c.color, 'yellow', '有任务0完成应标黄色');
+  eq(c.backfill, false, '非补卡不应带补字');
+});
+test('T-C02', '正常', '方案 B：部分完成 → 橙色 orange', () => {
+  resetStore();
+  _mockStore.state.tasks = [{ id: 1, is_deleted: false }, { id: 2, is_deleted: false }];
+  _mockStore.state.checkinsByDate = { '2026-07-19': { 1: { done: true, backfill: false } } }; // 仅 1/2 完成
+  _page._buildCalGrid();
+  const c = firstCalDay();
+  eq(c.color, 'orange', '部分完成应标橙色');
+  eq(c.backfill, false, '部分完成非补卡');
+});
+test('T-C03', '正常', '方案 B：全部完成（非补卡）→ 绿色 green，无补字', () => {
+  resetStore();
+  _mockStore.state.tasks = [{ id: 1, is_deleted: false }];
+  _mockStore.state.checkinsByDate = { '2026-07-19': { 1: { done: true, backfill: false } } };
+  _page._buildCalGrid();
+  const c = firstCalDay();
+  eq(c.color, 'green', '全完成应标绿色');
+  eq(c.backfill, false, '非补卡不应带补字');
+});
+test('T-C04', '正常', '方案 B：全部完成且含 backfill 记录 → 绿色 green + 补字(backfill=true)', () => {
+  resetStore();
+  _mockStore.state.tasks = [{ id: 1, is_deleted: false }];
+  _mockStore.state.checkinsByDate = { '2026-07-19': { 1: { done: true, backfill: true } } };
+  _page._buildCalGrid();
+  const c = firstCalDay();
+  eq(c.color, 'green', '补卡完成仍标绿色');
+  eq(c.backfill, true, '补卡完成应带补字');
+});
+test('T-C05', '边界', '无任务（tasks 全 is_deleted）→ 无配色（白底，区别于有任务黄）', () => {
+  resetStore();
+  _mockStore.state.tasks = [{ id: 1, is_deleted: true }];
+  _mockStore.state.checkinsByDate = {};
+  _page._buildCalGrid();
+  const c = firstCalDay();
+  eq(c.color, '', '无任务日不应着色');
+  eq(c.backfill, false, '无任务日无补字');
+});
+
 // ============ 静态结构核查（防回归：头像覆盖层不得外溢盖住昵称，#52） ============
 const fs = require('fs');
 const _wxml = fs.readFileSync(path.join(__dirname, '..', 'miniprogram', 'pages', 'stats', 'stats.wxml'), 'utf-8');
@@ -226,6 +285,13 @@ test('T-W02', '结构', '命中区死卡 112rpx：.avatar-wrap 显式 width:112r
   if (!block.includes('width: 112rpx')) throw new Error('.avatar-wrap 必须显式 width:112rpx');
   if (_wxss.includes('.avatar-btn')) throw new Error('WXSS 不应再含 .avatar-btn（曾导致真机盖住昵称/#52）');
   if (block.includes('width: 100%')) throw new Error('.avatar-wrap 禁止 width:100%（会解析到视口宽度）');
+});
+test('T-W03', '结构', '日历：cell class 绑定 item.color（黄/橙/绿三态）+ 补卡角标 cal-bf 由 item.backfill 控制', () => {
+  if (!_wxml.includes('class="cal-cell {{item.color}}')) throw new Error('日历 cell 未绑定 item.color（黄/橙/绿配色缺失）');
+  if (!_wxml.includes('wx:if="{{item.backfill}}">补')) throw new Error('补卡角标 cal-bf 缺失或被改名');
+  if (!_wxss.includes('.cal-cell.yellow .cal-day')) throw new Error('WXSS 缺少 .cal-cell.yellow（有任务0完成=黄）');
+  if (!_wxss.includes('.cal-cell.orange .cal-day')) throw new Error('WXSS 缺少 .cal-cell.orange（部分完成=橙）');
+  if (!_wxss.includes('.cal-bf')) throw new Error('WXSS 缺少 .cal-bf（补字角标样式）');
 });
 
 // ============ 输出 ============

@@ -209,6 +209,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
 }
 
 .cal-day {
@@ -227,9 +228,17 @@
   font-weight: 600;
 }
 
-.cal-cell.orange .cal-day {
+/* 方案 B：有任务但 0 完成 = 黄色（软琥珀，对应原图 2/3 号“有任务”态，区别于白底无任务） */
+.cal-cell.yellow .cal-day {
   background: var(--yellow-light);
   color: var(--yellow);
+  font-weight: 600;
+}
+
+/* 方案 B：部分完成 = 橙色（比黄色更深一档，提示“进行中”） */
+.cal-cell.orange .cal-day {
+  background: #FFE3CC;
+  color: #E8820C;
   font-weight: 600;
 }
 
@@ -240,6 +249,22 @@
 .cal-cell.disabled {
   opacity: 0.35;
   pointer-events: none;
+}
+
+/* 补卡角标：全完成且含 backfill 记录时，在绿色圆点右上角叠加「补」字 */
+.cal-bf {
+  position: absolute;
+  top: 4rpx;
+  right: 4rpx;
+  font-size: 16rpx;
+  line-height: 1;
+  color: #fff;
+  background: #E8820C;
+  border-radius: 6rpx;
+  padding: 2rpx 5rpx;
+  transform: scale(0.92);
+  pointer-events: none;
+  font-weight: 600;
 }
 
 /* === 徽章墙（对齐设计稿：grayscale + text-shadow） === */
