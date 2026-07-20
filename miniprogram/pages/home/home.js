@@ -16,6 +16,7 @@ Page({
     isBackfill: false,
     showCal: false,
     showCelebration: false,
+    celebrationText: '',
     calYear: new Date().getFullYear(),
     calMonth: new Date().getMonth(),
     weekDays: ['日', '一', '二', '三', '四', '五', '六'],
@@ -109,9 +110,13 @@ Page({
       Store.toggleTask(taskId);
       this._refresh();
 
-      // 检查是否全部完成（用 toggle 后的实时数据）
-      if (doneAfter >= totalActive && isToday(this.data.viewDate)) {
-        this.setData({ showCelebration: true });
+      // 检查是否全部完成（用 toggle 后的实时数据）：今天或补卡，最后一个活跃任务完成时弹一次
+      if (doneAfter >= totalActive) {
+        const isTodayView = isToday(this.data.viewDate);
+        const text = isTodayView
+          ? '今天的任务全部完成！'
+          : fmtDateShort(this.data.viewDate) + '的任务全部补卡完成！';
+        this.setData({ showCelebration: true, celebrationText: text });
       }
     }
   },

@@ -1,5 +1,12 @@
 {
   "dependencies": {
     "miniprogram-ci": "^2.1.31"
+  },
+  "scripts": {
+    "test": "node scripts/test_userinfo.js && node scripts/test_home.js",
+    "test:userinfo": "node scripts/test_userinfo.js",
+    "test:home": "node scripts/test_home.js",
+    "preview": "node scripts/build.js preview",
+    "upload": "node scripts/build.js upload"
   }
 }

@@ -105,6 +105,6 @@
 <view class="celebration-overlay {{showCelebration ? 'show' : ''}}" wx:if="{{showCelebration}}" bindtap="dismissCelebration">
   <view class="celeb-squirrel"><image src="/assets/avatar-144.png" mode="aspectFit" /></view>
   <view class="celeb-text">🌟 太棒了！🌟</view>
-  <view class="celeb-sub">今天的任务全部完成！</view>
+  <view class="celeb-sub">{{celebrationText}}</view>
   <view class="celeb-stars">⭐ +{{doneCount}}</view>
 </view>
