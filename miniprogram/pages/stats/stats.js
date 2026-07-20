@@ -41,10 +41,22 @@ Page({
       profile.nickname = nickname;
       Storage.setProfile(profile);
     }
-    this.setData({
-      avatarUrl: profile.avatarUrl || '',
-      nickname,
-    });
+    const storedAvatar = profile.avatarUrl || '';
+    // 先按默认头像渲染，避免 stale 路径占位导致圆圈空白；
+    // 再异步校验已保存头像（wxfile://）是否仍有效，失效则回落默认并清理存储。
+    this.setData({ avatarUrl: '', nickname });
+    if (storedAvatar) {
+      const fs = wx.getFileSystemManager();
+      if (typeof fs.access !== 'function') return; // 低版本基础库兜底
+      fs.access({
+        path: storedAvatar,
+        success: () => this.setData({ avatarUrl: storedAvatar }),
+        fail: () => {
+          profile.avatarUrl = '';
+          Storage.setProfile(profile);
+        },
+      });
+    }
   },
 
   /**

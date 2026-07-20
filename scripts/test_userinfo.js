@@ -16,6 +16,7 @@ const path = require('path');
 const _store = {};               // 模拟 wx 本地存储
 let _fsMode = 'success';        // 'success' | 'fail'
 let _savedSeq = 0;             // saveFile 成功计数器
+const _fsMissing = new Set();  // access 时视为“文件已失效”的路径集合（模拟旧会话 stale 头像）
 
 global.wx = {
   getStorageSync(k) {
@@ -32,6 +33,10 @@ global.wx = {
         } else {
           fail({ errMsg: 'saveFile:fail mock' });
         }
+      },
+      access({ path, success, fail }) {
+        if (_fsMissing.has(path)) fail({ errMsg: 'access:fail no such file' });
+        else success({});
       },
     };
   },
@@ -94,7 +99,7 @@ function eq(actual, expected, msg) {
 }
 function resetStore() {
   for (const k of Object.keys(_store)) delete _store[k];
-  _savedSeq = 0; _fsMode = 'success';
+  _savedSeq = 0; _fsMode = 'success'; _fsMissing.clear();
   // 防止 _page.data 跨用例泄漏（setData 会原地修改 data 对象）
   if (_page) { _page.data.avatarUrl = ''; _page.data.nickname = ''; }
 }
@@ -129,6 +134,15 @@ test('T-U05', '正常', 'onLoad 已有 profile：回填头像/昵称', () => {
   _page.onLoad();
   eq(_page.data.avatarUrl, 'x.png', '头像未回填');
   eq(_page.data.nickname, '果果', '昵称未回填');
+});
+test('T-U13', '异常', 'onLoad 已存头像路径失效（旧会话 stale）：回落默认头像并清理存储', () => {
+  resetStore();
+  _store[PROFILE_KEY] = { avatarUrl: 'stale.png', nickname: '果果' };
+  _fsMissing.add('stale.png');              // 模拟该 wxfile:// 路径在新预览会话已失效
+  _page.onLoad();
+  eq(_page.data.avatarUrl, '', 'stale 头像应回落为空（显示默认头像）');
+  eq(_store[PROFILE_KEY].avatarUrl, '', 'stale 路径应从存储中清理');
+  eq(_page.data.nickname, '果果', '昵称不应受影响');
 });
 
 // ============ onChooseAvatar ============

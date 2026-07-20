@@ -5,10 +5,9 @@
   <view class="user-card">
     <view class="avatar-wrap">
       <view class="avatar-circle">
-        <button class="avatar-btn" open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar">
-          <image class="avatar" src="{{avatarUrl || defaultAvatar}}" mode="aspectFill" />
-        </button>
+        <image class="avatar" src="{{avatarUrl || defaultAvatar}}" mode="aspectFill" />
       </view>
+      <button class="avatar-btn" open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar"></button>
       <view class="avatar-badge">✎</view>
     </view>
     <view class="user-meta">
