@@ -46,23 +46,6 @@
 .avatar-circle:active {
   opacity: 0.85;
 }
-/* 昵称右侧独立编辑图标（产品兜底方案，引导点右边改名字，用户拍板） */
-.name-edit {
-  flex-shrink: 0;
-  width: 44rpx;
-  height: 44rpx;
-  margin-left: var(--sp-sm);
-  border-radius: 50%;
-  background: var(--green-light);
-  color: var(--green);
-  font-size: 24rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.name-edit:active {
-  opacity: 0.8;
-}
 .avatar-badge {
   position: absolute;
   right: -4rpx;

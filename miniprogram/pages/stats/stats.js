@@ -94,20 +94,6 @@ Page({
   },
 
   /**
-   * 昵称右侧 ✎ 编辑图标点击：聚焦昵称输入框，唤起键盘（产品兜底方案，引导点右边改名字）
-   */
-  onEditNameTap() {
-    wx.createSelectorQuery().in(this)
-      .select('.user-name')
-      .context((res) => {
-        if (res && res.context && typeof res.context.focus === 'function') {
-          res.context.focus();
-        }
-      })
-      .exec();
-  },
-
-  /**
    * T6：昵称失焦 / 确认即存（input type=nickname）
    */
   onNicknameBlur(e) {

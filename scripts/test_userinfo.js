@@ -26,14 +26,6 @@ global.wx = {
   setStorageSync(k, v) { _store[k] = v; },
   removeStorageSync(k) { delete _store[k]; },
   chooseImage({ success, fail }) { _chooseImageCb = { success, fail }; },
-  createSelectorQuery() {
-    return {
-      in: function () { return this; },
-      select: function () { return this; },
-      context: function (cb) { cb({ context: { focus: () => {} } }); return this; },
-      exec: function () { return this; },
-    };
-  },
   getFileSystemManager() {
     return {
       saveFile({ tempFilePath, success, fail }) {
@@ -209,26 +201,21 @@ test('T-U11', '正常', 'onNicknameConfirm 与 blur 同路径：正常保存', (
   _page.onNicknameConfirm({ detail: { value: '乐乐' } });
   eq(_store[PROFILE_KEY].nickname, '乐乐', 'confirm 路径未保存');
 });
-test('T-U14', '正常', 'onEditNameTap 聚焦昵称输入框：不抛错（产品兜底，引导点右边改名字）', () => {
-  resetStore();
-  _page.onEditNameTap();                  // 调 wx.createSelectorQuery(...).context(focus)，mock 已桩
-});
 
 // ============ 静态结构核查（防回归：头像覆盖层不得外溢盖住昵称，#52） ============
 const fs = require('fs');
 const _wxml = fs.readFileSync(path.join(__dirname, '..', 'miniprogram', 'pages', 'stats', 'stats.wxml'), 'utf-8');
 const _wxss = fs.readFileSync(path.join(__dirname, '..', 'miniprogram', 'pages', 'stats', 'stats.wxss'), 'utf-8');
 
-test('T-W01', '结构', '头像命中区=.avatar-circle(view,catchtap)在 avatar-wrap 内、昵称为其兄弟；弃用脆弱原生 button；昵称右侧有独立 ✎', () => {
+test('T-W01', '结构', '头像命中区=.avatar-circle(view,catchtap)在 avatar-wrap 内、昵称为其兄弟；弃用脆弱原生 button；昵称直接点 input 编辑、无冗余编辑图标', () => {
   const wrapIdx = _wxml.indexOf('<view class="avatar-wrap">');
   const circleIdx = _wxml.indexOf('<view class="avatar-circle" catchtap="onPickAvatar">');
   const metaIdx = _wxml.indexOf('<view class="user-meta">');
-  const nameEditIdx = _wxml.indexOf('<view class="name-edit" catchtap="onEditNameTap">');
-  if (wrapIdx < 0 || circleIdx < 0 || metaIdx < 0 || nameEditIdx < 0)
-    throw new Error('WXML 结构缺失 avatar-wrap/avatar-circle(onPickAvatar)/user-meta/name-edit');
+  if (wrapIdx < 0 || circleIdx < 0 || metaIdx < 0)
+    throw new Error('WXML 结构缺失 avatar-wrap/avatar-circle(onPickAvatar)/user-meta');
   if (!(wrapIdx < circleIdx && circleIdx < metaIdx)) throw new Error('头像命中区未正确嵌套在 avatar-wrap 内');
-  if (!(metaIdx < nameEditIdx)) throw new Error('昵称右侧 ✎ 编辑图标位置错误');
   if (_wxml.includes('open-type="chooseAvatar"')) throw new Error('不应再使用脆弱的原生 chooseAvatar 按钮(#52/#54)');
+  if (_wxml.includes('name-edit')) throw new Error('方案 A 不应残留昵称右侧冗余编辑图标');
   if (!_wxml.includes('bindblur="onNicknameBlur"')) throw new Error('昵称 bindblur 缺失');
   if (!_wxml.includes('bindconfirm="onNicknameConfirm"')) throw new Error('昵称 bindconfirm 缺失');
 });

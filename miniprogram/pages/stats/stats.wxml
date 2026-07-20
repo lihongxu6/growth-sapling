@@ -11,7 +11,6 @@
     </view>
     <view class="user-meta">
       <input class="user-name" type="nickname" value="{{nickname}}" bindblur="onNicknameBlur" bindconfirm="onNicknameConfirm" />
-      <view class="name-edit" catchtap="onEditNameTap">✎</view>
     </view>
   </view>
 
