@@ -68,8 +68,8 @@ const project = new ci.Project({
       console.log('🔨 上传代码中...');
       const result = await ci.upload({
         project,
-        version: '1.0.0',
-        desc: '本地上传 - ' + new Date().toLocaleString('zh-CN'),
+        version: '2.0.0',
+        desc: 'v2.0 成长页用户信息区(本地版)+开屏页 - ' + new Date().toLocaleString('zh-CN'),
         setting: { es6: true },
       });
       console.log('✅ 上传成功！');

@@ -183,6 +183,8 @@ PRD ✅ → 设计评审 ✅ → 原型(已冻结) ✅ → UI设计稿(Route A) 
 
 **第七轮（2026-07-20 用户切回 A 方案）**：真机确认方案 C 的核心（view+catchtap 选图）已彻底隔开头像/昵称命中区——点昵称精准定位、不误触头像。故方案 C 额外加的昵称右侧 ✎ 编辑图标显冗余（原生 `<input type=nickname>` 点击即聚焦编辑，本就无需额外图标）。用户决策：**切回方案 A**——删 `.name-edit` 图标 + `onEditNameTap`，昵称直接点输入框编辑（bindblur/bindconfirm 失焦即存）。落地：① WXML 删 `<view class="name-edit" catchtap="onEditNameTap">`；② JS 删 `onEditNameTap`（无死代码）；③ WXSS 删 `.name-edit` 样式；④ 测试删 T-U14、T-W01 去掉 name-edit 断言并加「不含 name-edit 冗余图标」反向断言；自测回到 **15/15 ✅**；compile ✅；preview 重出（179528 bytes）。详见验收报告第十三节 + #56。这是该交互冲突的**终态**（真机已确认 A 满足），后续无新迭代除非你提新需求。
 
+**提审（2026-07-20 用户拍板）**：真机确认方案 A 终态无误 → 用户授权提审。AI 执行：① `scripts/build.js` 的 upload 版本号由硬编 `1.0.0` 升到 `2.0.0`（本次是 v2.0 功能集：开屏页+用户信息区本地版），已上传（143103 bytes，robot=1）生成开发版/体验版；② 实际「提交审核」是用户在**微信公众平台控制台**点击（AI 无法代点），需用户操作；③ **提审前置·隐私合规（关键）**：v2.0 头像改用 `wx.chooseImage`（album+camera）选图，依微信隐私规则（基础库 2.32.3+）必须在《隐私保护指引》声明 `scope.album`（相册）+ `scope.camera`（摄像头）且 App 内调 API 前弹隐私授权框（wx.requirePrivacyAuthorize / 系统弹窗），否则 enforcement 设备（iOS17+/华为小米OPPO 安卓）调相册直接失败「api scope is not declared」、提审也可能因「调用相册/摄像头但未声明」被拒。v1.0 攻略写的「未采集隐私」对 v2.0 **不再适用**，指引须更新（见 #57 + 提审攻略 v2.0 注）。
+
 
 ---
 ### 3.16 角色切换规则（2026-07-19 用户明确）
@@ -283,6 +285,8 @@ PRD ✅ → 设计评审 ✅ → 原型(已冻结) ✅ → UI设计稿(Route A) 
 | 54 | 2026-07-20 | 第五轮「头像即按钮本身」在真机布局严重回归：头像被拉伸为椭圆、昵称覆盖头像 | 把 `<button open-type="chooseAvatar">` 当作 flex 普通子元素（去覆盖层）时，微信 button 的默认 `min-width` 与 flex 布局交互导致尺寸控制失效，头像容器被横向拉伸并与昵称区重叠 | ① 头像/昵称紧邻布局中，**不要用 `<button>` 当 flex 普通子元素**来承载头像——微信 button 默认 min-width 等样式会干扰尺寸；② 应使用 `<view>`+`<image>` 做视觉，再用更稳妥的触发方式（如 `catchtap` 调 `chooseAvatar` 或继续研究覆盖层方案）；③ 任何结构级改动必须先在真机复核布局，再推送；④ 见 §3.15、测试验收报告第十节 |
 | 55 | 2026-07-20 | 选头像用原生 `<button open-type="chooseAvatar">` 在「头像紧邻可编辑昵称」布局里：要么绝对定位命中区脆（#52），要么当 flex 子元素被默认 min-width 撑成椭圆盖住昵称（#54） | 微信原生 chooseAvatar 的两种承载方式（绝对定位覆盖层 / button 即头像）在此布局都不可靠 | ① 头像改用 `<view class="avatar-circle" catchtap="onPickAvatar">` 死卡 112rpx（由 .avatar-wrap 定死），弃用原生 chooseAvatar 按钮；② 选图改 `wx.chooseImage` → `saveFile` 持久化（等价原生能力，但命中区=view 自身盒子，物理不可能盖昵称）；③ 昵称右侧加独立 ✎ 编辑图标 `.name-edit catchtap=onEditNameTap` 聚焦输入框（用户拍板 C 方案的产品兜底，双保险）；④ 回归纪律不变（§3.18） | 本文件 §3.15、§3.17、测试验收报告第十二节 |
 | 56 | 2026-07-20 | 方案 C 额外加的昵称右侧 ✎ 编辑图标经真机确认显冗余——方案 A 的 view+catchtap 已隔开头像/昵称命中区，且原生 `<input type=nickname>` 点击即聚焦编辑 | 头像/昵称本就是极低频操作（§3.15），没必要再叠独立编辑图标制造冗余 UI/认知噪音 | ① 用户真机确认方案 A（view+catchtap 选图）即满足，昵称右侧冗余 ✎ 图标可去；② 昵称编辑直接点原生 input 即可（bindblur/bindconfirm 失焦即存），不另加编辑图标/聚焦函数；③ 与 §3.15「不堆常驻提示」一致：UI 做减法 | 本文件 §3.15、测试验收报告第十三节 |
+| 57 | 2026-07-20 | v2.0 头像改用 `wx.chooseImage`（album+camera）选图，但《隐私保护指引》未声明相册/摄像头 scope、App 内未弹隐私授权框 | 微信隐私规则（基础库 2.32.3+）：chooseImage/chooseMedia 等涉及相册/摄像头的能力，须后台《隐私保护指引》声明对应 scope 且用户授权弹窗通过后才能调用；否则 enforcement 设备直接失败、提审可能被拒 | ① 提审前在公众平台《隐私保护指引》添加并声明「相册(scope.album)」「摄像头(scope.camera)」类型（提交后进入审核、审核中仍不可调，但提审须先声明一致）；② App 内调 chooseImage 前弹隐私授权框（wx.requirePrivacyAuthorize 或系统弹窗）；③ v1.0 攻略「未采集隐私」对 v2.0 不适用，指引须更新；④ 见 #40/#41、微信小程序提审攻略-2026.md | 本文件 §3.15、攻略 v2.0 注 |
+
 
 
 ## 5. 关键规则速查（design-spec §8.1 同步镜像）
@@ -396,3 +400,4 @@ PRD ✅ → 设计评审 ✅ → 原型(已冻结) ✅ → UI设计稿(Route A) 
 39. ✅ **成长页本地版用户信息区·工程师落地完成（本会话）**：T1–T10 全代码变更（stats.wxml/js/wxss + utils/storage.js + app.json tabBar）已写完并 commit `387c5c6`；`miniprogram-ci compile` ✅ + `preview` 真机二维码 `.preview-qr.png` ✅ + QC5/QC6 回归 ✅（下方统计块零变化）。交付物对齐 §3.17 工程师标准；凭证 `.private/` 与二维码均 gitignore，无泄露。下一步：① 用户扫码真机验证 chooseAvatar / 昵称失焦即存；② 用户决策是否 upload 体验版 / 提审（§3.17 ④，AI 不擅自动）；③ 仅交互微调反馈后迭代。
 
 40. ✅ **成长页本地版用户信息区·测试工程师自测通过（本会话）**：按 §3.17 测试前置规则，交真机二维码前先以测试工程师身份做沙箱自测——**15/15 逻辑+静态结构单测全绿**（含 T-U13 stale 路径回落、T-W01/T-W02 覆盖层不外溢断言，`scripts/test_userinfo.js`：storage 往返/getProfile null/空串、onLoad 首次与回填、onChooseAvatar 成功持久化/失败保留原图/空路径返回、昵称 blur/confirm 正常/空值不覆盖/trim），+ 静态/编译（QC3/QC4/QC2/QC6）全绿。回归：stats 块逐字节未变、page-header 残留=0。结论：**沙箱可测工程问题已清零**，二维码可交用户真机确认。详细见 `docs/测试验收报告-用户信息区v2本地版.md`。⚠️ **硬约束**：chooseAvatar / input type=nickname 是微信原生组件，DevTools/沙箱无法模拟，T-R01~T-R06（浮层弹出/选图持久化/昵称键盘/视觉渲染）**只能用户真机扫码确认**（#22/#34/#QC7）。非缺陷：stats 页无 `.json` 属项目规范（home/tasks 同，splash 因 custom 才配），编译已通过。
+🔜 **提审推进（2026-07-20）**：用户确认方案 A 终态无误、拍板提审。AI 已 `scripts/build.js upload` 升版 **2.0.0**（143103 bytes，robot=1）生成开发版/体验版；**后续「提交审核」由用户在微信公众平台控制台点击**（AI 无法代点）→ 进入审核队列（通常 1-7 天）。**提审前置·隐私合规（关键，#57）**：v2.0 用 `wx.chooseImage`（album+camera），须《隐私保护指引》声明相册(scope.album)+摄像头(scope.camera) 且 App 内弹隐私授权框，否则 enforcement 设备调相册失败、提审可能拒。v1.0 攻略「未采集隐私」对 v2.0 不适用，指引须更新（见 #57）。
