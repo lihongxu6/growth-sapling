@@ -41,12 +41,14 @@
   display: block;
 }
 /* 透明覆盖层：仅用于触发 chooseAvatar，不参与图片渲染，避免布局干扰居中 */
+/* 关键：尺寸必须显式 112rpx，绝不能用 width:100% —— 绝对定位下 % 在真机会解析到视口(750rpx)，
+   导致覆盖层铺满整张卡片、盖住右侧昵称输入框（#52 踩坑） */
 .avatar-btn {
   position: absolute;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  width: 112rpx;
+  height: 112rpx;
   margin: 0;
   padding: 0;
   border-radius: 50%;

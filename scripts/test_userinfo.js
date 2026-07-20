@@ -194,6 +194,29 @@ test('T-U11', '正常', 'onNicknameConfirm 与 blur 同路径：正常保存', (
   eq(_store[PROFILE_KEY].nickname, '乐乐', 'confirm 路径未保存');
 });
 
+// ============ 静态结构核查（防回归：头像覆盖层不得外溢盖住昵称，#52） ============
+const fs = require('fs');
+const _wxml = fs.readFileSync(path.join(__dirname, '..', 'miniprogram', 'pages', 'stats', 'stats.wxml'), 'utf-8');
+const _wxss = fs.readFileSync(path.join(__dirname, '..', 'miniprogram', 'pages', 'stats', 'stats.wxss'), 'utf-8');
+
+test('T-W01', '结构', 'chooseAvatar 按钮位于 avatar-wrap 内、昵称输入为其兄弟节点（不被覆盖层盖住）', () => {
+  const wrapIdx = _wxml.indexOf('<view class="avatar-wrap">');
+  const btnIdx = _wxml.indexOf('<button class="avatar-btn"');
+  const metaIdx = _wxml.indexOf('<view class="user-meta">');
+  if (wrapIdx < 0 || btnIdx < 0 || metaIdx < 0) throw new Error('WXML 结构缺失 avatar-wrap/avatar-btn/user-meta');
+  if (!(wrapIdx < btnIdx && btnIdx < metaIdx)) throw new Error('chooseAvatar 按钮未正确嵌套在 avatar-wrap 内');
+  if (!_wxml.includes('bindblur="onNicknameBlur"')) throw new Error('昵称 bindblur 缺失');
+  if (!_wxml.includes('bindconfirm="onNicknameConfirm"')) throw new Error('昵称 bindconfirm 缺失');
+});
+test('T-W02', '结构', 'chooseAvatar 覆盖层必须显式 112rpx（禁止 width:100%，否则真机解析到视口盖住昵称，#52）', () => {
+  const start = _wxss.indexOf('.avatar-btn');
+  if (start < 0) throw new Error('WXSS 缺少 .avatar-btn');
+  const end = _wxss.indexOf('}', start);
+  const block = _wxss.slice(start, end + 1);
+  if (!block.includes('width: 112rpx')) throw new Error('.avatar-btn 必须显式 width:112rpx');
+  if (block.includes('width: 100%')) throw new Error('.avatar-btn 禁止 width:100%（会解析到视口宽度盖住昵称）');
+});
+
 // ============ 输出 ============
 console.log('\n===== 用户信息区·沙箱逻辑自测 =====');
 for (const c of _cases) {
