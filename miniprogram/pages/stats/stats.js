@@ -208,22 +208,32 @@ Page({
       const isFuture = date > todayDate;
       const isToday = iso === todayIso;
 
-      const ci = Store.state.checkinsByDate[iso] || {};
-      const doneRecs = Object.values(ci).filter(r => r.done);
-      const doneCount = doneRecs.length;
-      const totalTasks = Store.state.tasks.filter(t => !t.is_deleted).length;
-      const hasBackfill = doneRecs.some(r => r.backfill);
+      // 当天活跃任务（与打卡页 getActiveTasks 口径一致，按 repeat_type 过滤）
+      const dayOfWeek = date.getDay();
+      const activeTasks = Store.state.tasks.filter(t => {
+        if (t.is_deleted) return false;
+        switch (t.repeat_type) {
+          case 'daily': return true;
+          case 'weekday': return dayOfWeek >= 1 && dayOfWeek <= 5;
+          case 'weekend': return dayOfWeek === 0 || dayOfWeek === 6;
+          case 'custom': return (t.repeat_days || []).includes(dayOfWeek);
+          default: return true;
+        }
+      });
 
-      // 方案 B（用户拍板）：有任务0完成=黄(yellow) / 部分完成=橙(orange) / 全完成=绿(green)；
+      const ci = Store.state.checkinsByDate[iso] || {};
+      const dayTaskCount = activeTasks.length;
+      const doneCount = activeTasks.filter(t => ci[t.id] && ci[t.id].done).length;
+      const hasBackfill = activeTasks.some(t => ci[t.id] && ci[t.id].done && ci[t.id].backfill);
+
+      // 方案 B（用户拍板）：有任务0完成=黄 / 部分完成=橙 / 全完成=绿；
       // 补卡完成（全完成且含 backfill 记录）= 绿 + 补字。未来日期保持白底。
       let color = '';
       let backfill = false;
-      if (!isFuture) {
-        if (totalTasks > 0) {
-          if (doneCount >= totalTasks) color = 'green';
-          else if (doneCount > 0) color = 'orange';
-          else color = 'yellow';
-        }
+      if (!isFuture && dayTaskCount > 0) {
+        if (doneCount >= dayTaskCount) color = 'green';
+        else if (doneCount > 0) color = 'orange';
+        else color = 'yellow';
         backfill = (color === 'green' && hasBackfill);
       }
 
