@@ -40,25 +40,28 @@
   height: 100%;
   display: block;
 }
-/* 透明覆盖层：仅用于触发 chooseAvatar，不参与图片渲染，避免布局干扰居中 */
-/* 关键：尺寸必须显式 112rpx，绝不能用 width:100% —— 绝对定位下 % 在真机会解析到视口(750rpx)，
-   导致覆盖层铺满整张卡片、盖住右侧昵称输入框（#52 踩坑） */
-.avatar-btn {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 112rpx;
-  height: 112rpx;
-  margin: 0;
-  padding: 0;
-  border-radius: 50%;
-  background: transparent;
-  border: none;
-  opacity: 0;
-  z-index: 2;
+/* 头像命中区 = .avatar-circle 自身（112rpx 盒子，由 .avatar-wrap 定死），catchtap 触发选图；
+   不再用 <button> 当 flex 子元素（#54 会被默认 min-width 撑成椭圆），
+   也不再叠绝对定位覆盖层（#52 真机命中区解析脆）。命中区即 view 自身盒子，物理不可能盖住昵称。 */
+.avatar-circle:active {
+  opacity: 0.85;
 }
-.avatar-btn::after {
-  border: none;
+/* 昵称右侧独立编辑图标（产品兜底方案，引导点右边改名字，用户拍板） */
+.name-edit {
+  flex-shrink: 0;
+  width: 44rpx;
+  height: 44rpx;
+  margin-left: var(--sp-sm);
+  border-radius: 50%;
+  background: var(--green-light);
+  color: var(--green);
+  font-size: 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.name-edit:active {
+  opacity: 0.8;
 }
 .avatar-badge {
   position: absolute;

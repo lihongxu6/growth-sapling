@@ -4,14 +4,14 @@
   <!-- 用户信息区（顶部，v2.0 本地版） -->
   <view class="user-card">
     <view class="avatar-wrap">
-      <view class="avatar-circle">
+      <view class="avatar-circle" catchtap="onPickAvatar">
         <image class="avatar" src="{{avatarUrl || defaultAvatar}}" mode="aspectFill" />
       </view>
-      <button class="avatar-btn" open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar"></button>
       <view class="avatar-badge">✎</view>
     </view>
     <view class="user-meta">
       <input class="user-name" type="nickname" value="{{nickname}}" bindblur="onNicknameBlur" bindconfirm="onNicknameConfirm" />
+      <view class="name-edit" catchtap="onEditNameTap">✎</view>
     </view>
   </view>
 

@@ -5,7 +5,7 @@
  * 方法：mock 微信全局 API（wx.getStorageSync/setStorageSync/getFileSystemManager）
  *       + 桩掉 stats.js 的非待测依赖（store/date/constants），捕获 Page 对象后直接驱动 handler。
  *
- * 注意：chooseAvatar / input type=nickname 是微信原生组件，DevTools/沙箱无法模拟真机行为
+ * 注意：wx.chooseImage（选图）/ input type=nickname 是微信原生能力，DevTools/沙箱无法模拟真机行为
  *       （#22/#34/#QC7），其交互验证不在本脚本范围，留待用户真机扫码确认。
  */
 
@@ -17,6 +17,7 @@ const _store = {};               // 模拟 wx 本地存储
 let _fsMode = 'success';        // 'success' | 'fail'
 let _savedSeq = 0;             // saveFile 成功计数器
 const _fsMissing = new Set();  // access 时视为“文件已失效”的路径集合（模拟旧会话 stale 头像）
+let _chooseImageCb = null;     // wx.chooseImage 回调捕获（供用例驱动 success/fail）
 
 global.wx = {
   getStorageSync(k) {
@@ -24,6 +25,15 @@ global.wx = {
   },
   setStorageSync(k, v) { _store[k] = v; },
   removeStorageSync(k) { delete _store[k]; },
+  chooseImage({ success, fail }) { _chooseImageCb = { success, fail }; },
+  createSelectorQuery() {
+    return {
+      in: function () { return this; },
+      select: function () { return this; },
+      context: function (cb) { cb({ context: { focus: () => {} } }); return this; },
+      exec: function () { return this; },
+    };
+  },
   getFileSystemManager() {
     return {
       saveFile({ tempFilePath, success, fail }) {
@@ -99,7 +109,7 @@ function eq(actual, expected, msg) {
 }
 function resetStore() {
   for (const k of Object.keys(_store)) delete _store[k];
-  _savedSeq = 0; _fsMode = 'success'; _fsMissing.clear();
+  _savedSeq = 0; _fsMode = 'success'; _fsMissing.clear(); _chooseImageCb = null;
   // 防止 _page.data 跨用例泄漏（setData 会原地修改 data 对象）
   if (_page) { _page.data.avatarUrl = ''; _page.data.nickname = ''; }
 }
@@ -145,29 +155,35 @@ test('T-U13', '异常', 'onLoad 已存头像路径失效（旧会话 stale）：
   eq(_page.data.nickname, '果果', '昵称不应受影响');
 });
 
-// ============ onChooseAvatar ============
-test('T-U06', '正常', 'onChooseAvatar 成功：saveFile 持久化路径写入 profile', () => {
+// ============ onPickAvatar（wx.chooseImage 选图 → saveFile 持久化） ============
+test('T-U06', '正常', 'onPickAvatar 成功：chooseImage 选图 → saveFile 持久化写入 profile', () => {
   resetStore();
   _fsMode = 'success';
-  _page.onChooseAvatar({ detail: { avatarUrl: 'tmp_avatar.png' } });
+  _page.onPickAvatar();                       // 触发 wx.chooseImage（mock 捕获回调）
+  if (!_chooseImageCb) throw new Error('未调用 wx.chooseImage');
+  _chooseImageCb.success({ tempFilePaths: ['tmp_avatar.png'] });
   eq(_store[PROFILE_KEY].avatarUrl, 'http://store/local_1.png', '持久化路径未写入');
   eq(_page.data.avatarUrl, 'http://store/local_1.png', '视图未更新');
 });
-test('T-U07', '异常', 'onChooseAvatar 失败：保留原头像，不写坏路径', () => {
+test('T-U07', '异常', 'onPickAvatar saveFile 失败：保留原头像，不写坏路径', () => {
   resetStore();
   _store[PROFILE_KEY] = { avatarUrl: 'old.png', nickname: '果果' };
   _page.onLoad();                                   // 把 old.png 载入视图
   eq(_page.data.avatarUrl, 'old.png', '载入视图失败');
   _fsMode = 'fail';
-  _page.onChooseAvatar({ detail: { avatarUrl: 'tmp.png' } });
+  _page.onPickAvatar();
+  if (!_chooseImageCb) throw new Error('未调用 wx.chooseImage');
+  _chooseImageCb.success({ tempFilePaths: ['tmp.png'] });
   eq(_store[PROFILE_KEY].avatarUrl, 'old.png', '失败时应保留原头像');
   eq(_page.data.avatarUrl, 'old.png', '失败视图应保持不变(不写坏路径)');
 });
-test('T-U12', '边界', 'onChooseAvatar 临时路径为空：直接返回不写存储', () => {
+test('T-U12', '边界', 'onPickAvatar 用户取消（chooseImage fail）：不写存储', () => {
   resetStore();
   _store[PROFILE_KEY] = { avatarUrl: 'old.png', nickname: '果果' };
-  _page.onChooseAvatar({ detail: { avatarUrl: '' } });
-  eq(_store[PROFILE_KEY].avatarUrl, 'old.png', '空路径不应改动 profile');
+  _page.onPickAvatar();
+  if (!_chooseImageCb) throw new Error('未调用 wx.chooseImage');
+  _chooseImageCb.fail({ errMsg: 'cancel' });
+  eq(_store[PROFILE_KEY].avatarUrl, 'old.png', '取消不应改动 profile');
 });
 
 // ============ 昵称（blur / confirm） ============
@@ -193,28 +209,36 @@ test('T-U11', '正常', 'onNicknameConfirm 与 blur 同路径：正常保存', (
   _page.onNicknameConfirm({ detail: { value: '乐乐' } });
   eq(_store[PROFILE_KEY].nickname, '乐乐', 'confirm 路径未保存');
 });
+test('T-U14', '正常', 'onEditNameTap 聚焦昵称输入框：不抛错（产品兜底，引导点右边改名字）', () => {
+  resetStore();
+  _page.onEditNameTap();                  // 调 wx.createSelectorQuery(...).context(focus)，mock 已桩
+});
 
 // ============ 静态结构核查（防回归：头像覆盖层不得外溢盖住昵称，#52） ============
 const fs = require('fs');
 const _wxml = fs.readFileSync(path.join(__dirname, '..', 'miniprogram', 'pages', 'stats', 'stats.wxml'), 'utf-8');
 const _wxss = fs.readFileSync(path.join(__dirname, '..', 'miniprogram', 'pages', 'stats', 'stats.wxss'), 'utf-8');
 
-test('T-W01', '结构', 'chooseAvatar 按钮位于 avatar-wrap 内、昵称输入为其兄弟节点（不被覆盖层盖住）', () => {
+test('T-W01', '结构', '头像命中区=.avatar-circle(view,catchtap)在 avatar-wrap 内、昵称为其兄弟；弃用脆弱原生 button；昵称右侧有独立 ✎', () => {
   const wrapIdx = _wxml.indexOf('<view class="avatar-wrap">');
-  const btnIdx = _wxml.indexOf('<button class="avatar-btn"');
+  const circleIdx = _wxml.indexOf('<view class="avatar-circle" catchtap="onPickAvatar">');
   const metaIdx = _wxml.indexOf('<view class="user-meta">');
-  if (wrapIdx < 0 || btnIdx < 0 || metaIdx < 0) throw new Error('WXML 结构缺失 avatar-wrap/avatar-btn/user-meta');
-  if (!(wrapIdx < btnIdx && btnIdx < metaIdx)) throw new Error('chooseAvatar 按钮未正确嵌套在 avatar-wrap 内');
+  const nameEditIdx = _wxml.indexOf('<view class="name-edit" catchtap="onEditNameTap">');
+  if (wrapIdx < 0 || circleIdx < 0 || metaIdx < 0 || nameEditIdx < 0)
+    throw new Error('WXML 结构缺失 avatar-wrap/avatar-circle(onPickAvatar)/user-meta/name-edit');
+  if (!(wrapIdx < circleIdx && circleIdx < metaIdx)) throw new Error('头像命中区未正确嵌套在 avatar-wrap 内');
+  if (!(metaIdx < nameEditIdx)) throw new Error('昵称右侧 ✎ 编辑图标位置错误');
+  if (_wxml.includes('open-type="chooseAvatar"')) throw new Error('不应再使用脆弱的原生 chooseAvatar 按钮(#52/#54)');
   if (!_wxml.includes('bindblur="onNicknameBlur"')) throw new Error('昵称 bindblur 缺失');
   if (!_wxml.includes('bindconfirm="onNicknameConfirm"')) throw new Error('昵称 bindconfirm 缺失');
 });
-test('T-W02', '结构', 'chooseAvatar 覆盖层必须显式 112rpx（禁止 width:100%，否则真机解析到视口盖住昵称，#52）', () => {
-  const start = _wxss.indexOf('.avatar-btn');
-  if (start < 0) throw new Error('WXSS 缺少 .avatar-btn');
+test('T-W02', '结构', '命中区死卡 112rpx：.avatar-wrap 显式 width:112rpx，且 WXSS 不含 .avatar-btn 绝对定位覆盖层（#52 根因）', () => {
+  const start = _wxss.indexOf('.avatar-wrap');
   const end = _wxss.indexOf('}', start);
   const block = _wxss.slice(start, end + 1);
-  if (!block.includes('width: 112rpx')) throw new Error('.avatar-btn 必须显式 width:112rpx');
-  if (block.includes('width: 100%')) throw new Error('.avatar-btn 禁止 width:100%（会解析到视口宽度盖住昵称）');
+  if (!block.includes('width: 112rpx')) throw new Error('.avatar-wrap 必须显式 width:112rpx');
+  if (_wxss.includes('.avatar-btn')) throw new Error('WXSS 不应再含 .avatar-btn（曾导致真机盖住昵称/#52）');
+  if (block.includes('width: 100%')) throw new Error('.avatar-wrap 禁止 width:100%（会解析到视口宽度）');
 });
 
 // ============ 输出 ============

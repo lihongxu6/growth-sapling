@@ -60,27 +60,51 @@ Page({
   },
 
   /**
-   * T5：头像选择（chooseAvatar 回调 → saveFile 持久化）
-   * 临时路径须 saveFile 持久化到本地用户目录，否则缓存回收后失效（§2.0.6 官方约束）。
+   * T5：头像选择（点击头像 → wx.chooseImage 选图 → saveFile 持久化）
+   * 弃用原生 <button open-type="chooseAvatar">：① button 当 flex 子元素会被默认 min-width 撑成椭圆(#54)；
+   *   ② 绝对定位覆盖层命中区在真机脆(#52)。改用 <view catchtap> 死卡 112rpx + wx.chooseImage，
+   *   命中区 = view 自身盒子，物理不可能盖住昵称。临时路径须 saveFile 持久化（§2.0.6 官方约束）。
    * T7：saveFile 失败 → 保留上次有效头像，不写入损坏路径。
    */
-  onChooseAvatar(e) {
-    const tempPath = e.detail.avatarUrl;
-    if (!tempPath) return;
-    const fs = wx.getFileSystemManager();
-    fs.saveFile({
-      tempFilePath: tempPath,
+  onPickAvatar() {
+    wx.chooseImage({
+      count: 1,
+      sizeType: ['original', 'compressed'],
+      sourceType: ['album', 'camera'],
       success: (res) => {
-        const savedPath = res.savedFilePath;
-        const profile = Storage.getProfile() || {};
-        profile.avatarUrl = savedPath;
-        Storage.setProfile(profile);
-        this.setData({ avatarUrl: savedPath });
+        const tempPath = (res.tempFilePaths || [])[0];
+        if (!tempPath) return;
+        const fs = wx.getFileSystemManager();
+        fs.saveFile({
+          tempFilePath: tempPath,
+          success: (r) => {
+            const savedPath = r.savedFilePath;
+            const profile = Storage.getProfile() || {};
+            profile.avatarUrl = savedPath;
+            Storage.setProfile(profile);
+            this.setData({ avatarUrl: savedPath });
+          },
+          fail: (err) => {
+            console.warn('[stats] 头像 saveFile 失败，保留原头像', err);
+          },
+        });
       },
-      fail: (err) => {
-        console.warn('[stats] saveFile 失败，保留原头像', err);
-      },
+      fail: () => { /* 用户取消选图，无需处理 */ },
     });
+  },
+
+  /**
+   * 昵称右侧 ✎ 编辑图标点击：聚焦昵称输入框，唤起键盘（产品兜底方案，引导点右边改名字）
+   */
+  onEditNameTap() {
+    wx.createSelectorQuery().in(this)
+      .select('.user-name')
+      .context((res) => {
+        if (res && res.context && typeof res.context.focus === 'function') {
+          res.context.focus();
+        }
+      })
+      .exec();
   },
 
   /**
