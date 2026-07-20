@@ -187,6 +187,8 @@ PRD ✅ → 设计评审 ✅ → 原型(已冻结) ✅ → UI设计稿(Route A) 
 
 
 ---
+**第八轮（2026-07-20 用户拍板：方案 B 日历配色修复）**：用户真机发现 bug——「有任务但 0 完成」的日期在日历里显示**白底**（看不见当天是否有任务），而期望是像 2/3 号那样标**黄色**；完成=绿、补卡=绿+「补」字是对的。Sophia 先复述理解确认无误，给出 A/B 两方案，用户选 **B**：有任务0完成=黄(yellow) / 部分完成=橙(orange) / 全完成=绿(green) / 补卡完成=绿+「补」字（green + backfill 角标）。落地：① `stats.js` `_buildCalGrid` 重算配色——`doneRecs=Object.values(ci).filter(r=>r.done)`，`doneCount` 比 `totalTasks`（`Store.state.tasks.filter(!is_deleted)`）得 yellow/orange/green，`hasBackfill=doneRecs.some(r=>r.backfill)` → `backfill = (color==='green' && hasBackfill)`；② WXML 日历格内加 `<text class="cal-bf" wx:if="{{item.backfill}}">补</text>`；③ WXSS 新增 `.cal-cell.yellow`（软琥珀，对应原图 2/3 号「有任务」态）、把原 `.cal-cell.orange` 由黄改为**真橙**（`#FFE3CC`/`#E8820C`，区分「部分完成」）、`.cal-cell` 加 `position:relative` 并新增 `.cal-bf` 补字角标样式；④ 测试 `scripts/test_userinfo.js` 新增 T-C01~T-C05（黄/橙/绿/绿+补/无任务无配色映射）+ T-W03（cell 绑定 item.color + 补字角标结构防回归），**21/21 ✅**（原 15/15）；⑤ `miniprogram-ci compile` ✅ + `preview` 重出 `.preview-qr.png`。详见验收报告第十五节 + #58。⚠️ **上线提示**：v2.0.0 已 upload 到体验版，本次日历修复**尚未上传**——需用户重新 `upload`（新版本号如 2.0.1，更新 desc）并**再次在微信公众平台提交审核**；且《隐私保护指引》相册/摄像头声明（#57）仍须已配置。回归：本修复仅动 `_buildCalGrid` 配色 + 日历格结构 + 配色 CSS，**未碰头像/昵称命中区**（user-info 区零影响），但按 §3.18 仍跑了全量沙箱自测 21/21 确认无回归。
+
 ### 3.16 角色切换规则（2026-07-19 用户明确）
 
 - **按问题分类切换角色**：当用户提出的问题涉及**页面结构或交互方式**（如某个提示是否常驻、某个元素是否可点击、交互流程是否绕）时，Sophia 必须先从**用户体验师/交互设计师**视角判断"要不要做""有没有更好方案"，把专业判断和方案同步给用户，由用户决策后再执行；不得以"工程师/架构师"视角默认直接实现。
@@ -286,6 +288,7 @@ PRD ✅ → 设计评审 ✅ → 原型(已冻结) ✅ → UI设计稿(Route A) 
 | 55 | 2026-07-20 | 选头像用原生 `<button open-type="chooseAvatar">` 在「头像紧邻可编辑昵称」布局里：要么绝对定位命中区脆（#52），要么当 flex 子元素被默认 min-width 撑成椭圆盖住昵称（#54） | 微信原生 chooseAvatar 的两种承载方式（绝对定位覆盖层 / button 即头像）在此布局都不可靠 | ① 头像改用 `<view class="avatar-circle" catchtap="onPickAvatar">` 死卡 112rpx（由 .avatar-wrap 定死），弃用原生 chooseAvatar 按钮；② 选图改 `wx.chooseImage` → `saveFile` 持久化（等价原生能力，但命中区=view 自身盒子，物理不可能盖昵称）；③ 昵称右侧加独立 ✎ 编辑图标 `.name-edit catchtap=onEditNameTap` 聚焦输入框（用户拍板 C 方案的产品兜底，双保险）；④ 回归纪律不变（§3.18） | 本文件 §3.15、§3.17、测试验收报告第十二节 |
 | 56 | 2026-07-20 | 方案 C 额外加的昵称右侧 ✎ 编辑图标经真机确认显冗余——方案 A 的 view+catchtap 已隔开头像/昵称命中区，且原生 `<input type=nickname>` 点击即聚焦编辑 | 头像/昵称本就是极低频操作（§3.15），没必要再叠独立编辑图标制造冗余 UI/认知噪音 | ① 用户真机确认方案 A（view+catchtap 选图）即满足，昵称右侧冗余 ✎ 图标可去；② 昵称编辑直接点原生 input 即可（bindblur/bindconfirm 失焦即存），不另加编辑图标/聚焦函数；③ 与 §3.15「不堆常驻提示」一致：UI 做减法 | 本文件 §3.15、测试验收报告第十三节 |
 | 57 | 2026-07-20 | v2.0 头像改用 `wx.chooseImage`（album+camera）选图，但《隐私保护指引》未声明相册/摄像头 scope、App 内未弹隐私授权框 | 微信隐私规则（基础库 2.32.3+）：chooseImage/chooseMedia 等涉及相册/摄像头的能力，须后台《隐私保护指引》声明对应 scope 且用户授权弹窗通过后才能调用；否则 enforcement 设备直接失败、提审可能被拒 | ① 提审前在公众平台《隐私保护指引》添加并声明「相册(scope.album)」「摄像头(scope.camera)」类型（提交后进入审核、审核中仍不可调，但提审须先声明一致）；② App 内调 chooseImage 前弹隐私授权框（wx.requirePrivacyAuthorize 或系统弹窗）；③ v1.0 攻略「未采集隐私」对 v2.0 不适用，指引须更新；④ 见 #40/#41、微信小程序提审攻略-2026.md | 本文件 §3.15、攻略 v2.0 注 |
+| 58 | 2026-07-20 | 统计页日历「有任务0完成」日期显示白底，看不见当天是否有任务 | `_buildCalGrid` 原配色仅二态（全完成=绿 / 否则无配色=白底），缺「有任务未做」的中间态，0 完成日既非绿也无黄，落为白底 | 方案 B 三态配色：① 有任务0完成=黄(yellow, 软琥珀)；② 部分完成=橙(orange, 真橙 #FFE3CC/#E8820C)；③ 全完成=绿(green)；④ 补卡完成=绿 + 「补」角标(backfill)。`doneCount` vs `totalTasks(!is_deleted)` 决定黄/橙/绿，`backfill = (green && hasBackfill)`；WXSS 新增 `.cal-cell.yellow`、`.orange` 改真橙、`.cal-bf` 角标；WXML 加「补」字；自测 T-C01~C05+T-W03 锁 21/21 | 本文件 §3.15、验收报告第十五节、#57 |
 
 
 
@@ -401,3 +404,6 @@ PRD ✅ → 设计评审 ✅ → 原型(已冻结) ✅ → UI设计稿(Route A) 
 
 40. ✅ **成长页本地版用户信息区·测试工程师自测通过（本会话）**：按 §3.17 测试前置规则，交真机二维码前先以测试工程师身份做沙箱自测——**15/15 逻辑+静态结构单测全绿**（含 T-U13 stale 路径回落、T-W01/T-W02 覆盖层不外溢断言，`scripts/test_userinfo.js`：storage 往返/getProfile null/空串、onLoad 首次与回填、onChooseAvatar 成功持久化/失败保留原图/空路径返回、昵称 blur/confirm 正常/空值不覆盖/trim），+ 静态/编译（QC3/QC4/QC2/QC6）全绿。回归：stats 块逐字节未变、page-header 残留=0。结论：**沙箱可测工程问题已清零**，二维码可交用户真机确认。详细见 `docs/测试验收报告-用户信息区v2本地版.md`。⚠️ **硬约束**：chooseAvatar / input type=nickname 是微信原生组件，DevTools/沙箱无法模拟，T-R01~T-R06（浮层弹出/选图持久化/昵称键盘/视觉渲染）**只能用户真机扫码确认**（#22/#34/#QC7）。非缺陷：stats 页无 `.json` 属项目规范（home/tasks 同，splash 因 custom 才配），编译已通过。
 🔜 **提审推进（2026-07-20）**：用户确认方案 A 终态无误、拍板提审。AI 已 `scripts/build.js upload` 升版 **2.0.0**（143103 bytes，robot=1）生成开发版/体验版；**后续「提交审核」由用户在微信公众平台控制台点击**（AI 无法代点）→ 进入审核队列（通常 1-7 天）。**提审前置·隐私合规（关键，#57）**：v2.0 用 `wx.chooseImage`（album+camera），须《隐私保护指引》声明相册(scope.album)+摄像头(scope.camera) 且 App 内弹隐私授权框，否则 enforcement 设备调相册失败、提审可能拒。v1.0 攻略「未采集隐私」对 v2.0 不适用，指引须更新（见 #57）。
+
+
+41. 🔜 **日历配色修复（方案 B，2026-07-20）**：用户真机发现「有任务0完成」日显示白底，已按方案 B 修复（黄/橙/绿+补字），21/21 自测 ✅、compile ✅、preview 重出 ✅、已 commit+push `cddf13c`。⚠️ 仍需用户：① 重新 `upload` 新版本（2.0.1）+ ② 微信公众平台再次提交审核；③ 确认《隐私保护指引》已声明相册/摄像头（#57）。详见 §3.15 第八轮 + #58 + 验收报告第十五节。
