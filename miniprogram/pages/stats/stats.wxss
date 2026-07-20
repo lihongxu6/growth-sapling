@@ -25,40 +25,31 @@
   width: 112rpx;
   height: 112rpx;
 }
-.avatar-circle {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  border: 2rpx solid var(--green);
-  overflow: hidden;
-  background: var(--green-light);
-  box-sizing: border-box;
-}
-/* 图片为圆的直接子元素：填满 + aspectFill 居中裁剪，定位完全可控 */
-.avatar {
-  width: 100%;
-  height: 100%;
-  display: block;
-}
-/* 透明覆盖层：仅用于触发 chooseAvatar，不参与图片渲染，避免布局干扰居中 */
-/* 关键：尺寸必须显式 112rpx，绝不能用 width:100% —— 绝对定位下 % 在真机会解析到视口(750rpx)，
-   导致覆盖层铺满整张卡片、盖住右侧昵称输入框（#52 踩坑） */
+/* 头像即 chooseAvatar 按钮本身：普通 flex 子元素，被布局死死限制在 112rpx 头像列内，
+   物理上不可能外溢盖住昵称（#52：去掉绝对定位覆盖层，消除视口-% 解析脆点）*/
 .avatar-btn {
-  position: absolute;
-  top: 0;
-  left: 0;
   width: 112rpx;
   height: 112rpx;
   margin: 0;
   padding: 0;
   border-radius: 50%;
-  background: transparent;
-  border: none;
-  opacity: 0;
-  z-index: 2;
+  border: 2rpx solid var(--green);
+  background: var(--green-light);
+  overflow: hidden;
+  box-sizing: border-box;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .avatar-btn::after {
   border: none;
+}
+/* 图片直接填满按钮并 flex 居中裁剪（#52 后回归：之前 image 嵌按钮内曾不居中，故用 flex 居中 + 100% 填满）*/
+.avatar {
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 .avatar-badge {
   position: absolute;
@@ -82,14 +73,29 @@
   min-width: 0;
   display: flex;
   align-items: center;
+  gap: var(--sp-sm);
 }
 .user-name {
+  flex: 1;
+  min-width: 0;
   font-size: var(--fs-card-title);
   font-weight: 700;
   color: var(--text);
-  width: 100%;
   background: transparent;
   border: none;
+}
+/* 昵称右侧编辑图标：独立 tap 目标，引导用户点右侧改名字（#52 产品方案兜底）*/
+.name-edit {
+  flex-shrink: 0;
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 50%;
+  background: var(--green-light);
+  color: var(--green-dark);
+  font-size: 28rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* === 连续天数 === */

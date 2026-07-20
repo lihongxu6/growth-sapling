@@ -92,6 +92,18 @@ Page({
   onNicknameConfirm(e) {
     this._saveNickname(e.detail.value);
   },
+  /**
+   * #52 产品方案兜底：昵称右侧编辑图标点击 → 聚焦昵称输入框
+   * 头像已改为「头像即按钮本身」（普通 flex 子元素，物理上不可能盖住昵称），
+   * 此图标为额外引导，明确告诉用户「点右边改名字」。
+   */
+  onEditNameTap() {
+    wx.createSelectorQuery().select('.user-name').context((res) => {
+      if (res && res.context && typeof res.context.focus === 'function') {
+        res.context.focus();
+      }
+    }).exec();
+  },
   _saveNickname(val) {
     const nickname = (val || '').trim();
     if (!nickname) return; // 空值不覆盖

@@ -4,14 +4,16 @@
   <!-- 用户信息区（顶部，v2.0 本地版） -->
   <view class="user-card">
     <view class="avatar-wrap">
-      <view class="avatar-circle">
+      <!-- 头像即 chooseAvatar 按钮本身：普通 flex 子元素，被布局限制在 112rpx 头像列内，物理上不可能外溢盖住昵称（#52 去覆盖层）-->
+      <button class="avatar-btn" open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar">
         <image class="avatar" src="{{avatarUrl || defaultAvatar}}" mode="aspectFill" />
-      </view>
-      <button class="avatar-btn" open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar"></button>
+      </button>
       <view class="avatar-badge">✎</view>
     </view>
     <view class="user-meta">
       <input class="user-name" type="nickname" value="{{nickname}}" bindblur="onNicknameBlur" bindconfirm="onNicknameConfirm" />
+      <!-- 昵称右侧编辑图标：独立 tap 目标，引导用户点右侧改名字（#52 产品方案兜底）-->
+      <view class="name-edit" bindtap="onEditNameTap">✎</view>
     </view>
   </view>
 

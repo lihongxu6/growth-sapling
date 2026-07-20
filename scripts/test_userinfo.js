@@ -216,6 +216,17 @@ test('T-W02', '结构', 'chooseAvatar 覆盖层必须显式 112rpx（禁止 widt
   if (!block.includes('width: 112rpx')) throw new Error('.avatar-btn 必须显式 width:112rpx');
   if (block.includes('width: 100%')) throw new Error('.avatar-btn 禁止 width:100%（会解析到视口宽度盖住昵称）');
 });
+test('T-W03', '结构', 'chooseAvatar 按钮不得用绝对定位覆盖层（否则真机盖住昵称，#52 去覆盖层）', () => {
+  const start = _wxss.indexOf('.avatar-btn');
+  if (start < 0) throw new Error('WXSS 缺少 .avatar-btn');
+  const end = _wxss.indexOf('}', start);
+  const block = _wxss.slice(start, end + 1);
+  if (block.includes('position: absolute')) throw new Error('.avatar-btn 禁止 position:absolute（覆盖层会外溢盖住昵称，须改为头像即按钮本身）');
+});
+test('T-W04', '结构', '昵称右侧必须存在可点击编辑图标（产品方案兜底：引导点右侧改名字，#52）', () => {
+  if (!_wxml.includes('class="name-edit"')) throw new Error('缺少 name-edit 编辑图标');
+  if (!_wxml.includes('bindtap="onEditNameTap"')) throw new Error('name-edit 缺少 bindtap 编辑处理');
+});
 
 // ============ 输出 ============
 console.log('\n===== 用户信息区·沙箱逻辑自测 =====');
