@@ -252,6 +252,10 @@ PRD ✅ → 设计评审 ✅ → 原型(已冻结) ✅ → UI设计稿(Route A) 
 - 硬件结论（已核实）：**用户现机 2015 MBA 无法做现代 iOS 开发**——① 最高仅 macOS Monterey 12，只能装 Xcode 14；而当前 Xcode 16 需 macOS 14 Sonoma、Xcode 15 需 Ventura 13；② Apple 要求上架用较新 Xcode/SDK，Xcode 14 低于提交门槛→写得出也提交不了 App Store；③ 4GB 内存跑 Xcode+模拟器极勉强。
 - 建议若启动 iOS：至少 Apple Silicon Mac（M1/M2/M3/M4），**16GB 内存起步**，256GB+ SSD，能跑最新 macOS。小程序无官方「导出 iOS」通道，需原生(SwiftUI)重写或跨端(Flutter/RN)/套壳(Capacitor)方案。
 
+### 3.24 用户偏好：在意 LLM token 成本 / 关注 macOS 本地免费 AI coding（2026-07-22）
+- 用户明确关心「不花大模型 token 完成 AI coding」的方式。相关技术结论（供后续建议）：① Xcode 无公开 AI 聊天 API；可扩展点=Xcode Source Editor Extension(XcodeKit)、SourceKit-LSP、SwiftSyntax(确定性代码生成,零token)、xcodebuild/xcrun/simctl 命令行;② Xcode 16 Predictive Code Completion=设备端 Apple Silicon 模型,零token零云,但需 Apple Silicon+macOS14+;③ 本地大模型(Ollama/llama.cpp/MLX 接 Qwen-Coder/DeepSeek-Coder,配 Aider/Continue/Cline 或自写 Extension)可零token,需 16GB+ Apple Silicon Mac;④ SwiftSyntax 确定性生成零token零模型,任意Mac可跑。
+- 建议策略（省token不降质）：强模型(本助手/Claude/GPT)只用于架构/难算法/需求拆解；免费/本地工具用于样板/补全/重复重构/编译校验。用户现机(4GB 2015 MBA)只能跑 SwiftSyntax 类轻量方案，本地LLM与Xcode设备端补全需待换新机。
+
 ## 4. 踩过的坑（规则变更日志）
 
 > 以下每一条都来自用户反馈的 bug，修复后沉淀为规则。
