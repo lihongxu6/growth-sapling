@@ -130,12 +130,12 @@
   /* ② 高亮目标：绿色光圈 + 巨大扩散阴影实现整屏轻遮罩（不锁屏，弱引导） */
   .hl {
     position: relative; z-index: 60;
-    box-shadow: 0 0 0 4px #5CB85C, 0 0 0 9999px rgba(0,0,0,0.45);
+    box-shadow: 0 0 0 4px #5CB85C, 0 0 0 9999px rgba(0,0,0,0.30);
     border-radius: 16px; animation: pulse 1.4s ease-in-out infinite;
   }
   @keyframes pulse {
-    0%,100% { box-shadow: 0 0 0 4px #5CB85C, 0 0 0 9999px rgba(0,0,0,0.45); }
-    50%     { box-shadow: 0 0 0 8px rgba(92,184,92,0.7), 0 0 0 9999px rgba(0,0,0,0.45); }
+    0%,100% { box-shadow: 0 0 0 4px #5CB85C, 0 0 0 9999px rgba(0,0,0,0.30); }
+    50%     { box-shadow: 0 0 0 8px rgba(92,184,92,0.7), 0 0 0 9999px rgba(0,0,0,0.30); }
   }
 
   /* ③ 松鼠对话气泡（底部，拟人贯穿） */
@@ -159,7 +159,7 @@
   }
 
   /* ④ 授权弹窗（G3：微信 wx.requirePrivacyAuthorize 官方样式） */
-  .auth-mask { position: absolute; inset: 0; background: rgba(0,0,0,0.45); z-index: 80; display:flex; align-items:flex-end; }
+  .auth-mask { position: absolute; inset: 0; background: rgba(0,0,0,0.35); z-index: 80; display:flex; align-items:flex-end; }
   .auth-sheet {
     width: 100%; background: #fff; border-radius: 20px 20px 0 0; padding: 22px 22px 28px;
     box-shadow: 0 -8px 24px rgba(0,0,0,0.15);
@@ -330,7 +330,7 @@
             </div>
           </div>
           <div class="user-card hl">
-            <img class="avatar" src="miniprogram-assets/avatar-144.png" />
+            <img class="avatar" src="miniprogram/assets/avatar-144.png" />
             <div class="user-meta"><div class="user-name">果果的好朋友</div></div>
           </div>
         </div>
@@ -415,7 +415,7 @@
             </div>
           </div>
           <div class="user-card">
-            <img class="avatar" src="miniprogram-assets/avatar-144.png" />
+            <img class="avatar" src="miniprogram/assets/avatar-144.png" />
             <div class="user-meta"><div class="user-name">果果的好朋友</div></div>
           </div>
           <!-- 增量新增：操作手册入口（不动物上线统计块） -->
