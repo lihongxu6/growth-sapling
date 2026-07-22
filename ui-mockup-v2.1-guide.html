@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>成长小树苗 · v2.1 用户引导功能 设计稿（Route A 高保真）</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #EDE7DF;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+                 "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    color: #333333;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    padding: 28px 16px 60px;
+  }
+  .doc-title { text-align: center; margin-bottom: 4px; font-size: 24px; font-weight: 800; color: #333; }
+  .doc-sub { text-align: center; color: #888; font-size: 14px; margin-bottom: 6px; }
+  .legend {
+    max-width: 1100px; margin: 0 auto 28px; background: #fff; border-radius: 16px;
+    padding: 14px 18px; font-size: 13px; color: #555; box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  }
+  .legend b { color: #333; }
+  .legend code { background: #F4EFE8; padding: 1px 6px; border-radius: 6px; color: #5CB85C; font-weight: 600; }
+  .frames {
+    display: flex; flex-wrap: wrap; gap: 28px; justify-content: center; max-width: 1180px; margin: 0 auto;
+  }
+  .frame-col { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .frame-cap { font-size: 13px; font-weight: 600; color: #5CB85C; text-align: center; max-width: 393px; }
+
+  /* ===== iPhone 外框（393×852 基准） ===== */
+  .phone {
+    width: 393px; height: 852px;
+    background: #FFF8F0;
+    border-radius: 44px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.18);
+    overflow: hidden;
+    position: relative;
+    display: flex; flex-direction: column;
+  }
+  .navbar {
+    height: 44px; flex-shrink: 0;
+    background: #FFF8F0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 17px; font-weight: 600; color: #333;
+  }
+  .statusbar {
+    height: 54px; flex-shrink: 0;
+    background: #FFF8F0;
+    display: flex; align-items: flex-end; justify-content: center;
+    padding-bottom: 6px; font-size: 13px; color: #333; font-weight: 600;
+  }
+  .screen {
+    flex: 1; overflow-y: auto; position: relative;
+    padding-bottom: 12px;
+  }
+  .screen::-webkit-scrollbar { width: 0; }
+
+  /* 三页共用标题区（线上原样） */
+  .page-header { display: flex; align-items: center; padding: 12px 12px 6px; gap: 8px; }
+  .page-header-icon { width: 40px; height: 40px; flex-shrink: 0; display:flex; align-items:center; justify-content:center; font-size: 28px; }
+  .page-header-text { display: flex; flex-direction: column; }
+  .page-header-title { font-size: 22px; font-weight: 700; color: #333; line-height: 1.2; }
+  .page-header-subtitle { font-size: 13px; color: #888; margin-top: 2px; }
+
+  /* 用户信息区（v2.0 原样） */
+  .user-card {
+    margin: 0 12px; display: flex; align-items: center; gap: 12px;
+    background: #FFFFFF; border-radius: 16px; box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    padding: 12px; position: relative;
+  }
+  .avatar { width: 56px; height: 56px; border-radius: 50%; background:#E8F5E9; border:2px solid #5CB85C; object-fit: cover; }
+  .user-meta { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+  .user-name { font-size: 18px; font-weight: 700; color: #333; }
+
+  /* 统计模块（线上原样，仅示意） */
+  .section { padding: 0 12px; margin-bottom: 16px; }
+  .section-title { font-size: 16px; font-weight: 600; margin-bottom: 8px; display: block; }
+  .streak-section { display: flex; gap: 8px; padding: 0 12px 12px; }
+  .streak-card { flex:1; display:flex; align-items:center; gap:8px; padding:12px; background:#fff; border-radius:16px; box-shadow:0 2px 6px rgba(0,0,0,0.04); }
+  .streak-icon { font-size: 26px; }
+  .streak-num { font-size: 18px; font-weight: 700; }
+  .streak-label { font-size: 12px; color: #888; }
+
+  /* 打卡页任务卡（线上原样） */
+  .task-list { padding: 0 12px; }
+  .task-card {
+    display: flex; align-items: center; gap: 12px; padding: 14px 16px; margin-bottom: 10px;
+    background: #fff; border-radius: 16px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); position: relative;
+  }
+  .task-card.done { background: #E8F5E9; }
+  .task-ico { font-size: 26px; width: 30px; text-align:center; }
+  .task-name { flex: 1; font-size: 15px; font-weight: 600; }
+  .task-check { width: 26px; height: 26px; border-radius: 50%; border: 2px solid #E8E0D8; }
+  .task-check.on { background: #5CB85C; border-color: #5CB85C; color:#fff; display:flex; align-items:center; justify-content:center; font-size: 14px; }
+  .empty-hint { text-align: center; color: #888; font-size: 14px; padding: 40px 20px; }
+
+  /* 底部 TabBar（v2.0：打卡/任务/我的成长） */
+  .tabbar {
+    height: 64px; padding-bottom: 18px; flex-shrink: 0;
+    background: #FFFFFF; border-top: 1px solid #F0EAE2;
+    display: flex; align-items: center;
+  }
+  .tab { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .tab-ico { font-size: 22px; }
+  .tab-txt { font-size: 11px; color: #888; }
+  .tab.active .tab-txt, .tab.active .tab-ico { color: #5CB85C; }
+
+  /* =================== v2.1 新增组件 =================== */
+
+  /* ① 引导覆盖层：轻遮罩 + 步骤点 + 跳过（顶部） + 松鼠气泡 + 下一步（底部） */
+  .guide-ui {
+    position: absolute; inset: 0; z-index: 70; pointer-events: none;
+    display: flex; flex-direction: column; justify-content: space-between;
+  }
+  .guide-ui > * { pointer-events: auto; }
+  .guide-top {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 14px;
+  }
+  .step-dots { display: flex; gap: 6px; }
+  .step-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.5); }
+  .step-dot.on { background: #5CB85C; width: 18px; border-radius: 4px; }
+  .skip-btn {
+    font-size: 13px; color: #fff; background: rgba(0,0,0,0.35);
+    padding: 5px 12px; border-radius: 9999px; border: none; cursor: pointer;
+  }
+
+  /* ② 高亮目标：绿色光圈 + 巨大扩散阴影实现整屏轻遮罩（不锁屏，弱引导） */
+  .hl {
+    position: relative; z-index: 60;
+    box-shadow: 0 0 0 4px #5CB85C, 0 0 0 9999px rgba(0,0,0,0.45);
+    border-radius: 16px; animation: pulse 1.4s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%,100% { box-shadow: 0 0 0 4px #5CB85C, 0 0 0 9999px rgba(0,0,0,0.45); }
+    50%     { box-shadow: 0 0 0 8px rgba(92,184,92,0.7), 0 0 0 9999px rgba(0,0,0,0.45); }
+  }
+
+  /* ③ 松鼠对话气泡（底部，拟人贯穿） */
+  .squirrel-row {
+    display: flex; align-items: flex-end; gap: 8px; padding: 0 14px 18px;
+  }
+  .squirrel-img { width: 52px; height: 52px; flex-shrink: 0; animation: bob 1.5s ease-in-out infinite; }
+  @keyframes bob { 0%,100%{ transform: translateY(0);} 50%{ transform: translateY(-4px);} }
+  .bubble {
+    flex: 1; background: #fff; border-radius: 16px; padding: 12px 14px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12); position: relative; font-size: 15px; color: #333;
+  }
+  .bubble::before {
+    content: ""; position: absolute; left: -7px; bottom: 16px;
+    border: 8px solid transparent; border-right-color: #fff; border-left: 0;
+  }
+  .bubble .who { font-size: 12px; font-weight: 700; color: #5CB85C; display:block; margin-bottom: 2px; }
+  .next-btn {
+    margin-top: 10px; width: 100%; background: #5CB85C; color: #fff; border: none;
+    padding: 12px; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer;
+  }
+
+  /* ④ 授权弹窗（G3：微信 wx.requirePrivacyAuthorize 官方样式） */
+  .auth-mask { position: absolute; inset: 0; background: rgba(0,0,0,0.45); z-index: 80; display:flex; align-items:flex-end; }
+  .auth-sheet {
+    width: 100%; background: #fff; border-radius: 20px 20px 0 0; padding: 22px 22px 28px;
+    box-shadow: 0 -8px 24px rgba(0,0,0,0.15);
+  }
+  .auth-app { display:flex; align-items:center; gap:8px; font-size: 14px; font-weight:700; color:#333; margin-bottom: 12px; }
+  .auth-app .logo { width: 22px; height: 22px; border-radius: 6px; background:#5CB85C; color:#fff; display:flex; align-items:center; justify-content:center; font-size:13px; }
+  .auth-title { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+  .auth-body { font-size: 13px; color: #666; line-height: 1.7; margin-bottom: 6px; }
+  .auth-body b { color: #5CB85C; }
+  .auth-detail { font-size: 12px; color: #5BC0DE; margin-bottom: 16px; }
+  .auth-btns { display: flex; gap: 12px; }
+  .auth-btn { flex:1; padding: 12px; border-radius: 12px; font-size: 15px; font-weight: 600; border: none; cursor: pointer; }
+  .auth-btn.no { background: #F0EAE2; color: #666; }
+  .auth-btn.yes { background: #5CB85C; color: #fff; }
+
+  /* ⑤ 全部完成庆祝（design-spec §3.13） */
+  .celebrate {
+    position: absolute; inset: 0; z-index: 75; background: rgba(255,248,240,0.92);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 30px; text-align: center;
+  }
+  .celebrate .big { font-size: 24px; font-weight: 800; color: #5CB85C; animation: sway 1.5s ease-in-out infinite; }
+  @keyframes sway { 0%,100%{ transform: scale(1) rotate(-2deg);} 50%{ transform: scale(1.06) rotate(2deg);} }
+  .celebrate .sub { font-size: 15px; color: #666; }
+  .celebrate img { width: 96px; height: 96px; }
+  .celebrate .next-btn { max-width: 240px; }
+
+  /* ⑥ 操作手册单页（G4：纯静态图文） */
+  .manual {
+    position: absolute; inset: 0; z-index: 78; background: #FFF8F0; display: flex; flex-direction: column;
+  }
+  .manual-head { display:flex; align-items:center; justify-content: space-between; padding: 14px 16px; background:#FFF8F0; }
+  .manual-head .t { font-size: 18px; font-weight: 700; }
+  .manual-head .x { font-size: 22px; color: #888; width: 32px; height: 32px; text-align:center; }
+  .manual-body { flex:1; overflow-y:auto; padding: 4px 16px 24px; }
+  .manual-intro { display:flex; align-items:center; gap:10px; background:#fff; border-radius:16px; padding:12px; margin-bottom:14px; box-shadow:0 2px 6px rgba(0,0,0,0.04); }
+  .manual-intro img { width:46px; height:46px; }
+  .manual-intro .txt { font-size: 14px; color:#555; }
+  .manual-intro .txt b { color:#5CB85C; }
+  .m-step { display:flex; gap:12px; background:#fff; border-radius:16px; padding:14px; margin-bottom:10px; box-shadow:0 2px 6px rgba(0,0,0,0.04); }
+  .m-step .ico { font-size: 28px; width:36px; text-align:center; flex-shrink:0; }
+  .m-step .c .h { font-size: 15px; font-weight: 700; margin-bottom: 2px; }
+  .m-step .c .p { font-size: 13px; color: #666; }
+  .m-step .c .e { font-size: 12px; color: #5CB85C; margin-top: 4px; font-style: italic; }
+
+  /* ⑦ 成长页·操作手册入口（增量新增，不动物上线块） */
+  .manual-entry {
+    margin: 12px 12px 0; display: flex; align-items: center; gap: 10px;
+    background: #E8F5E9; border: 1px dashed #5CB85C; border-radius: 16px; padding: 12px 14px;
+  }
+  .manual-entry .ico { font-size: 24px; }
+  .manual-entry .t { font-size: 15px; font-weight: 700; color: #333; }
+  .manual-entry .sub { font-size: 12px; color: #888; }
+  .tag-new { font-size: 10px; font-weight: 700; color:#fff; background:#5CB85C; padding: 2px 6px; border-radius: 9999px; margin-left:auto; }
+
+  /* 设计说明区 */
+  .notes {
+    max-width: 1100px; margin: 40px auto 0; background: #fff; border-radius: 16px;
+    padding: 22px 26px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); font-size: 14px; color: #444;
+  }
+  .notes h2 { font-size: 18px; margin-bottom: 12px; color: #333; }
+  .notes h3 { font-size: 15px; margin: 14px 0 6px; color: #5CB85C; }
+  .notes ul { padding-left: 20px; }
+  .notes li { margin-bottom: 6px; }
+  .notes .warn { color: #E57373; font-weight: 600; }
+</style>
+</head>
+<body>
+  <div class="doc-title">成长小树苗 · v2.1 用户引导功能 · 设计稿</div>
+  <div class="doc-sub">Route A 高保真（沙箱 HTML/CSS）｜设计师角色 · 阶段三｜Token 严格对齐 design-spec v0.x</div>
+
+  <div class="legend">
+    <b>图例：</b>本稿覆盖 v2.1 四大功能 ——
+    <b>G1</b> 交互式首次引导（弱引导/可跳过）｜<b>G2</b> 隐私透明说明｜<b>G3</b> 权限授权衔接｜<b>G4</b> 常驻操作手册。
+    松鼠「果果」使用<b>已落地的真实 IP 资产</b>（<code>avatar-144-transparent.png</code>），非 emoji 占位（PRD G4 Optional）。
+    绿色光圈 = 当前引导高亮目标；灰色遮罩 = 弱引导轻遮罩（不锁屏，可自由操作）。
+  </div>
+
+  <div class="frames">
+
+    <!-- 帧 A：引导 Step 1 欢迎 + 清空 -->
+    <div class="frame-col">
+      <div class="frame-cap">A · 首次引导 Step 1｜松鼠欢迎 + 仪式性清空</div>
+      <div class="phone">
+        <div class="navbar">成长小树苗</div>
+        <div class="statusbar">9:41</div>
+        <div class="screen">
+          <div class="page-header">
+            <div class="page-header-icon">🌱</div>
+            <div class="page-header-text">
+              <div class="page-header-title">今日打卡</div>
+              <div class="page-header-subtitle">今天也要加油哦</div>
+            </div>
+          </div>
+          <div class="empty-hint">来添加你的第一个任务吧！</div>
+        </div>
+        <!-- 引导覆盖层 -->
+        <div class="guide-ui">
+          <div class="guide-top">
+            <div class="step-dots"><span class="step-dot on"></span><span class="step-dot"></span><span class="step-dot"></span><span class="step-dot"></span><span class="step-dot"></span><span class="step-dot"></span><span class="step-dot"></span><span class="step-dot"></span></div>
+            <button class="skip-btn">跳过 ›</button>
+          </div>
+          <div class="squirrel-row">
+            <img class="squirrel-img" src="miniprogram-assets/avatar-144-transparent.png" />
+            <div class="bubble">
+              <span class="who">果果</span>
+              嗨！我是果果🐿️～我们一起种一棵小树苗吧！我先帮你把旧数据清清，从零开始养成好习惯！
+              <button class="next-btn">开始吧 🌱</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 帧 B：引导 Step 3 打卡高亮 -->
+    <div class="frame-col">
+      <div class="frame-cap">B · 首次引导 Step 3｜高亮任务勾选 = 打卡</div>
+      <div class="phone">
+        <div class="navbar">成长小树苗</div>
+        <div class="statusbar">9:41</div>
+        <div class="screen">
+          <div class="page-header">
+            <div class="page-header-icon">🔥</div>
+            <div class="page-header-text">
+              <div class="page-header-title">今日打卡</div>
+              <div class="page-header-subtitle">今天也要加油哦</div>
+            </div>
+          </div>
+          <div class="task-list">
+            <div class="task-card done">
+              <div class="task-ico">📚</div><div class="task-name">每天读书</div>
+              <div class="task-check on">✓</div>
+            </div>
+            <div class="task-card hl">
+              <div class="task-ico">🏃</div><div class="task-name">运动 10 分钟</div>
+              <div class="task-check"></div>
+            </div>
+          </div>
+        </div>
+        <div class="guide-ui">
+          <div class="guide-top">
+            <div class="step-dots"><span class="step-dot on"></span><span class="step-dot on"></span><span class="step-dot on"></span><span class="step-dot"></span><span class="step-dot"></span><span class="step-dot"></span><span class="step-dot"></span><span class="step-dot"></span></div>
+            <button class="skip-btn">跳过 ›</button>
+          </div>
+          <div class="squirrel-row">
+            <img class="squirrel-img" src="miniprogram-assets/avatar-144-transparent.png" />
+            <div class="bubble">
+              <span class="who">果果</span>
+              点这里的小圆圈，就能给「运动」打卡啦！完成后它会变绿哦，你真棒💪
+              <button class="next-btn">打卡成功 👍</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 帧 C：引导 Step 7 改头像 + G3 授权弹窗 -->
+    <div class="frame-col">
+      <div class="frame-cap">C · 首次引导 Step 7｜改头像触发 G3 授权弹窗</div>
+      <div class="phone">
+        <div class="navbar">成长小树苗</div>
+        <div class="statusbar">9:41</div>
+        <div class="screen">
+          <div class="page-header">
+            <div class="page-header-icon">👤</div>
+            <div class="page-header-text">
+              <div class="page-header-title">我的成长</div>
+              <div class="page-header-subtitle">小树苗在长大</div>
+            </div>
+          </div>
+          <div class="user-card hl">
+            <img class="avatar" src="miniprogram-assets/avatar-144.png" />
+            <div class="user-meta"><div class="user-name">果果的好朋友</div></div>
+          </div>
+        </div>
+        <!-- G3 授权弹窗（微信官方样式） -->
+        <div class="auth-mask">
+          <div class="auth-sheet">
+            <div class="auth-app"><span class="logo">苗</span>成长小树苗</div>
+            <div class="auth-title">微信小程序隐私保护指引</div>
+            <div class="auth-body">在继续使用前，请阅读并同意《微信小程序隐私保护指引》。<br>你选择的<b>头像、昵称仅保存在这台手机里，不会上传到网上</b>。</div>
+            <div class="auth-detail">《微信小程序隐私保护指引》›</div>
+            <div class="auth-btns">
+              <button class="auth-btn no">拒绝</button>
+              <button class="auth-btn yes">同意并继续</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 帧 D：引导完成 庆祝 -->
+    <div class="frame-col">
+      <div class="frame-cap">D · 引导完成｜「你的小树苗发芽啦！」</div>
+      <div class="phone">
+        <div class="navbar">成长小树苗</div>
+        <div class="statusbar">9:41</div>
+        <div class="screen">
+          <div class="page-header">
+            <div class="page-header-icon">🔥</div>
+            <div class="page-header-text">
+              <div class="page-header-title">今日打卡</div>
+              <div class="page-header-subtitle">今天也要加油哦</div>
+            </div>
+          </div>
+          <div class="task-list">
+            <div class="task-card done"><div class="task-ico">📚</div><div class="task-name">每天读书</div><div class="task-check on">✓</div></div>
+            <div class="task-card done"><div class="task-ico">🏃</div><div class="task-name">运动 10 分钟</div><div class="task-check on">✓</div></div>
+          </div>
+        </div>
+        <div class="celebrate">
+          <img src="miniprogram-assets/avatar-144-transparent.png" />
+          <div class="big">🌟 你的小树苗发芽啦！🌟</div>
+          <div class="sub">你学会打卡啦，这些小任务已经留在你的手机里～</div>
+          <button class="next-btn">进入小程序 🎉</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 帧 E：操作手册单页（G4） -->
+    <div class="frame-col">
+      <div class="frame-cap">E · 常驻操作手册单页（G4）｜纯静态图文 + 松鼠拟人</div>
+      <div class="phone">
+        <div class="manual">
+          <div class="manual-head"><div class="t">操作手册</div><div class="x">✕</div></div>
+          <div class="manual-body">
+            <div class="manual-intro">
+              <img src="miniprogram-assets/avatar-144-transparent.png" />
+              <div class="txt">不会用的时候，随时来找我哦！我是<b>果果</b>，陪你一起养成好习惯～</div>
+            </div>
+            <div class="m-step"><div class="ico">➕</div><div class="c"><div class="h">添加任务</div><div class="p">点「任务」页的 + 号，写下想养成的小习惯。</div><div class="e">果果：从小目标开始最容易坚持！</div></div></div>
+            <div class="m-step"><div class="ico">✅</div><div class="c"><div class="h">每天打卡</div><div class="p">完成就点小圆圈，它会变绿，火焰也会亮起来🔥。</div><div class="e">果果：坚持一天就很了不起！</div></div></div>
+            <div class="m-step"><div class="ico">📅</div><div class="c"><div class="h">补卡</div><div class="p">漏了哪天？点日历选那天补上就好。</div><div class="e">果果：没关系，补上就好啦～</div></div></div>
+            <div class="m-step"><div class="ico">🌈</div><div class="c"><div class="h">看日历</div><div class="p">绿=全完成，橙=有补卡，黄=有任务，灰=没打卡。</div><div class="e">果果：看颜色就知道你多棒！</div></div></div>
+            <div class="m-step"><div class="ico">🏅</div><div class="c"><div class="h">看徽章</div><div class="p">坚持会解锁小徽章，收集起来超有成就感。</div><div class="e">果果：徽章是你努力的勋章！</div></div></div>
+            <div class="m-step"><div class="ico">🐿️</div><div class="c"><div class="h">换头像昵称</div><div class="p">在我的成长页点头像就能换，只存在本机哦。</div><div class="e">果果：换成你喜欢的样子吧！</div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 帧 F：我的成长页 + 手册入口（增量新增） -->
+    <div class="frame-col">
+      <div class="frame-cap">F · 我的成长页｜增量新增「操作手册」入口（§3.10）</div>
+      <div class="phone">
+        <div class="navbar">成长小树苗</div>
+        <div class="statusbar">9:41</div>
+        <div class="screen">
+          <div class="page-header">
+            <div class="page-header-icon">👤</div>
+            <div class="page-header-text">
+              <div class="page-header-title">我的成长</div>
+              <div class="page-header-subtitle">小树苗在长大</div>
+            </div>
+          </div>
+          <div class="user-card">
+            <img class="avatar" src="miniprogram-assets/avatar-144.png" />
+            <div class="user-meta"><div class="user-name">果果的好朋友</div></div>
+          </div>
+          <!-- 增量新增：操作手册入口（不动物上线统计块） -->
+          <div class="manual-entry">
+            <span class="ico">📖</span>
+            <div><div class="t">操作手册</div><div class="sub">不会用？果果带你一步步看</div></div>
+            <span class="tag-new">新增</span>
+          </div>
+          <div class="streak-section">
+            <div class="streak-card"><span class="streak-icon">🔥</span><div><div class="streak-num">3 天</div><div class="streak-label">连续打卡</div></div></div>
+            <div class="streak-card"><span class="streak-icon">⭐</span><div><div class="streak-num">12</div><div class="streak-label">星星</div></div></div>
+          </div>
+          <div class="section"><span class="section-title">本月日历</span>
+            <div style="background:#fff;border-radius:16px;padding:14px;box-shadow:0 2px 6px rgba(0,0,0,0.04);font-size:13px;color:#888;text-align:center;">（线上原样模块，本稿不改动）</div>
+          </div>
+        </div>
+        <div class="tabbar">
+          <div class="tab"><span class="tab-ico">🏠</span><span class="tab-txt">打卡</span></div>
+          <div class="tab"><span class="tab-ico">📋</span><span class="tab-txt">任务</span></div>
+          <div class="tab active"><span class="tab-ico">👤</span><span class="tab-txt">我的成长</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 设计说明 -->
+  <div class="notes">
+    <h2>设计师说明 · v2.1 用户引导功能（待评审）</h2>
+
+    <h3>一、设计决策（已定，待你确认）</h3>
+    <ul>
+      <li><b>松鼠拟人</b>：引导与手册中的果果一律使用真实 IP 资产 <code>avatar-144-transparent.png</code>，彻底弃用 emoji 占位（PRD G4 Optional + design-spec §8）。不同情绪用轻微 scale/rotate 动效区分（招手/鼓励/祝贺），不另做多套图。</li>
+      <li><b>弱引导覆盖层（G1）</b>：目标元素加 <code>.hl</code> 绿色光圈（1.4s 脉冲）+ 巨大扩散阴影实现整屏轻遮罩（<code>rgba(0,0,0,0.45)</code>）。覆盖层 <code>pointer-events:none</code>，仅「跳过/下一步」可点——<b>不锁屏、可自由操作</b>，符合 PRD「弱引导」。</li>
+      <li><b>步骤进度</b>：顶部 8 个步骤点（对应 PRD 2.1.5 八步），当前步高亮加长；右上常驻「跳过 ›」。</li>
+      <li><b>隐私透明说明（G2）</b>：松鼠气泡内嵌童趣文案「头像、昵称只存在这台手机里，不上传」；与 G3 授权弹窗文案同源。</li>
+      <li><b>授权弹窗（G3）</b>：采用微信官方 <code>wx.requirePrivacyAuthorize</code> 系统弹窗样式（底部 sheet），文案复用隐私说明；低版本（&lt;2.32.3）降级为直接调 chooseImage，气泡仍由 G2 覆盖。</li>
+      <li><b>操作手册（G4）</b>：成长页 user-card 下方<b>增量新增</b>「📖 操作手册」入口（虚线绿框 + 「新增」标），点击打开<b>单页纯静态图文手册</b>，松鼠果果拟人贯穿 6 个步骤。未新增独立「教程中心」页（§3.8）。</li>
+    </ul>
+
+    <h3>二、严格遵循的既有规则</h3>
+    <ul>
+      <li><b>§3.10 不动物上线内容</b>：手册入口为「增量新增」，连续天数/完成率/月历/徽章墙布局与交互零变化（帧 F 已标注「线上原样模块，本稿不改动」）。</li>
+      <li><b>§3.9 TabBar 顺序</b>：打卡 / 任务 / 我的成长，维持不变。</li>
+      <li><b>design-spec Token</b>：主色 <code>#5CB85C</code>、背景 <code>#FFF8F0</code>、卡片白、字号阶梯（正文 15px≥28rpx）、圆角 16、阴影柔和暖调——全部复用，无新 Token。</li>
+      <li><b>动效 ≤1500ms</b>：光圈脉冲 1.4s、松鼠 bob 1.5s、庆祝 sway 1.5s（design-spec §5）。</li>
+    </ul>
+
+    <h3>三、待你确认 / 可能调整</h3>
+    <ul>
+      <li>手册入口放在 user-card 正下方（帧 F）还是页脚？当前选正下方更顺手，待你定。</li>
+      <li>八步引导是否要合并为更短（如 5 步）以降低儿童认知负担？当前按 PRD 八步全保留。</li>
+      <li class="warn">真实松鼠仅 1 套资产，多表情区分靠动效；若你要更丰富的表情包，需插画师补（见 design-spec §8）。</li>
+    </ul>
+  </div>
+
+</body>
+</html>
