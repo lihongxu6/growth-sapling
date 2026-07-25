@@ -256,6 +256,11 @@ PRD ✅ → 设计评审 ✅ → 原型(已冻结) ✅ → UI设计稿(Route A) 
 - 用户明确关心「不花大模型 token 完成 AI coding」的方式。相关技术结论（供后续建议）：① Xcode 无公开 AI 聊天 API；可扩展点=Xcode Source Editor Extension(XcodeKit)、SourceKit-LSP、SwiftSyntax(确定性代码生成,零token)、xcodebuild/xcrun/simctl 命令行;② Xcode 16 Predictive Code Completion=设备端 Apple Silicon 模型,零token零云,但需 Apple Silicon+macOS14+;③ 本地大模型(Ollama/llama.cpp/MLX 接 Qwen-Coder/DeepSeek-Coder,配 Aider/Continue/Cline 或自写 Extension)可零token,需 16GB+ Apple Silicon Mac;④ SwiftSyntax 确定性生成零token零模型,任意Mac可跑。
 - 建议策略（省token不降质）：强模型(本助手/Claude/GPT)只用于架构/难算法/需求拆解；免费/本地工具用于样板/补全/重复重构/编译校验。用户现机(4GB 2015 MBA)只能跑 SwiftSyntax 类轻量方案，本地LLM与Xcode设备端补全需待换新机。
 
+### 3.25 设计稿流程纪律：先对齐流程再设计像素（2026-07-22 用户强约束）
+- 出设计稿前，必须先与用户就**引导流程步骤序列、每步的页面背景、关键交互/高亮点**达成文字级一致，写出来给用户 review；达成共识后才进入像素设计。
+- 设计稿（HTML/CSS/PNG）的**页面背景必须 1:1 还原线上真实页面**，禁止凭想象加 UI（如假绿点、假时间、假状态条等）。还原手段优先级：① 用户提供的真实页面截图 → ② 忠实复刻 `miniprogram/` 下的 WXML+WXSS 为 HTML → ③ 不可行时先与用户确认再动手。
+- 引导流程顺序严格遵循 PRD（v2.1：清空→建任务→打卡→补卡→看日历→看徽章→改头像/昵称→完成）；如对流程有其他想法必须**先口头提出来讨论**，禁止直接改稿或越序。
+
 ## 4. 踩过的坑（规则变更日志）
 
 > 以下每一条都来自用户反馈的 bug，修复后沉淀为规则。
@@ -330,6 +335,7 @@ PRD ✅ → 设计评审 ✅ → 原型(已冻结) ✅ → UI设计稿(Route A) 
 | 62 | 2026-07-20 | MEMORY §1 仍写「松鼠 IP 用 🐿️ emoji 占位、ImageGen 生成失败」，但二期已完成、真实 IP 资产（`assets/avatar-144.png` 默认头像+庆祝弹窗、`assets/headers/` 图标）已落地，新会话沿用过期描述 | 二期交付时未回扫 MEMORY §1 / design-spec / PRD 同步 IP 状态（违反 #49 回扫纪律）| 重大视觉资产/阶段交付完成后，必须回扫并更新：① MEMORY §1 项目身份 IP 状态；② design-spec §3.5/§3.6 IP 与表情；③ 相关 PRD 章节占位描述；避免后续会话被过期信息带偏 | 本文件 §1、design-spec §3.5/§3.6、§3.19 引导 PRD |
 | 63 | 2026-07-22 | v2.1 设计稿渲染后「好多地方看不到」：帧C/F 头像空白、帧B/C 非高亮区过暗 | ① 头像引用路径写错：`miniprogram-assets/avatar-144.png` 不存在，正确路径为 `miniprogram/assets/avatar-144.png`；② 引导遮罩 `rgba(0,0,0,0.45)` 对静态高保真稿太深，导致背景内容难以辨识 | ① HTML/CSS 视觉稿引用图片前必须 `ls` 确认文件真实存在，尤其注意 `miniprogram-assets/` 与 `miniprogram/assets/` 两个目录的区别；② 遮罩/dim 层 opacity 设计稿阶段建议 0.25–0.35，验证时用 headless 浏览器整页截图，不能只看代码 | `ui-mockup-v2.1-guide.html` |
 | 64 | 2026-07-22 | v2.1 设计稿又用相对路径图片（违反 #46），用户预览时松鼠/头像全白、报“生成的页面还有较多缺失” | 复用 design-spec 既有资产时直接写 `src="miniprogram/...png"` 相对路径，未内嵌 base64；open_result_view/预览环境相对路径解析失败→裂图 | ① 设计稿(HTML)图片**一律 base64 内嵌**（#46 硬规则），复用 `miniprogram/assets/` 或 `miniprogram-assets/` 资产时先读文件转 data URI；② 出稿前 Chromium 渲染 PNG 自查图片是否加载、布局是否完整；③ 用户期望“PNG 先确认→再出 HTML”，交付前自查可减少来回 | `ui-mockup-v2.1-guide.html` / #46 |
+| 65 | 2026-07-22 | v2.1 设计稿「较多缺失」根因复盘：① 凭想象发挥未以线上真实页面为背景，引入假 UI（左上小绿点、页面假时间）；② 引导流程顺序错——Step1 直接套「今日打卡」页，而 PRD 要求先「创建任务」再「打卡」；③ 未先与用户对齐流程就出图 | ① 违反「以线上真实页面为背景」原则，把装饰当真实组件；② 跳过流程对齐直接堆像素；③ 流程顺序与 PRD 不符 | 设计稿背景必须 1:1 还原线上真实页面（截图或忠实复刻 WXML/WXSS，禁止凭空加 UI）；流程/页面级分歧先文字对齐再设计；流程顺序以 PRD 为准 | `ui-mockup-v2.1-guide.html` / §3.25 / #46 |
 
 
 
