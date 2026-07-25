@@ -242,19 +242,19 @@ PRD ✅ → 设计评审 ✅ → 原型(已冻结) ✅ → UI设计稿(Route A) 
 - 落地方式：① 设计稿图片一律 **base64 内嵌**（守 #46），相对路径在 open_result_view/预览里会解析失败→裂图→用户看到“较多缺失”；② 出稿前先用 Chromium 渲染成 PNG 自查（图片是否显示、布局是否完整），再交用户确认；③ 用户确认 PNG 效果后，再定稿并 commit HTML。
 - “出 PNG”的来源：本项目**不依赖生成式 AI 出图**（ImageGen 等易超时/失败，对应昨晚“等好久最后生成失败”）。PNG 由草稿 HTML 经 Chromium 截图得到，可靠且不耗 credits。若未来确需 AI 出设计图，须先确认工具可用、做好超时与回落。
 
-### 3.22 用户设备环境（2026-07-22 用户提供 + 诊断）
-- 用户笔记本：**MacBook Air (13-inch, Early 2015)**，1.6 GHz 双核 Intel Core i5，内存 **4 GB 1600 MHz DDR3**，核显 Intel HD Graphics 6000 1536 MB。
-- 关键区分：**AI 设计生成 / Chromium 渲染出图都在 Sophia 的沙箱（云端）执行，不在用户笔记本上**。因此「生成失败 / 出图超时 / 卡死」这类问题基本与用户硬件无关——除非是用户本地跑 WeChat 开发者工具 / 预览小程序时卡。
-- 该机真实瓶颈 = **内存 4GB**：同时开 DevTools + 模拟器 + 浏览器 + 编辑器易吃满内存触发 swap（DDR3 + 慢 SSD），表现为整机卡死；此时属真·硬件不足。单纯查看本助手产出的 PNG（≈600KB）不会卡。诊断「卡死」时先问清发生在哪里（本助手预览 / WeChat DevTools / 整机），别直接归咎用户硬件。
+### 3.22 用户设备环境（2026-07-22 换机：2015 MBA→M3 MBA）
+- **新机（2026-07-22 起）**：MacBook Air 13 英寸, **M3 (2024)**, **24 GB** 内存, macOS **Tahoe 26.4.1**, 序列号 LF3CG664QK。旧机 2015 MBA 4GB 已退役。
+- 能力解锁：① 可做现代 iOS 开发(Xcode 16/17 + App Store 提交,§3.23 解锁);② 可本地跑 LLM(Ollama/MLX/Qwen-Coder,§3.24 解锁);③ Xcode 16 Predictive Code Completion(设备端 Apple Silicon 模型,零 token)可用;④ WeChat DevTools / 多 app 同时开毫无压力。
+- 诊断原则(换机前后均适用):**AI 设计生成 / Chromium 渲染出图都在 Sophia 沙箱(云端)执行,不在用户笔记本上**,故「生成失败 / 出图超时」仍与用户硬件无关;用户硬件只影响「本地跑 DevTools / 预览小程序」类任务。诊断「卡死」先问清发生位置(本助手预览 / DevTools / 整机),别直接归咎用户硬件。
 
-### 3.23 用户未来规划：iOS 版（2026-07-22 用户提出）
-- 用户设想未来把「成长小树苗」小程序做成 iOS 上的小工具 App。当前仍处设想阶段，未立项。
-- 硬件结论（已核实）：**用户现机 2015 MBA 无法做现代 iOS 开发**——① 最高仅 macOS Monterey 12，只能装 Xcode 14；而当前 Xcode 16 需 macOS 14 Sonoma、Xcode 15 需 Ventura 13；② Apple 要求上架用较新 Xcode/SDK，Xcode 14 低于提交门槛→写得出也提交不了 App Store；③ 4GB 内存跑 Xcode+模拟器极勉强。
-- 建议若启动 iOS：至少 Apple Silicon Mac（M1/M2/M3/M4），**16GB 内存起步**，256GB+ SSD，能跑最新 macOS。小程序无官方「导出 iOS」通道，需原生(SwiftUI)重写或跨端(Flutter/RN)/套壳(Capacitor)方案。
+### 3.23 用户未来规划：iOS 版（2026-07-22 用户提出，2026-07-22 换机解锁）
+- 用户设想未来把「成长小树苗」小程序做成 iOS 上的小工具 App。当前仍处设想阶段,未立项。
+- 硬件现况(2026-07-22 换机后):**新机 M3 MBA 24GB 完全满足 iOS 开发**——① macOS Tahoe 可装 Xcode 16/17;② 24GB 内存可同时跑 Xcode+模拟器+浏览器;③ M3 编译快;④ App Store 提交无障碍。旧机 2015 MBA 4GB 限制已解除(原 §3.23 旧内容作废)。
+- iOS 启动条件已具备;小程序无官方「导出 iOS」通道,需原生(SwiftUI)重写或跨端(Flutter/RN)/套壳(Capacitor)方案。真正立项时再起技术方案。
 
-### 3.24 用户偏好：在意 LLM token 成本 / 关注 macOS 本地免费 AI coding（2026-07-22）
-- 用户明确关心「不花大模型 token 完成 AI coding」的方式。相关技术结论（供后续建议）：① Xcode 无公开 AI 聊天 API；可扩展点=Xcode Source Editor Extension(XcodeKit)、SourceKit-LSP、SwiftSyntax(确定性代码生成,零token)、xcodebuild/xcrun/simctl 命令行;② Xcode 16 Predictive Code Completion=设备端 Apple Silicon 模型,零token零云,但需 Apple Silicon+macOS14+;③ 本地大模型(Ollama/llama.cpp/MLX 接 Qwen-Coder/DeepSeek-Coder,配 Aider/Continue/Cline 或自写 Extension)可零token,需 16GB+ Apple Silicon Mac;④ SwiftSyntax 确定性生成零token零模型,任意Mac可跑。
-- 建议策略（省token不降质）：强模型(本助手/Claude/GPT)只用于架构/难算法/需求拆解；免费/本地工具用于样板/补全/重复重构/编译校验。用户现机(4GB 2015 MBA)只能跑 SwiftSyntax 类轻量方案，本地LLM与Xcode设备端补全需待换新机。
+### 3.24 用户偏好：在意 LLM token 成本 / 关注 macOS 本地免费 AI coding（2026-07-22，2026-07-22 换机解锁）
+- 用户明确关心「不花大模型 token 完成 AI coding」的方式。技术结论(供后续建议):① Xcode 无公开 AI 聊天 API;可扩展点=Xcode Source Editor Extension(XcodeKit)/SourceKit-LSP/SwiftSyntax(确定性代码生成,零 token)/xcodebuild;② Xcode 16 Predictive Code Completion=设备端 Apple Silicon 模型,零 token 零云,需 Apple Silicon+macOS14+(**新机 M3+macOS Tahoe 满足,可立即启用**);③ 本地大模型(Ollama/llama.cpp/MLX 接 Qwen-Coder/DeepSeek-Coder,配 Aider/Continue/Cline 或自写 Extension)可零 token,**新机 24GB 跑得动**(建议 16B+ 量化模型);④ SwiftSyntax 确定性生成零 token 零模型,任意 Mac 可跑。
+- 建议策略(省 token 不降质):强模型(本助手/Claude/GPT)只用于架构/难算法/需求拆解;免费/本地工具用于样板/补全/重复重构/编译校验。**新机解锁后 Xcode 设备端补全 + 本地 LLM 均可立刻用,token 成本能压很低**。
 
 ### 3.25 设计稿流程纪律：先对齐流程再设计像素（2026-07-22 用户强约束）
 - 出设计稿前，必须先与用户就**引导流程步骤序列、每步的页面背景、关键交互/高亮点**达成文字级一致，写出来给用户 review；达成共识后才进入像素设计。
@@ -278,7 +278,7 @@ PRD ✅ → 设计评审 ✅ → 原型(已冻结) ✅ → UI设计稿(Route A) 
 - G7 完成：**包含**手册入口(G4)——设计稿先画手册入口占位/样式，开发阶段在 stats 页新增实现。
 - G1 创建任务 / G2 打卡 / G3 补卡 按 §3.27 真实页面映射锁定。
 - G4「看日历」落点**已确认=日历B**（`stats`页「打卡日历」月视图,纯浏览历史,与 G3 补卡用的 home 日历弹层区分）。
-- **v2.1 引导 7 步流程已 100% 锁定**：G1 创建任务(tasks)/G2 打卡(home)/G3 补卡(home日历)/G4 看日历(stats月历)/G5 看徽章(stats徽章墙)/G6 改头像(stats,不触发隐私弹窗)/G7 完成(stats,含手册入口G4占位)。下一步=定真实页面背景获取方式(A截图/B复刻源码/C混合)后出设计稿。
+- **v2.1 引导 7 步流程已 100% 锁定**:G1 创建任务(tasks)/G2 打卡(home)/G3 补卡(home 日历)/G4 看日历(stats 月历)/G5 看徽章(stats 徽章墙)/G6 改头像(stats,不触发隐私弹窗)/G7 完成(stats,含手册入口 G4 占位)。下一步=按 **B** 复刻真实 WXML+WXSS(tasks/home/stats 各页面态)为 HTML/CSS 当背景,叠加引导浮层,走 PNG-first(§3.21)出图。
 
 ## 4. 踩过的坑（规则变更日志）
 
