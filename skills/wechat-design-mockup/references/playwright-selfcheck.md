@@ -15,8 +15,10 @@ js_check = """
 () => {
   const phones = [...document.querySelectorAll('.phone')];
   return phones.map(phone => {
+    const cap = phone.closest('.frame-col')?.querySelector('.frame-cap')?.textContent || '';
     const coach = phone.querySelector('.coach');
-    const target = phone.querySelector(coach?.getAttribute('data-target'));
+    if (!coach) return { skipped: true, cap: cap.slice(0,40) };
+    const target = phone.querySelector(coach.getAttribute('data-target'));
     const bubble = phone.querySelector('.bubble-card');
     const spot = phone.querySelector('.target-spot');
     const pr = phone.getBoundingClientRect();
@@ -29,6 +31,14 @@ js_check = """
 }
 """
 
+def rect_gap(a, c):
+    """最近边间隙：两矩形相交则 0，否则是矩形间最小欧氏距离（更好对应视觉诉求）"""
+    ax2, ay2 = a['x']+a['w'], a['y']+a['h']
+    cx2, cy2 = c['x']+c['w'], c['y']+c['h']
+    dx = max(0, a['x']-cx2, c['x']-ax2)
+    dy = max(0, a['y']-cy2, c['y']-ay2)
+    return round((dx*dx+dy*dy)**0.5)
+
 with sync_playwright() as p:
     browser = p.chromium.launch()
     page = browser.new_page(viewport={"width": 1400, "height": 1000}, device_scale_factor=2)
@@ -38,15 +48,17 @@ with sync_playwright() as p:
     page.wait_for_timeout(300)
     data = page.evaluate(js_check)
     for i, d in enumerate(data):
+        if d.get('skipped'):
+            print(f"[{i+1}] skipped (no .coach, e.g. static/manual frame): {d.get('cap')}")
+            continue
         b, t, s, ph = d['bubble'], d['target'], d['spot'], d['phone']
         overflow = (b['x'] < 0 or b['y'] < 0 or b['x']+b['w'] > ph['w'] or b['y']+b['h'] > ph['h'])
         scx, scy = s['x']+s['w']/2, s['y']+s['h']/2
         tcx, tcy = t['x']+t['w']/2, t['y']+t['h']/2
         ringErr = round(max(abs(scx-tcx), abs(scy-tcy)))
-        bcx, bcy = b['x']+b['w']/2, b['y']+b['h']/2
-        dist = round(((bcx-tcx)**2+(bcy-tcy)**2)**0.5)
-        ok = (not overflow) and (ringErr <= 4) and (dist <= 260)
-        print(f"[{i+1}] ringErr={ringErr} dist={dist} overflow={overflow} -> {'OK' if ok else 'FAIL'}")
+        gap = rect_gap(b, t)  # 边缘间隙（小尾巴桥接 ≈ 12px）
+        ok = (not overflow) and (ringErr <= 4) and (gap <= 40)
+        print(f"[{i+1}] ringErr={ringErr} gap={gap} overflow={overflow} -> {'OK' if ok else 'FAIL'}")
     browser.close()
 ```
 
@@ -55,8 +67,10 @@ with sync_playwright() as p:
 | 指标 | 阈值 | 说明 |
 |---|---|---|
 | `ringErr` | ≤ 4px | 聚焦环中心 vs 目标中心，最大轴偏差 |
-| `bubbleDist` | ≤ 260px | 气泡中心 vs 目标中心距离；大目标（如日历）放宽到含等 260 |
+| `bubbleGap` | ≤ 40px | **边缘间隙**（小尾巴桥接，视觉效果直接对应）；≤ 12px 是理想 |
 | `overflow` | False | 气泡不溢出 `.phone` 画布（393×852） |
+
+> **指标戒条**：不要用"中心距"(`bubbleDist`)当主指标——对高瘦 / 扁平目标（如徽章墙 h=466）会被几何惩罚，呈现 >260px FAIL，但视觉上 bubble 已贴住目标。**指标必须直接对应视觉诉求**（贴住 + 尾巴桥接）。详见 MEMORY §3.39 / §4 #75。
 
 ## 进阶检查（诊断用）
 

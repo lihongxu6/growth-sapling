@@ -10,7 +10,8 @@ js_check = """
   for (const phone of phones) {
     const cap = phone.closest('.frame-col').querySelector('.frame-cap')?.textContent || '';
     const coach = phone.querySelector('.coach');
-    const targetSel = coach?.getAttribute('data-target');
+    if (!coach) { out.push({cap: cap.slice(0,40), skipped: true}); continue; }
+    const targetSel = coach.getAttribute('data-target');
     const target = phone.querySelector(targetSel);
     const bubble = phone.querySelector('.bubble-card');
     const spot = phone.querySelector('.target-spot');
@@ -44,6 +45,10 @@ with sync_playwright() as p:
     print("=== 逐帧定位校验 ===")
     allok = True
     for i, d in enumerate(data):
+        if d.get('skipped'):
+            print(f"[{i+1}] {d['cap']}")
+            print(f"    （无 coach，弹层/静态帧，跳过定位校验）")
+            continue
         b = d['bubble']; t = d['target']; s = d['spot']; ph = d['phone']
         # 气泡是否溢出 phone
         overflow = (b['x'] < 0 or b['y'] < 0 or b['x']+b['w'] > ph['w'] or b['y']+b['h'] > ph['h'])
@@ -51,19 +56,25 @@ with sync_playwright() as p:
         scx = s['x']+s['w']/2; scy = s['y']+s['h']/2
         tcx = t['x']+t['w']/2; tcy = t['y']+t['h']/2
         ringErr = round(max(abs(scx-tcx), abs(scy-tcy)))
-        # 气泡与目标中心距（应较近）
-        bcx = b['x']+b['w']/2; bcy = b['y']+b['h']/2
-        dist = round(((bcx-tcx)**2+(bcy-tcy)**2)**0.5)
-        ok = (not overflow) and (ringErr <= 4) and (dist <= 260)
+        # 气泡与目标的最小边距（贴合度）：两矩形相交则=0，否则为最近边间隙（小尾巴桥接）
+        def rect_gap(a, c):
+            ax2, ay2 = a['x']+a['w'], a['y']+a['h']
+            cx2, cy2 = c['x']+c['w'], c['y']+c['h']
+            dx = max(0, a['x']-cx2, c['x']-ax2)
+            dy = max(0, a['y']-cy2, c['y']-ay2)
+            return round((dx*dx + dy*dy) ** 0.5)
+        dist = rect_gap(b, t)
+        ok = (not overflow) and (ringErr <= 4) and (dist <= 40)
         allok = allok and ok
         print(f"[{i+1}] {d['cap']}")
         print(f"    target={t}  spot={s}  bubble={b}")
-        print(f"    ringErr={ringErr}px  bubbleDist={dist}px  overflow={overflow}  -> {'OK' if ok else 'FAIL'}")
+        print(f"    ringErr={ringErr}px  bubbleGap={dist}px  overflow={overflow}  -> {'OK' if ok else 'FAIL'}")
     # 诊断 dim
     print("\n=== 遮罩诊断（读 computed box-shadow & 取像素）===")
     diag = page.evaluate("""() => {
       const out=[];
       for(const phone of document.querySelectorAll('.phone')){
+        if(!phone.querySelector('.coach')) continue;
         const spot = phone.querySelector('.target-spot');
         const cs = getComputedStyle(spot);
         const pr = phone.getBoundingClientRect();
