@@ -22,3 +22,7 @@ package-lock.json
 
 # ===== 会话环境搭建指南（含私钥/AppSecret，禁止提交）=====
 SESSION-ENV-SETUP.md
+
+# ===== 自检脚本截图（verify_guide.py 输出，Chromium headless 产物，非交付物）=====
+_guide_frame_*.png
+_guide_frame_*.jpg
