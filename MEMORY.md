@@ -331,6 +331,12 @@ PRD ✅ → 设计评审 ✅ → 原型(已冻结) ✅ → UI设计稿(Route A) 
 - G1 创建任务 / G2 打卡 / G3 补卡 按 §3.27 真实页面映射锁定。
 - G4「看日历」落点**已确认=日历B**（`stats`页「打卡日历」月视图,纯浏览历史,与 G3 补卡用的 home 日历弹层区分）。
 - **v2.1 引导 7 步流程已 100% 锁定**:G1 创建任务(tasks)/G2 打卡(home)/G3 补卡(home 日历)/G4 看日历(stats 月历)/G5 看徽章(stats 徽章墙)/G6 改头像(stats,不触发隐私弹窗)/G7 完成(stats,含手册入口 G4 占位)。下一步=按 **B** 复刻真实 WXML+WXSS(tasks/home/stats 各页面态)为 HTML/CSS 当背景,叠加引导浮层,走 PNG-first(§3.21)出图。
+### 3.36 v2.1 引导 v4→v5：从「想象坐标」到「读真实 CSS + getBoundingClientRect 实测」（2026-07-22~23 血泪教训）
+- **v4 架构意图（正确）**：引导浮层 = 三件套——① `.target-spot` 绿色聚焦环 + 黑色遮罩（`box-shadow:0 0 0 4px green, 0 0 0 9999px rgba(0,0,0,.45)`，靠 `.phone{overflow:hidden}` 裁掉外溢）；② `.bubble-card` 气泡卡片贴目标 + `.bubble-tail` 小尾巴指向目标；③ 卡片内 = 唯一松鼠头像 `.bubble-avatar` + 文案 + `.bubble-skip`（右上「跳过 ✕」）+ `.bubble-next`——三要素同区（守 #70）。
+- **v4 失败根因**：浮层元素坐标是我「凭想象」写死的绝对像素（top/left 硬编码），完全没读 `home.wxss/tasks.wxss/stats.wxss` 真实布局 → 松鼠挡按钮、气泡离操作点几十~上百 px、视线上下跳（即用户 5 点反馈）。这是 #71 的典型踩坑。
+- **恢复灾难**：v4 被用户打回后，我用 `git checkout HEAD -- <file>` 想「回退重改」，结果把未提交的工作区改动连同 v3/v4 源码一起**不可逆抹掉**（该命令只还原已跟踪文件、丢弃未提交改动且不进回收站）。v3/v4 源码无法恢复，只能从零按真实 CSS 重做。即 #72。
+- **v5 正确做法（已落地并验证）**：① 读 `app.wxss` 取 token，把 `Nrpx` 全部转 `calc(N * var(--u))`（`--u=393/750≈0.524px`）——**禁止在浏览器里写 `Nrpx`**（rpx 是微信专有、标准浏览器不识别、整条 CSS 声明被静默丢弃，曾致聚焦环/边框消失）；② JS 运行时 `getBoundingClientRect()` 实测目标矩形，按 4 边（下/上/右/左）选气泡位 + clamp 到画布，绝不写死坐标；③ 出稿前用 Playwright 自检：逐帧断言 `ringErr≤4px / 气泡不溢出 / 距目标<260px` + 读 computed `box-shadow` 确认遮罩渲染。`scripts/verify_guide.py` 已 6/6 PASS。
+- **纪律**：引导/任何浮层设计，**先读真实 WXML/WXSS 拿布局，再用 getBoundingClientRect 实测定位**，绝不凭空写像素；改动落盘前先 commit/WIP 防丢失（#72）。
 
 ## 4. 踩过的坑（规则变更日志）
 
@@ -385,9 +391,7 @@ PRD ✅ → 设计评审 ✅ → 原型(已冻结) ✅ → UI设计稿(Route A) 
 | 46 | 2026-07-18 | 设计稿 HTML 出现裂图（相对路径失效）和 UI 内橙色「新增」角标，被用户指出未达当前阶段交付标准 | 设计稿作为独立交付物，必须自包含：图片用 base64 内嵌；UI 区域不得残留评审标注（如角标），新增说明只能放在外部图例/文案中 | 每一阶段交付物必须自包含、无瑕疵，**不把问题带到下一阶段**；设计稿被驳回时要立即修复再重新确认 | — |
 | 45 | 2026-07-18 | 跑 `node scripts/build.js compile|preview` 套 `| tail` 时长时间无输出，误判为卡死（实则该命令首次会下载 summer-compiler 内核，耗时可达 ~10 分钟；且 tail 缓冲全部 stdout 直到进程结束才显示） | ① 首次 compile/preview 会下载编译内核，耗时数分钟；② `| tail` 缓冲 stdout，看不到实时进度 | 跑 build.js **不要套 `| tail`**；改用 `> log 2>&1 &` 后台写日志 + 实时 `cat` 观察；首次编译耐心等 ~10 分钟属正常（内核下载后秒级完成） | — |
 | 47 | 2026-07-19 | 取 GitHub 只读 token 时用 `source get_token.sh github \| head -20` 偷看，导致 `$GITHUB_TOKEN` 为空、clone 失败 | `source` 经管道 `\|` 执行会在子 shell 中运行，脚本内 `export` 的变量随子 shell 退出而丢失 | 取 token 时**不要给 source 套管道**；`source ...get_token.sh github` 后直接在同一命令里 `git clone`（不要 `\| head` 偷看）；该只读 token 仅用于 clone/search，push 仍用 `.private/pat.txt` 的 classic PAT | — |
-
 ---
-
 | 48 | 2026-07-19 | `miniprogram-ci compile` 打印「包大小: NaN KB」且命令进程长时间不退出（看似卡死，前台易超时转后台） | ① compile 模式返回的 result 不含 `.size` 字段，build.js 用 `result.size/1024` 算出 NaN（纯显示瑕疵）；② `summer-compiler` 子进程有时不干净退出，导致 `node scripts/build.js compile` 主进程挂起 | ① 日志出现 `✅ 编译成功` 即代表通过，忽略 NaN KB；② 编译卡住时直接读 `/tmp/compile.log` 已出成功日志即视为通过，TaskStop/kill 挂起进程即可，不必重跑；③ 勿因前台超时慌乱重跑（会再触发内核下载耗时） | — |
 ---
 | 49 | 2026-07-19 | 原型与 PRD/tech-spec/design-spec 仍描述已撤销的「退出登录」 | 决策反转（本地版无退出登录）后未及时回扫所有视觉/文档交付物 | 任何设计决策反转后，立即重新扫描并同步所有相关交付物：原型、PRD、design-spec、tech-spec、MEMORY | 本文件 §3.16 |
@@ -413,8 +417,8 @@ PRD ✅ → 设计评审 ✅ → 原型(已冻结) ✅ → UI设计稿(Route A) 
 | 68 | 2026-07-22 | v2.1 设计稿 G1 添加任务弹窗凭印象画：标题写「添加新任务」（实际是「添加任务」）+ 无 X 关闭、16 个图标是凑的（不是 iconSet）、重复选项用「周一~五」（实际是 工作日）、单个「添加」按钮（实际是 取消+添加 并排） | 出设计稿时未对照 `miniprogram/pages/tasks/tasks.wxml` 真实结构，凭「感觉合理」画 | 设计稿任何弹窗/表单/按钮结构必须从源 WXML/WXSS 1:1 复刻，标题/字段/按钮/选项一一对齐；预填内容允许，布局不允许自创。判分：grep `tasks.wxml` 关键 class/title/option 比对，缺 1 处即 fail | `ui-mockup-v2.1-guide.html` / §3.33 |
 | 67 | 2026-07-22 | v2.1 设计稿所有气泡统一放在页面底部，远离高亮操作（用户「看不到对应关系」）| 设计师按"最简单"思路把所有 `.bubble` 写死 absolute 顶部/底部，未按目标位置动态锚定 | ① 引导气泡位置按目标位置动态锚定（上方/下方/屏幕外提示）+ 三角小尾巴指向高亮元素（§3.31）；② 设计稿阶段就实现锚定逻辑，不要等上线后才补 | `ui-mockup-v2.1-guide.html` / §3.31 |
 | 65 | 2026-07-22 | v2.1 设计稿「较多缺失」根因复盘：① 凭想象发挥未以线上真实页面为背景，引入假 UI（左上小绿点、页面假时间）；② 引导流程顺序错——Step1 直接套「今日打卡」页，而 PRD 要求先「创建任务」再「打卡」；③ 未先与用户对齐流程就出图 | ① 违反「以线上真实页面为背景」原则，把装饰当真实组件；② 跳过流程对齐直接堆像素；③ 流程顺序与 PRD 不符 | 设计稿背景必须 1:1 还原线上真实页面（截图或忠实复刻 WXML/WXSS，禁止凭空加 UI）；流程/页面级分歧先文字对齐再设计；流程顺序以 PRD 为准 | `ui-mockup-v2.1-guide.html` / §3.25 / #46 |
-
-
+| 71 | 2026-07-23 | v2.1 引导 v4 浮层坐标凭想象写死，松鼠挡按钮 / 气泡离操作点几十~上百 px / 视线上下跳 | 出浮层时未读 `home/tasks/stats.wxss` 真实布局，直接写死 top/left 像素 | ① 任何浮层/引导元素定位必须先读真实 WXML/WXSS 拿布局；② 运行时用 `getBoundingClientRect()` 实测目标矩形动态定位，绝不写死想象坐标；③ 自评用 Playwright 断言 `ringErr≤4px / 气泡不溢出 / 距目标<260px` | §3.36 / `scripts/verify_guide.py` / `ui-mockup-v2.1-guide.html` |
+| 72 | 2026-07-23 | v4 被打回后用 `git checkout HEAD -- <file>` 回退，未提交的工作区改动（含 v3/v4 源码）被不可逆抹掉，只能从零重做 | `git checkout/restore/clean` 还原已跟踪文件时会**丢弃未提交改动且不进回收站** | ① 任何「回退重改」前先 `git stash` 或 WIP 提交（`git commit --allow-empty` 或临时 commit）保底；② 绝不对该会话正在产出的未提交文件用 `checkout/restore/clean`；③ 关键交付物每完成一步即 commit，防丢失 | 本文件 §3.17、#71 |
 
 ## 5. 关键规则速查（design-spec §8.1 同步镜像）
 
