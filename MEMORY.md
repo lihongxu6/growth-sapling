@@ -381,6 +381,15 @@ PRD ✅ → 设计评审 ✅ → 原型(已冻结) ✅ → UI设计稿(Route A) 
   - `新芽初绽（7★）徽章` 从 `.badge earned` → `.badge`（unearned / 灰态），与"1★ < 7★"门槛自洽
 - **关联戒条**：见 §4 #76。
 
+### 3.41 v2.1 用户引导技术方案架构（2026-07-23，架构师角色产出 tech-spec-v2.1-guide.md）
+- **组件化**：2 个自定义组件 `components/coach-mark`（聚光灯+气泡+跳过/下一步）、`components/manual-sheet`（脱壳 5 卡 + 再走一遍）；引导控制器 `miniprogram/utils/guide.js`（步骤机 + `guideState` 持久化 + 跨页 switchTab）。
+- **单一真相源**：`GUIDE_CONTENT[]`（6 步文案+目标选择器）与 `MANUAL_CARDS[]`（手册卡片）共用一份，coach-mark 与 manual-sheet 不再各自写文案（防漂移，守 §3.7 文档维护）。
+- **真实测距 = mockup 原生等价**：`wx.createSelectorQuery().in(this).select(sel).boundingClientRect()` 返回页面可视区 px 矩形，正是 `ui-mockup-v2.1-guide.html` 里 `getBoundingClientRect()` 的小程序原生版 → **回头验证 §3.36（读真实源码 + 实测，不手画坐标）方法论正确**。研发自测必须真机实测，禁止凭 class 名臆测坐标。
+- **rpx 原生**：真实小程序用 rpx，删掉 mockup 演示用的 `calc(N*var(--u))`；emoji 真机原生渲染（无 Chromium 字体 bug）。
+- **原生 TabBar 限制**：`app.json` `custom:false`，fixed 遮罩无法覆盖系统 TabBar，遮罩底止于 TabBar 上沿（≈64px，同 mockup `.coach` `bottom:64px`）。
+- **目标选择器（真实 class，已核源码）**：G1 `.add-btn`(tasks.wxml:37) / G2 `.task-card`(home.wxml:42 首个) / G3 `.cal-grid`(stats.wxml:50) / G4 `.badge-grid`(stats.wxml:73) / G5 `.avatar-wrap`(stats.wxml:6) / G6 `.manual-entry`(新增)。
+- **3 个待确认（≤3）**：① 默认 4 任务(constants.DEFAULT_TASKS) vs G2「只显示孩子加的 1 个任务」叙事——建议保留 4 默认、文案改"添加你的第一个习惯"；② 遮罩透明度 .45(mockup 当前) vs §2 曾记降到 .30；③ 概念步 G3–G6 推进条件（看一眼即可 vs 必须点目标）。
+
 ## 4. 踩过的坑（规则变更日志）
 
 > 以下每一条都来自用户反馈的 bug，修复后沉淀为规则。
@@ -537,6 +546,7 @@ PRD ✅ → 设计评审 ✅ → 原型(已冻结) ✅ → UI设计稿(Route A) 
 12. ✅ 三页标题统一样式：左对齐 + 手绘图标 + 副标题（"今天也要加油哦"/"小树苗在长大"/"我想养成这些好习惯"）
 13. ✅ TabBar 图标改为手绘水彩风格（与页面标题图标一致）
 14. 🔜 用户扫码体验并反馈问题
+15. 🟡 v2.1 用户引导：技术方案已出（`tech-spec-v2.1-guide.md`）→ 研发实现 → 测试验收（设计稿 `ui-mockup-v2.1-guide.html` 为验收基准）；3 个待确认需先拍板。
 15. 🔜 上线流程（2026-07-16）：① 文案修复本地完成（3处）已 commit `8663ffd`；② ✅ compile + preview(167KB) + **upload 开发版 v1.0.0(137KB) 成功**；③ ⏭️ 用户操作：微信公众平台→版本管理→提交审核（个人号·工具类目）。**提审攻略已交付** `微信小程序提审攻略-2026.md`（2026-07-16）：个人号+工具类目无需资质/测试账号/内容安全接口；必过三关=基础信息合规+隐私保护指引配置+小程序备案(发布前,错误码86369)；推荐类目=工具→备忘录(主)+日历(备)；隐私指引按代码实际调用声明(昵称输入需声明)；无登录故免测试账号。用户待办：配基础信息/隐私指引→提审→并行备案→发布
 16. 📋 已生成 `SESSION-ENV-SETUP.md`（含 appid/secret/私钥/PAT + 一键复现脚本，已全部 gitignore），新会话发此文件即可一键搭建 git/微信小程序环境；详见该文件 §1-§5。另：GitHub push 用 classic PAT 成功（见 #39），**PAT 已持久化到 `.private/pat.txt` 并内嵌于指南，决策为长期复用（90 天到期再覆盖），不再"用后撤销"**
 17. 📋 产品方向讨论（2026-07-16）：用户指出 v1 无账户体系=单设备单人；多用户需接入微信账户体系。结论：① 加用户信息页等新功能**必须重新提审**（正常新版本流程，类目不变无新资质）；② 账户数据须更新隐私指引声明；③ 个人号多用户推荐**微信云开发 + openid** 免服务器。**已确认（用户回答）**：多用户形态=**跨设备云同步**（必须用云开发）；用户信息页字段=**openid + 头像 + 昵称**。→ 隐私指引须声明：微信OpenID + 头像 + 昵称；头像/昵称推荐用官方「头像昵称填写」能力(`chooseAvatar`+`<input type="nickname">`)，避开 `wx.getUserProfile` 的灰色匿名头像坑；数据从 `wx.setStorageSync` 本地迁移到云数据库按 openid 分库。详情见 `微信小程序提审攻略-2026.md` #40。**✅ PRD 已重组为单文件 living PRD（`prd-成长小树苗.md`）+ 起草 v2.0 账户体系章节，用户确认 OK，已 commit `50c1503`**。
