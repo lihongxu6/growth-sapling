@@ -88,6 +88,13 @@
     </view>
   </view>
 
+  <!-- 操作手册入口（v2.1 G6 引导目标） -->
+  <view class="manual-entry" bindtap="onManualEntry">
+    <text class="manual-entry-icon">📖</text>
+    <text class="manual-entry-text">不会用？看操作手册</text>
+    <text class="manual-entry-arrow">›</text>
+  </view>
+
   <!-- 空状态 -->
   <view class="empty-state" wx:if="{{stars <= 7}}">
     <image class="empty-image" src="/miniprogram-assets/avatar.png" mode="aspectFit"></image>
@@ -95,3 +102,28 @@
     <text class="empty-desc">坚持打卡，你的成长数据和小树苗都会在这里！</text>
   </view>
 </view>
+
+
+<!-- 用户引导教练层（v2.1） -->
+<coach-mark
+  id="coach"
+  visible="{{coach.visible}}"
+  step="{{coach.step}}"
+  target="{{coach.target}}"
+  text="{{coach.text}}"
+  real="{{coach.real}}"
+  showClose="{{coach.showClose}}"
+  bind:targettap="onCoachTargetTap"
+  bind:next="onCoachNext"
+  bind:close="onCoachClose"
+  bind:complete="onCoachComplete"
+/>
+
+<!-- 操作手册弹层（G7） -->
+<manual-sheet
+  id="manual"
+  visible="{{manual.visible}}"
+  bind:close="onManualClose"
+  bind:cardtap="onManualCardTap"
+  bind:restart="onManualRestart"
+/>

@@ -12,6 +12,7 @@
 
 const Store = require('./store/index');
 const { loadPersistedState } = require('./utils/storage');
+const guide = require('./utils/guide');
 
 App({
   /**
@@ -26,6 +27,9 @@ App({
 
     // 3. 重新计算徽章（每次启动都检查一次，确保持久化数据加载后徽章状态正确）
     Store.recalcBadges();
+
+    // 4. 初始化用户引导状态（首次启动置 active,step=0；非首次不重置进度）
+    guide.onFirstLaunch();
 
     // 4. 获取系统信息（安全区等）
     const sysInfo = wx.getSystemInfoSync();

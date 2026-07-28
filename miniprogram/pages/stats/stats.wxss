@@ -349,3 +349,32 @@
   color: var(--text-secondary);
   text-align: center;
 }
+
+/* === 操作手册入口（v2.1 G6 引导目标） === */
+.manual-entry {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin: 0 var(--sp-lg) var(--sp-xl);
+  padding: 24rpx 28rpx;
+  background: var(--card-bg);
+  border: 2rpx solid var(--green-light);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+.manual-entry:active {
+  background: var(--green-light);
+}
+.manual-entry-icon {
+  font-size: 40rpx;
+}
+.manual-entry-text {
+  flex: 1;
+  font-size: var(--fs-md);
+  color: var(--text);
+  font-weight: 600;
+}
+.manual-entry-arrow {
+  font-size: 40rpx;
+  color: var(--green);
+}

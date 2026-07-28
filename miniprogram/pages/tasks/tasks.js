@@ -4,6 +4,7 @@
 
 const Store = require('../../store/index');
 const { ICON_SET, MAX_TASK_NAME, MAX_TASK_PURPOSE } = require('../../utils/constants');
+const guide = require('../../utils/guide');
 
 const REPEAT_LABELS = {
   daily: '每天',
@@ -38,10 +39,68 @@ Page({
     maxNameLen: MAX_TASK_NAME,
     maxPurposeLen: MAX_TASK_PURPOSE,
     keyboardHeight: 0,
+    // v2.1 用户引导教练层数据
+    coach: { visible: false, step: 0, target: '', text: '', real: false, showClose: false },
   },
 
   onShow() {
     this._refresh();
+    this._syncCoach();
+  },
+
+  /**
+   * 同步引导教练层（onShow + 推进后调用）
+   * 仅在「当前步属于本页」时展示；否则隐藏（防跨页残留）。
+   */
+  _syncCoach() {
+    const step = guide.getStep();
+    if (step === null || !guide.isStepOnPage('tasks', step)) {
+      if (this.data.coach.visible) this.setData({ 'coach.visible': false });
+      return;
+    }
+    const c = guide.getContent(step);
+    this.setData({
+      coach: { visible: true, step, target: c.target, text: c.text, real: c.real, showClose: c.showClose },
+    });
+  },
+
+  /** G1 强制步：真实点击目标(.add-btn) → 打开添加表单（真实动作由本页完成） */
+  onCoachTargetTap() {
+    const step = guide.getStep();
+    if (step !== 0) return;
+    this.onAdd();
+  },
+
+  /** 概念步下一步（本页无概念步，备位） */
+  onCoachNext() {
+    this._advanceGuide('tasks');
+  },
+
+  /** G3–G5 小 ×：关闭整个引导（本页无，备位） */
+  onCoachClose() {
+    guide.close();
+    this._syncCoach();
+  },
+
+  /** G6 完成（本页无末步，备位） */
+  onCoachComplete() {},
+
+  /**
+   * 推进引导：若进入下一步且跨页则 switchTab。
+   * @param {string} page 当前页名（tasks/home/stats）
+   */
+  _advanceGuide(page) {
+    const stepBefore = guide.getStep();
+    if (stepBefore === null) return;
+    guide.advance(page);
+    const stepAfter = guide.getStep();
+    if (stepAfter === null) { this._syncCoach(); return; }
+    const nextPage = guide.getContent(stepAfter).page;
+    if (nextPage !== page) {
+      wx.switchTab({ url: guide.PAGE_URL[nextPage] });
+    } else {
+      this._syncCoach();
+    }
   },
 
   _refresh() {
@@ -196,5 +255,13 @@ Page({
 
     this.setData({ showForm: false });
     this._refresh();
+
+    // v2.1 引导 G1：首次添加任务成功后推进到 G2（打卡页）
+    const step = guide.getStep();
+    if (step === 0) {
+      guide.advance('tasks');
+      this._syncCoach();
+      wx.switchTab({ url: guide.PAGE_URL.home });
+    }
   },
 });

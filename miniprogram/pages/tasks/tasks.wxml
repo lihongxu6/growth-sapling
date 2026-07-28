@@ -171,4 +171,19 @@
     <text class="empty-title">还没有任务哦</text>
     <text class="empty-desc">点击下方按钮，添加你的第一个任务吧！</text>
   </view>
+  <!-- 用户引导教练层（v2.1） -->
+  <coach-mark
+    id="coach"
+    visible="{{coach.visible}}"
+    step="{{coach.step}}"
+    target="{{coach.target}}"
+    text="{{coach.text}}"
+    real="{{coach.real}}"
+    showClose="{{coach.showClose}}"
+    bind:targettap="onCoachTargetTap"
+    bind:next="onCoachNext"
+    bind:close="onCoachClose"
+    bind:complete="onCoachComplete"
+  />
+
 </view>

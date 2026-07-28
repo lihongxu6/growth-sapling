@@ -1,0 +1,6 @@
+{
+  "usingComponents": {
+    "coach-mark": "../../components/coach-mark/index",
+    "manual-sheet": "../../components/manual-sheet/index"
+  }
+}

@@ -1,0 +1,30 @@
+<!-- 引导教练层：聚光灯 + 松鼠气泡 + 小×/下一步/完成 -->
+<view class="coach-root" wx:if="{{visible}}">
+  <!-- 遮罩：挡背景交互 + 禁滚；z 低于 target-spot(真实步可点) 与 bubble -->
+  <view class="coach-mask" catchtouchmove="noop" catchtap="noop"></view>
+
+  <!-- 聚光灯：box-shadow 巨大暗影 + 绿色高亮环；real 步可点(触发真实动作) -->
+  <view
+    class="target-spot {{real ? 'real' : ''}}"
+    style="{{spotStyle}}"
+    catchtap="onTargetTap"
+  ></view>
+
+  <!-- 气泡卡 -->
+  <view class="bubble {{bubbleSide}}" style="{{bubbleStyle}}">
+    <view class="bubble-head">
+      <text class="bubble-prog">果果 · 第 {{step + 1}} / 6 步</text>
+      <view class="bubble-close" wx:if="{{showClose}}" catchtap="onClose">✕</view>
+    </view>
+    <view class="bubble-body">
+      <image class="bubble-avatar" src="/assets/avatar-144.png" mode="aspectFit" />
+      <text class="bubble-text">{{text}}</text>
+    </view>
+    <view class="bubble-foot">
+      <view wx:if="{{real}}" class="btn-next disabled" catchtap="onLockedNext">下一步</view>
+      <view wx:elif="{{step < 5}}" class="btn-next" catchtap="onNext">下一步</view>
+      <view wx:else class="btn-complete" catchtap="onComplete">完成 🎉</view>
+    </view>
+    <view class="bubble-tail"></view>
+  </view>
+</view>

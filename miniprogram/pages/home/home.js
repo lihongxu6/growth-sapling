@@ -4,6 +4,7 @@
 
 const Store = require('../../store/index');
 const { today, fmtDate, fmtDateShort, isToday, isoOf, dateOfIso, daysInMonth, firstDayOfMonth } = require('../../utils/date');
+const guide = require('../../utils/guide');
 
 Page({
   data: {
@@ -23,12 +24,77 @@ Page({
     calDays: [],
     fmtDate,
     fmtDateShort,
+    // v2.1 用户引导教练层数据
+    coach: { visible: false, step: 0, target: '', text: '', real: false, showClose: false },
   },
 
   onLoad() {},
 
   onShow() {
     this._refresh();
+    this._syncCoach();
+  },
+
+  /**
+   * 同步引导教练层（onShow + 推进后调用）
+   */
+  _syncCoach() {
+    const step = guide.getStep();
+    if (step === null || !guide.isStepOnPage('home', step)) {
+      if (this.data.coach.visible) this.setData({ 'coach.visible': false });
+      return;
+    }
+    const c = guide.getContent(step);
+    this.setData({
+      coach: { visible: true, step, target: c.target, text: c.text, real: c.real, showClose: c.showClose },
+    });
+  },
+
+  /**
+   * G2 强制步：真实点击首个任务卡 → 真实打卡（Store.toggleTask）+ 推进到 G3(统计页)
+   * 注意：教练层 target-spot(real) 拦截了点击，原 .task-card 的 onTaskTap 不会触发，
+   * 故此处手动完成真实打卡动作，再推进引导。
+   */
+  onCoachTargetTap() {
+    const step = guide.getStep();
+    if (step !== 1) return;
+    const t = this.data.activeTasks[0];
+    if (t) {
+      Store.toggleTask(t.id);
+      this._refresh();
+    }
+    this._advanceGuide('home');
+  },
+
+  /** 概念步下一步（本页无概念步，备位） */
+  onCoachNext() {
+    this._advanceGuide('home');
+  },
+
+  /** G3–G5 小 ×：关闭整个引导（本页无，备位） */
+  onCoachClose() {
+    guide.close();
+    this._syncCoach();
+  },
+
+  /** G6 完成（本页无末步，备位） */
+  onCoachComplete() {},
+
+  /**
+   * 推进引导：若进入下一步且跨页则 switchTab。
+   */
+  _advanceGuide(page) {
+    const stepBefore = guide.getStep();
+    if (stepBefore === null) return;
+    guide.advance(page);
+    const stepAfter = guide.getStep();
+    if (stepAfter === null) { this._syncCoach(); return; }
+    const nextPage = guide.getContent(stepAfter).page;
+    if (nextPage !== page) {
+      wx.switchTab({ url: guide.PAGE_URL[nextPage] });
+    } else {
+      this._syncCoach();
+    }
   },
 
   /** 刷新页面数据 */

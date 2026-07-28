@@ -1,0 +1,26 @@
+<!-- 操作手册弹层（G7）：脱壳干净卡片，无遮罩/跳过/下一步 -->
+<view class="manual-root" wx:if="{{visible}}">
+  <view class="sheet-mask" catchtouchmove="noop" catchtap="onClose"></view>
+  <view class="manual-sheet">
+    <view class="sheet-head">
+      <text class="sheet-title">操作手册</text>
+      <view class="sheet-close" catchtap="onClose">✕</view>
+    </view>
+    <view class="sheet-cards">
+      <view
+        class="manual-card"
+        wx:for="{{cards}}"
+        wx:key="title"
+        data-page="{{item.page}}"
+        catchtap="onCardTap"
+      >
+        <text class="card-icon">{{item.icon}}</text>
+        <view class="card-text">
+          <text class="card-title">{{item.title}}</text>
+          <text class="card-desc">{{item.text}}</text>
+        </view>
+      </view>
+    </view>
+    <view class="manual-restart" catchtap="onRestart">再走一遍引导 ›</view>
+  </view>
+</view>

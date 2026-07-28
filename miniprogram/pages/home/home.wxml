@@ -108,3 +108,28 @@
   <view class="celeb-sub">{{celebrationText}}</view>
   <view class="celeb-stars">⭐ +{{doneCount}}</view>
 </view>
+
+
+<!-- 用户引导教练层（v2.1） -->
+<coach-mark
+  id="coach"
+  visible="{{coach.visible}}"
+  step="{{coach.step}}"
+  target="{{coach.target}}"
+  text="{{coach.text}}"
+  real="{{coach.real}}"
+  showClose="{{coach.showClose}}"
+  bind:targettap="onCoachTargetTap"
+  bind:next="onCoachNext"
+  bind:close="onCoachClose"
+  bind:complete="onCoachComplete"
+/>
+
+<!-- 操作手册弹层（G7） -->
+<manual-sheet
+  id="manual"
+  visible="{{manual.visible}}"
+  bind:close="onManualClose"
+  bind:cardtap="onManualCardTap"
+  bind:restart="onManualRestart"
+/>

@@ -5,6 +5,7 @@ const Store = require('../../store/index');
 const Storage = require('../../utils/storage');
 const { today, isoOf, daysInMonth, firstDayOfMonth, dateOfIso } = require('../../utils/date');
 const { BADGE_DEFS } = require('../../utils/constants');
+const guide = require('../../utils/guide');
 
 Page({
   data: {
@@ -20,6 +21,9 @@ Page({
     avatarUrl: '',
     nickname: '',
     defaultAvatar: '/assets/avatar-144.png',
+    // v2.1 用户引导教练层 + 操作手册弹层
+    coach: { visible: false, step: 0, target: '', text: '', real: false, showClose: false },
+    manual: { visible: false },
   },
 
   onLoad() {
@@ -28,6 +32,82 @@ Page({
 
   onShow() {
     this._refresh();
+    this._syncCoach();
+  },
+
+  /**
+   * 同步引导教练层（onShow + 推进后调用）
+   */
+  _syncCoach() {
+    const step = guide.getStep();
+    if (step === null || !guide.isStepOnPage('stats', step)) {
+      if (this.data.coach.visible) this.setData({ 'coach.visible': false });
+      return;
+    }
+    const c = guide.getContent(step);
+    this.setData({
+      coach: { visible: true, step, target: c.target, text: c.text, real: c.real, showClose: c.showClose },
+    });
+  },
+
+  /** G3–G5 概念步：下一步推进（本页内跨到下一概念步，如 G3→G4→G5） */
+  onCoachNext() {
+    this._advanceGuide('stats');
+  },
+
+  /** G3–G5 小 ×：关闭整个引导（终止） */
+  onCoachClose() {
+    guide.close();
+    this._syncCoach();
+  },
+
+  /** G6 末步：完成 → 关闭整个引导 */
+  onCoachComplete() {
+    guide.complete();
+    this._syncCoach();
+  },
+
+  /**
+   * 推进引导：若进入下一步且跨页则 switchTab。
+   */
+  _advanceGuide(page) {
+    const stepBefore = guide.getStep();
+    if (stepBefore === null) return;
+    guide.advance(page);
+    const stepAfter = guide.getStep();
+    if (stepAfter === null) { this._syncCoach(); return; }
+    const nextPage = guide.getContent(stepAfter).page;
+    if (nextPage !== page) {
+      wx.switchTab({ url: guide.PAGE_URL[nextPage] });
+    } else {
+      this._syncCoach();
+    }
+  },
+
+  /** G6 真实目标 .manual-entry（concept 步命中穿透）点击 → 打开操作手册 */
+  onManualEntry() {
+    this.setData({ 'manual.visible': true });
+  },
+
+  /* 操作手册弹层事件 */
+  onManualClose() {
+    this.setData({ 'manual.visible': false });
+  },
+  onManualCardTap(e) {
+    const page = e.detail.page;
+    this.setData({ 'manual.visible': false });
+    if (page && guide.PAGE_URL[page]) {
+      if (page === 'stats') {
+        this._syncCoach();
+      } else {
+        wx.switchTab({ url: guide.PAGE_URL[page] });
+      }
+    }
+  },
+  onManualRestart() {
+    guide.restart();
+    this.setData({ 'manual.visible': false });
+    wx.switchTab({ url: guide.PAGE_URL.tasks });
   },
 
   /**

@@ -53,7 +53,7 @@ PRD ✅ → 设计评审 ✅ → 原型(已冻结) ✅ → UI设计稿(Route A) 
 - ✅✅ **v2.0.1 审核已通过（2026-07-21 用户确认）**：含方案B日历配色+未来日白底+活跃任务口径对齐+补卡完成庆祝弹窗；提交前已按 #57 在《隐私保护指引》声明相册+摄像头（否则平台拦截）；**审核通过 → 下一环启动 v2.1（用户引导功能）阶段三设计稿**。发布状态待用户告知（通过即具备发布条件）。
 - ⛔ **关键前置阻塞**：v2.0 完整实现依赖用户在微信公众平台开通**云开发环境**并给出 **env-id**（见 §6 #21/#31/#32 与 tech-spec v2.0 章节）。开屏页本身不依赖云，已先行实现；账户体系 / 成长页云同步必须等 env-id 到位后才能落地。
 
-- ✅ **v2.1 用户引导功能 · 设计稿已交付并修复（2026-07-21 启动，2026-07-22 修复验证）**：设计师角色产出高保真视觉稿 `ui-mockup-v2.1-guide.html`（Route A，6 帧）并 commit。用户反馈渲染问题后定位并修复：① 头像引用路径 `miniprogram-assets/avatar-144.png`（不存在）改为 `miniprogram/assets/avatar-144.png`；② 引导遮罩 opacity 从 0.45 降至 0.30、授权弹窗背景降至 0.35，避免非高亮区过暗「看不到」。Chromium 整页渲染验证通过。设计决策：真实松鼠IP拟人 / 弱引导覆盖层(不锁屏) / G3 官方授权弹窗 / G4 成长页增量新增手册入口。🔜 **待用户最终确认 → 技术方案**(架构师角色) → 研发。
+- ✅ **v2.1 用户引导功能 · 设计稿已交付并修复（2026-07-21 启动，2026-07-22 修复验证）**：设计师角色产出高保真视觉稿 `ui-mockup-v2.1-guide.html`（Route A，6 帧）并 commit。用户反馈渲染问题后定位并修复：① 头像引用路径 `miniprogram-assets/avatar-144.png`（不存在）改为 `miniprogram/assets/avatar-144.png`；② 引导遮罩 opacity 从 0.45 降至 0.30、授权弹窗背景降至 0.35，避免非高亮区过暗「看不到」。Chromium 整页渲染验证通过。设计决策：真实松鼠IP拟人 / 弱引导覆盖层(不锁屏) / G3 官方授权弹窗 / G4 成长页增量新增手册入口。✅ **技术方案(架构师)已出** `tech-spec-v2.1-guide.md` → **研发已落地并 compile ✅**（2026-07-23~28）：coach-mark + manual-sheet 组件、utils/guide.js 状态机、三页 onShow 接驳、z-index 分层(教练60/弹层70+/庆祝80)、G1~G6 全链路贯通。
 
 **H5 独立轨道（与小程序分叉，§3.12）**：从 v2.0 起 H5 与小程序走不同页面设计（功能集与底层架构不同），不再「H5 对齐小程序设计稿」。历史曾做「H5 拉齐方案 A」（#28/#29，2026-07-18）已完成，但**该约定不再约束后续迭代**。当前 H5 第一批优化已 push（`58b41f7`，#33：顶部状态栏/导航栏移除 + 我的成长页用户信息卡片移除 + 所有松鼠形象统一浇水松鼠 IP + 日历弹层点灰背景关闭）；后续 H5 优化按用户逐项反馈继续、独立维护。⚠️ 本新会话专注**小程序 2.0**，H5 的改动请勿反向套用到小程序设计稿。
 
@@ -437,6 +437,26 @@ PRD ✅ → 设计评审 ✅ → 原型(已冻结) ✅ → UI设计稿(Route A) 
   3. **真机小程序用系统字体 + rpx，根本没有这个字体宽度问题**——HTML 里的排版即真机效果。
 - **结论**：（1）PNG 与 HTML 不一致时，**以 HTML 为准**；（2）PNG 不进 git、不进交付；（3）已加 `.gitignore` 屏蔽 `_guide_frame_*.png`。
 - **新坑/教训（已沉淀）**：研发或设计若需要"截图版"做评审，让脚本输出 PDF 或用真机截屏（同一字体栈），不要被 Chromium headless 截图误导设计决策。
+
+
+### 3.45 v2.1 用户引导 · 研发落地 + compile 通过（2026-07-23~28 研发角色）
+- **范围**：把已确认的引导设计（§3.43/§3.44 + tech-spec §11.4）落为代码。
+- **产出文件**：
+  - `miniprogram/utils/guide.js`：6 步状态机单一真相源（GUIDE_CONTENT / MANUAL_CARDS / PAGE_URL）+ storage 持久化（键 `guideState`，无 gs_ 前缀）；`onFirstLaunch / getStep / isStepOnPage / advance / close / complete / restart`。
+  - `miniprogram/components/coach-mark/`：聚光灯 + 松鼠气泡 + 小×/下一步/完成；用**全局** `wx.createSelectorQuery()`（非 `.in(this)`）实测页面级目标 rect 并自适应定位；`real=true` 步 target-spot 可点触发真实动作，概念步 pointer-events:none 仅高亮。
+  - `miniprogram/components/manual-sheet/`：5 张脱壳卡片 + 再走一遍引导。
+  - 三页接驳：`pages/tasks`(G1 `.add-btn`) / `pages/home`(G2 `.task-card`) / `pages/stats`(G3 `.cal-grid`→G4 `.badge-grid`→G5 `.avatar-wrap`→G6 `.manual-entry`) 的 `onShow` 调 `_syncCoach()`；`onCoachTargetTap / onCoachNext / onCoachClose / onCoachComplete` 推进/关闭；`onManualEntry / onManualCardTap / onManualRestart` 操作手册。
+  - `app.js` `onLaunch` 调 `guide.onFirstLaunch()`（首次置 active,step=0）。
+  - 新增 `home.json` / `stats.json`（usingComponents coach-mark + manual-sheet）；`stats.wxml` 新增 `.manual-entry` 入口；`tasks.wxml` 接入 coach-mark。
+- **关键分层决策（已落地）**：coach-root z60；页内弹层（添加表单/日历 z70、庆祝 z80、操作手册 z70/75）高于教练层，确保 G1 添加表单在引导期间可见可操作。
+- **验证**：`node scripts/build.js compile` ✅（NaN KB 为 build.js 显示瑕疵，实际包 ~177KB）；全部 JS `node --check` 通过。
+- **G6 行为说明**：G6 为概念步（real=false），教练遮罩挡住 `.manual-entry`，故引导期间该链接不可点；用户点「完成 🎉」结束引导后，链接正常可用（与文案「以后不会用的时候」一致）。
+
+### 3.46 环境坑：Write 工具把中文存成 GBK（2026-07-28 踩坑）
+- **现象**：本沙箱 `Write` 工具写入含中文的文件时，中文以 **GBK** 编码落盘（如 guide.js 首版 `用户` 存成 `\xd3\xc3`），导致 `miniprogram-ci compile` 报 `file is not in UTF-8 encoding`；而 `Edit` 工具改动的已有 UTF-8 文件保持 UTF-8（未被二次破坏）。
+- **排查**：用 Python `b.decode('utf-8')` 失败定位；`file` 命令显示 `Non-ISO extended-ASCII, with NEL line terminators`；逐字节扫描发现多字节 UTF-8 的尾字节被替换成 `?`(0x3F)（如 `）`→`EF BC 3F`、`→`→`E2 86 3F`）。
+- **正确做法（本环境）**：写/修含中文的文件优先用 **Python `open(path,'w',encoding='utf-8')`** 落地（heredoc 传 UTF-8 内容），不要依赖 `Write` 工具；写完再用 `b.decode('utf-8')` 校验一遍。读 MEMORY/源码若看到 mojibake，先确认是文件真 GBK 还是 Read 视图渲染伪影（本环境 Read 偶发把正常 UTF-8 显示成乱码，但文件本身是对的——用 Python 解码复核）。
+- **已修复**：guide.js 已用 Python 重写为干净 UTF-8（emoji 保留）。
 
 ## 4. 踩过的坑（规则变更日志）
 
