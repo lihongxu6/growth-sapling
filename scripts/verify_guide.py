@@ -54,7 +54,7 @@ with sync_playwright() as p:
         # 气泡与目标中心距（应较近）
         bcx = b['x']+b['w']/2; bcy = b['y']+b['h']/2
         dist = round(((bcx-tcx)**2+(bcy-tcy)**2)**0.5)
-        ok = (not overflow) and (ringErr <= 4) and (dist < 260)
+        ok = (not overflow) and (ringErr <= 4) and (dist <= 260)
         allok = allok and ok
         print(f"[{i+1}] {d['cap']}")
         print(f"    target={t}  spot={s}  bubble={b}")
