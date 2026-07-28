@@ -21,9 +21,10 @@
   - When 用户点击「操作手册」底部小链接，the system shall 弹出操作手册底部弹层。
   - When 用户点「再走一遍引导」，the system shall 重置进度并从 G1 重播。
 - **Unwanted**：
-  - If 用户点「跳过」，then the system shall 标记引导完成（不再出现），但保留「操作手册」入口可随时回看。
+  - If 用户点「关闭」小×（G3–G5 概念步才有此按钮），then the system shall 标记引导完成（status=done，不再自动弹出），但保留「操作手册」入口可随时回看。
+  - If 用户在 G1/G2 强制操作步，则该步骤 **无跳过/关闭按钮**（必须真点目标元素，不可跳）；G6 末步 **无跳过**（只剩「完成」）。
   - If 目标元素在折叠区外（成长页较长），then the system shall 先滚动目标入视区再测距定位，避免气泡指向屏外。
-- **State-driven**：While 引导进行中，the system shall 禁止页面滚动与误触（遮罩 `catchtouchmove`），仅允许目标操作 / 跳过 / 下一步。
+- **State-driven**：While 引导进行中，the system shall 禁止页面滚动与误触（遮罩 `catchtouchmove`），仅允许目标操作 / 「关闭」小×（G3–G5） / 下一步。
 - **Optional**：Where 用户已完成过引导，the system shall 不再自动弹出，仅保留手册入口。
 
 ---
@@ -67,7 +68,7 @@
 └───────────────┬──────────────────────┬───────────────────┘
                 │ 读/写                  │ 读 GUIDE_CONTENT
                 ▼                        ▼
-      storage 'gs_guideState'    components/coach-mark（聚光灯+气泡+跳过/下一步）
+      storage 'gs_guideState'    components/coach-mark（聚光灯+气泡+「关闭」小×（G3–G5）+下一步）
                                      components/manual-sheet（脱壳卡片 + 再走一遍）
                 │                        │
    tasks/home/stats 三页 wxml 各自包含    │
@@ -147,9 +148,9 @@ const MANUAL_CARDS = [
 // 导出：getStep()/advance(page)/skip()/restart()/isStepOnPage(page)/onFirstLaunch()
 ```
 
-### 6.2 `components/coach-mark` — 聚光灯 + 气泡 + 跳过/下一步
+### 6.2 `components/coach-mark` — 聚光灯 + 气泡 + 「关闭」小×（G3–G5）+ 下一步
 
-- **结构**：`<view class="coach-mask">`（fixed 全屏，`catchtouchmove` 禁滚）+ `.target-spot`（聚光灯：`.target-spot{ box-shadow:0 0 0 4rpx green, 0 0 0 9999rpx rgba(0,0,0,.45) }`，与设计稿同源）+ `.bubble`（松鼠头像 `assets/avatar-144.png` + 文案 + 跳过 + 下一步，三要素同区，单一松鼠）。
+- **结构**：`<view class="coach-mask">`（fixed 全屏，`catchtouchmove` 禁滚）+ `.target-spot`（聚光灯：`.target-spot{ box-shadow:0 0 0 4rpx green, 0 0 0 9999rpx rgba(0,0,0,.45) }`，与设计稿同源）+ `.bubble`（松鼠头像 `assets/avatar-144.png` + 文案 + 「关闭」小×（仅 G3–G5）/ 下一步（G1–G5）/ 完成（G6），三要素同区，单一松鼠）。
 - **定位（核心）**：`onReady` / 收到 `step` 变更后：
   ```js
   wx.createSelectorQuery().in(this).select(target).boundingClientRect(rect => {
@@ -160,7 +161,11 @@ const MANUAL_CARDS = [
   }).exec();
   ```
   与 `ui-mockup-v2.1-guide.html` 的 `positionCoach()` 逻辑一致（4 向选择 + clamp + fallback），Playwright 自检已验证 7 帧 `bubbleGap 0–12px` / `ringErr 0`。
-- **事件**：`bindtap` 跳过 → `triggerEvent('skip')`；下一步 → `triggerEvent('next')`。
+- **事件**：
+  - 「关闭」小×（仅 G3–G5 渲染，`data-action="close-guide"`）`bindtap` → `triggerEvent('close')` → `guide.close()` → `status=done`。
+  - 「下一步」`bindtap` → `triggerEvent('next')` → `guide.advance()`。
+  - 「完成 🎉」（仅 G6 渲染）`bindtap` → `triggerEvent('complete')` → `guide.complete()` → `status=done`。
+  - G1/G2 **不渲染**「关闭」按钮（强制操作步必须真点目标元素，不可跳）；G6 **不渲染**「关闭」按钮（末步无可跳）。
 - **灰阶**：遮罩透明度 = `rgba(0,0,0,.45)`（用户 2026-07-23 拍板，否定 .30 过淡）。
 
 ### 6.3 `components/manual-sheet` — 操作手册弹层（脱壳）
@@ -188,7 +193,10 @@ const MANUAL_CARDS = [
 1. **首次启动**：`app.onLaunch` → `guide.onFirstLaunch()`（无 `gs_guideState`）→ 置 `active,step=0` → 任务页 `onShow` 检测 step 属于本页 → 显示 G1。
 2. **真实步推进**：G1 用户点 `.add-btn` → 真打开添加弹窗（保持产品原行为）→ 引导在"添加"动作确认后 `advance()` → `switchTab` 到打卡页 → 打卡页 `onShow` 显示 G2。G2 用户点 `.task-card` 打勾 → `toggleTask` 后 `advance()` → `switchTab` 到成长页 → 显示 G3。
 3. **概念步推进**：G3–G6 均在成长页，果果讲解 + 聚光灯高亮该功能，孩子**看一眼点「下一步」即可**（`advance()` 仅改 `step` + 重渲染），不强求操作目标；但每步是**独立讲解**（逐屏阅读），不是"一路狂点下一步跳过"。
-4. **完成 / 跳过**：G6 点「完成 🎉」或任意步「跳过 ✕」→ `status='done'`。
+4. **完成 / 关闭**：
+   - G6 点「完成 🎉」→ `guide.complete()` → `status='done'`。
+   - G3/G4/G5 点气泡右上角小×（仅这几步渲染该按钮）→ `guide.close()` → `status=done`。
+   - G1/G2 **无关闭按钮**，必须真点目标元素才能解锁「下一步」（强制操作）。
 5. **回看 / 重播**：成长页 `.manual-entry` → `manual-sheet`；「再走一遍引导」→ `restart()`（`active,step=0`）+ `switchTab` 任务页。
 
 ---
@@ -214,8 +222,8 @@ const MANUAL_CARDS = [
 |---|---|---|
 | `guide_exposure` | 每步气泡展示 | `step`, `page` |
 | `guide_step_next` | 点下一步/完成 | `step`, `page`, `is_real`(G1/G2=true) |
-| `guide_skip` | 点跳过 | `step` |
-| `guide_complete` | 引导结束 | `total_duration_ms` |
+| `guide_close` | 点气泡右上角小×（仅 G3–G5 暴露） | `step` |
+| `guide_complete` | G6 点「完成 🎉」或 G3–G5 点小× | `step`(结束所在步)/`total_duration_ms` |
 | `manual_open` | 点操作手册入口 | — |
 | `manual_card_tap` | 点手册卡片 | `card`(添加任务/…) |
 | `manual_restart` | 点再走一遍引导 | — |
@@ -260,6 +268,13 @@ const MANUAL_CARDS = [
    - **G1 / G2 = 强制真实操作步**：必须真点（G1 真加任务、G2 真打卡）才能解锁"下一步"，不可跳过（呼应"前两步必须点"）。
    - **G3–G6 = 概念步**：每屏**看图 + 一句讲解**，孩子"看一眼点下一步"即可；不强求点击目标元素、但**每屏都有独立讲解、须逐屏过**，不是"一路狂点下一步直接跳过"。
    - 与 §3.30"概念性看图不强求操作"一致，但保留逐屏认知节奏。
+
+4. **【「跳过」按钮降权 / 移除·已确认】**（2026-07-23 用户补充决策）：
+   - **G1/G2 强制操作步** → **移除「跳过」按钮**（必须真点目标元素，不可跳）。
+   - **G6 末步** → **移除「跳过」按钮**（最后一步无可跳，只留「完成 🎉」）。
+   - **G3/G4/G5 概念步** → 「跳过 ✕」**降权为小 × 图标**（22×22 透明灰圆，悬停加深，无「跳过」文字），**语义 = 关闭整个引导**（`status=done`），**不等价于「下一步」**。
+   - 用户原话："放一个小叉就可以了，用户感知就是关掉" + "最后一步没有跳过，因为没什么可跳的了"。
+   - 研发实现：coach-mark 按 `step` 条件渲染（`step ∈ {3,4,5}` 才渲染 `.bubble-close`）；事件名 `close` → `guide.close()`；埋点 `guide_close(step)`；样式 ≤ 22×22px，避免视觉抢眼。
 
 ---
 
